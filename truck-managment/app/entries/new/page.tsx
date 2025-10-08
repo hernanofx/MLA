@@ -150,17 +150,17 @@ export default function NewEntryPage() {
 
   return (
     <AppLayout>
-      <div className="px-4 py-6 sm:px-0">
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900">Nueva Entrada/Salida</h1>
           <p className="mt-2 text-sm text-gray-700">
             Registra una nueva entrada o salida de camión.
           </p>
         </div>
-        <div className="max-w-md">
+        <div className="max-w-md mx-auto sm:max-w-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="provider" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="provider" className="block text-sm font-medium text-gray-700 mb-2">
                 Proveedor
               </label>
               <select
@@ -168,7 +168,7 @@ export default function NewEntryPage() {
                 value={selectedProvider}
                 onChange={(e) => setSelectedProvider(e.target.value)}
                 required
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3"
               >
                 <option value="">Seleccionar proveedor</option>
                 {providers.map((provider) => (
@@ -180,7 +180,7 @@ export default function NewEntryPage() {
             </div>
 
             <div>
-              <label htmlFor="truck" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="truck" className="block text-sm font-medium text-gray-700 mb-2">
                 Camión (Patente)
               </label>
               <input
@@ -191,7 +191,7 @@ export default function NewEntryPage() {
                 list="truck-list"
                 placeholder="Escribe o selecciona patente"
                 required
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3"
               />
               <datalist id="truck-list">
                 {trucks.map((truck) => (
@@ -200,61 +200,63 @@ export default function NewEntryPage() {
               </datalist>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Horario de Llegada
-              </label>
-              <div className="mt-1 flex items-center">
-                <input
-                  type="checkbox"
-                  checked={arrivalChecked}
-                  onChange={handleArrivalCheck}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <span className="ml-2 text-sm text-gray-900">
-                  Marcar llegada
-                </span>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Horario de Llegada
+                </label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={arrivalChecked}
+                    onChange={handleArrivalCheck}
+                    className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-900 font-medium">
+                    Marcar llegada
+                  </span>
+                </div>
+                {arrivalTime && (
+                  <p className="mt-2 text-sm text-gray-500 ml-8">
+                    {new Date(arrivalTime).toLocaleString()}
+                  </p>
+                )}
               </div>
-              {arrivalTime && (
-                <p className="mt-1 text-sm text-gray-500">
-                  {new Date(arrivalTime).toLocaleString()}
-                </p>
-              )}
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Horario de Salida
-              </label>
-              <div className="mt-1 flex items-center">
-                <input
-                  type="checkbox"
-                  checked={departureChecked}
-                  onChange={handleDepartureCheck}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <span className="ml-2 text-sm text-gray-900">
-                  Marcar salida
-                </span>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Horario de Salida
+                </label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={departureChecked}
+                    onChange={handleDepartureCheck}
+                    className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-900 font-medium">
+                    Marcar salida
+                  </span>
+                </div>
+                {departureTime && (
+                  <p className="mt-2 text-sm text-gray-500 ml-8">
+                    {new Date(departureTime).toLocaleString()}
+                  </p>
+                )}
               </div>
-              {departureTime && (
-                <p className="mt-1 text-sm text-gray-500">
-                  {new Date(departureTime).toLocaleString()}
-                </p>
-              )}
             </div>
 
             {duration !== null && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="bg-gray-50 p-4 rounded-md">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tiempo Total (minutos)
                 </label>
-                <p className="mt-1 text-sm text-gray-900">{duration} minutos</p>
+                <p className="text-lg font-semibold text-gray-900">{duration} minutos</p>
               </div>
             )}
 
             {error && (
-              <div className="text-red-500 text-sm">
+              <div className="text-red-500 text-sm bg-red-50 p-3 rounded-md">
                 {error}
               </div>
             )}
@@ -263,7 +265,7 @@ export default function NewEntryPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 h-12"
               >
                 {loading ? 'Registrando...' : 'Registrar Entrada'}
               </button>

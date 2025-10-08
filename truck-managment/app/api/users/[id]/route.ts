@@ -4,6 +4,13 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
+type UserUpdateData = {
+  name: string
+  email: string
+  role: string
+  password?: string
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -69,7 +76,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Email already taken' }, { status: 400 })
     }
 
-    const updateData: any = {
+    const updateData: UserUpdateData = {
       name,
       email,
       role,

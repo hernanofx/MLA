@@ -93,13 +93,13 @@ export default function UsersPage() {
                       <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                         Usuario
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">
                         Email
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">
                         Rol
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:table-cell">
                         Fecha de Creación
                       </th>
                       <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -110,7 +110,7 @@ export default function UsersPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {users.map((user) => (
                       <tr key={user.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                        <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
                           <div className="flex items-center">
                             <div className="h-10 w-10 flex-shrink-0">
                               <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -119,13 +119,17 @@ export default function UsersPage() {
                             </div>
                             <div className="ml-4">
                               <div className="font-medium text-gray-900">{user.name}</div>
+                              <div className="text-gray-500 sm:hidden">{user.email}</div>
+                              <div className="text-gray-400 text-xs sm:hidden mt-1">
+                                {user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">
                           {user.email}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="px-3 py-4 text-sm text-gray-500 hidden md:table-cell">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             user.role === 'admin'
                               ? 'bg-purple-100 text-purple-800'
@@ -139,22 +143,26 @@ export default function UsersPage() {
                             {user.role === 'admin' ? 'Administrador' : 'Usuario'}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="px-3 py-4 text-sm text-gray-500 hidden lg:table-cell">
                           {new Date(user.createdAt).toLocaleDateString('es-ES')}
                         </td>
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <button
-                            onClick={() => setEditingUser(user)}
-                            className="text-indigo-600 hover:text-indigo-900 mr-4"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(user.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                        <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <div className="flex items-center justify-end space-x-2">
+                            <button
+                              onClick={() => setEditingUser(user)}
+                              className="text-indigo-600 hover:text-indigo-900 p-1"
+                              title="Editar"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(user.id)}
+                              className="text-red-600 hover:text-red-900 p-1"
+                              title="Eliminar"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -232,9 +240,9 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div className="mt-3">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
+      <div className="relative top-4 mx-auto max-w-md w-full border shadow-lg rounded-lg bg-white">
+        <div className="p-4 sm:p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             {user ? 'Editar Usuario' : 'Crear Usuario'}
           </h3>
@@ -292,18 +300,18 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 <option value="admin">Administrador</option>
               </select>
             </div>
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 transition-colors"
               >
                 {loading ? 'Guardando...' : (user ? 'Actualizar' : 'Crear')}
               </button>
