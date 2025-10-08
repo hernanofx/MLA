@@ -33,7 +33,7 @@ export default function Sidebar() {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Proveedores', href: '/providers', icon: Users },
     { name: 'Camiones', href: '/trucks', icon: Truck },
-    { name: 'Entradas', href: '/entries', icon: ClipboardList },
+    { name: 'Entrada/Salida', href: '/entries', icon: ClipboardList },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
   ]
 
