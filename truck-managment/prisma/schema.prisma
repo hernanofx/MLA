@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Provider {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  entries   Entry[]
+}
+
+model Truck {
+  id           String   @id @default(cuid())
+  licensePlate String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  entries      Entry[]
+}
+
+model Entry {
+  id              String    @id @default(cuid())
+  providerId      String
+  truckId         String
+  arrivalTime     DateTime?
+  departureTime   DateTime?
+  week            Int?
+  month           Int?
+  durationMinutes Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  provider        Provider  @relation(fields: [providerId], references: [id])
+  truck           Truck     @relation(fields: [truckId], references: [id])
+}
