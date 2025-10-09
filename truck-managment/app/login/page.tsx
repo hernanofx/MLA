@@ -28,14 +28,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Iniciar Sesión
+        <div className="text-center">
+          <img src="/images/logo.png" alt="Truck Management System" className="mx-auto h-16 w-16 mb-4" />
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            Truck Management System
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Usa admin@example.com / admin123 para desarrollo
+          <p className="mt-2 text-sm text-gray-600">
+            Sistema de Gestión de Viajes
           </p>
         </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>

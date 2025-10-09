@@ -26,6 +26,7 @@ model Provider {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   entries       Entry[]
+  loads         Load[]
   contacts      Contact[]
   responsible   User?     @relation(fields: [responsibleId], references: [id])
   loads         Load[]
