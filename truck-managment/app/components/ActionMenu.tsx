@@ -2,22 +2,26 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { MoreVertical, Edit, Trash2 } from 'lucide-react'
+import { MoreVertical, Edit, Trash2, Eye } from 'lucide-react'
 
 interface ActionMenuProps {
   onEdit?: () => void
   onDelete?: () => void
+  onViewContacts?: () => void
   editHref?: string
   editLabel?: string
   deleteLabel?: string
+  viewContactsLabel?: string
 }
 
 export default function ActionMenu({
   onEdit,
   onDelete,
+  onViewContacts,
   editHref,
   editLabel = 'Editar',
-  deleteLabel = 'Eliminar'
+  deleteLabel = 'Eliminar',
+  viewContactsLabel = 'Ver contactos'
 }: ActionMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -66,6 +70,16 @@ export default function ActionMenu({
     setIsOpen(false)
   }
 
+  const handleViewContactsClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('View contacts clicked')
+    if (onViewContacts) {
+      onViewContacts()
+    }
+    setIsOpen(false)
+  }
+
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -79,6 +93,15 @@ export default function ActionMenu({
       {isOpen && (
         <div className="absolute right-0 z-50 mt-2 w-32 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 border border-gray-200">
           <div className="py-1">
+            {onViewContacts && (
+              <button
+                onClick={handleViewContactsClick}
+                className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                {viewContactsLabel}
+              </button>
+            )}
             {(onEdit || editHref) && (
               editHref ? (
                 <Link

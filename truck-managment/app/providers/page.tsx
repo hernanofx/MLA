@@ -10,6 +10,16 @@ interface Provider {
   id: string
   name: string
   createdAt: string
+  _count?: {
+    contacts: number
+  }
+}
+
+interface Contact {
+  id: string
+  name: string
+  email: string
+  createdAt: string
 }
 
 export default function ProvidersPage() {
@@ -19,11 +29,20 @@ export default function ProvidersPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [limit, setLimit] = useState(25)
+  const [viewingContactsProvider, setViewingContactsProvider] = useState<Provider | null>(null)
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [contactsLoading, setContactsLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     fetchProviders(currentPage)
   }, [currentPage, limit])
+
+  useEffect(() => {
+    if (viewingContactsProvider) {
+      fetchContacts(viewingContactsProvider.id)
+    }
+  }, [viewingContactsProvider])
 
   const fetchProviders = async (page: number = 1) => {
     try {
@@ -57,6 +76,28 @@ export default function ProvidersPage() {
     } catch (error) {
       console.error('Error deleting provider:', error)
     }
+  }
+
+  const fetchContacts = async (providerId: string) => {
+    try {
+      setContactsLoading(true)
+      const response = await fetch(`/api/contacts?providerId=${providerId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setContacts(data)
+      }
+    } catch (error) {
+      console.error('Error fetching contacts:', error)
+    } finally {
+      setContactsLoading(false)
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Could add a toast notification here
+      console.log('Copied to clipboard:', text)
+    })
   }
 
   const handlePageChange = (page: number) => {
@@ -108,6 +149,9 @@ export default function ProvidersPage() {
                         Nombre
                       </th>
                       <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Contactos
+                      </th>
+                      <th scope="col" className="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Fecha de Creación
                       </th>
                     </tr>
@@ -115,21 +159,27 @@ export default function ProvidersPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {providers.length === 0 ? (
                       <tr>
-                        <td colSpan={2} className="py-4 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
+                        <td colSpan={3} className="py-2 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
                           No hay proveedores registrados
                         </td>
                       </tr>
                     ) : (
                       providers.map((provider) => (
-                        <tr key={provider.id}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                        <tr key={provider.id} className="h-12">
+                          <td className="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-900 sm:pl-6">
                             {provider.name}
                           </td>
-                          <td className="hidden sm:table-cell whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="hidden sm:table-cell whitespace-nowrap px-3 py-2 text-sm text-gray-500">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {provider._count?.contacts || 0} contacto{provider._count?.contacts !== 1 ? 's' : ''}
+                            </span>
+                          </td>
+                          <td className="hidden md:table-cell whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                             {new Date(provider.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <td className="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <ActionMenu
+                              onViewContacts={() => setViewingContactsProvider(provider)}
                               editHref={`/providers/${provider.id}/edit`}
                               onDelete={() => deleteProvider(provider.id)}
                             />
@@ -199,6 +249,78 @@ export default function ProvidersPage() {
           )}
         </div>
       </div>
+
+      {/* Contacts Modal */}
+      {viewingContactsProvider && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
+          <div className="relative top-4 mx-auto max-w-md w-full border shadow-lg rounded-lg bg-white">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Contactos de {viewingContactsProvider.name}
+                </h3>
+                <button
+                  onClick={() => setViewingContactsProvider(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Cerrar</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {contactsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : contacts.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No hay contactos registrados para este proveedor.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contacts.map((contact) => (
+                    <div key={contact.id} className="border border-gray-200 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900">{contact.name}</h4>
+                          <p className="text-sm text-gray-500">{contact.email}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => copyToClipboard(contact.name)}
+                            className="text-xs text-indigo-600 hover:text-indigo-500"
+                            title="Copiar nombre"
+                          >
+                            Copiar nombre
+                          </button>
+                          <button
+                            onClick={() => copyToClipboard(contact.email)}
+                            className="text-xs text-indigo-600 hover:text-indigo-500"
+                            title="Copiar email"
+                          >
+                            Copiar email
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setViewingContactsProvider(null)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

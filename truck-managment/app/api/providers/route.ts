@@ -19,7 +19,12 @@ export async function GET(request: NextRequest) {
       prisma.provider.findMany({
         orderBy: { name: 'asc' },
         skip,
-        take: limit
+        take: limit,
+        include: {
+          _count: {
+            select: { contacts: true }
+          }
+        }
       }),
       prisma.provider.count()
     ])
