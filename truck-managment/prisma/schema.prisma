@@ -29,7 +29,6 @@ model Provider {
   loads         Load[]
   contacts      Contact[]
   responsible   User?     @relation(fields: [responsibleId], references: [id])
-  loads         Load[]
 }
 
 model Contact {
