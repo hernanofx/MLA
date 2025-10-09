@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package } from 'lucide-react'
+import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   useEffect(() => {
     // Emit event when collapsed state changes
@@ -38,10 +39,8 @@ export default function Sidebar() {
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
   ]
 
-  // Add users navigation for admin users
-  const navigation = session?.user?.role === 'admin'
-    ? [{ name: 'Usuarios', href: '/users', icon: Shield }, ...baseNavigation]
-    : baseNavigation
+  // Navigation is the same for all users now - users menu moved to dropdown
+  const navigation = baseNavigation
 
   return (
     <>
@@ -99,16 +98,53 @@ export default function Sidebar() {
               </nav>
             </div>
             <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-              <button
-                onClick={() => {
-                  signOut()
-                  closeMobileMenu()
-                }}
-                className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 w-full"
-              >
-                <LogOut className="flex-shrink-0 h-6 w-6 mr-3" />
-                Cerrar Sesión
-              </button>
+              <div className="relative w-full">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 w-full"
+                >
+                  <User className="flex-shrink-0 h-6 w-6 mr-3" />
+                  <span className="flex-1 text-left">{session?.user?.name || session?.user?.email}</span>
+                  {isUserMenuOpen ? (
+                    <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2" />
+                  ) : (
+                    <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2" />
+                  )}
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                    >
+                      <User className="flex-shrink-0 h-4 w-4 mr-3" />
+                      Perfil
+                    </Link>
+                    {session?.user?.role === 'admin' && (
+                      <Link
+                        href="/users"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                      >
+                        <Shield className="flex-shrink-0 h-4 w-4 mr-3" />
+                        Usuarios
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        signOut()
+                        setIsUserMenuOpen(false)
+                      }}
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                    >
+                      <LogOut className="flex-shrink-0 h-4 w-4 mr-3" />
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -160,14 +196,58 @@ export default function Sidebar() {
             </nav>
           </div>
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <button
-              onClick={() => signOut()}
-              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
-              title={isCollapsed ? 'Cerrar Sesión' : undefined}
-            >
-              <LogOut className="flex-shrink-0 h-5 w-5" />
-              {!isCollapsed && <span className="ml-3">Cerrar Sesión</span>}
-            </button>
+            <div className="relative w-full">
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
+                title={isCollapsed ? 'Menú de usuario' : undefined}
+              >
+                <User className="flex-shrink-0 h-5 w-5" />
+                {!isCollapsed && (
+                  <>
+                    <span className="ml-3 flex-1 text-left truncate">{session?.user?.name || session?.user?.email}</span>
+                    {isUserMenuOpen ? (
+                      <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2" />
+                    ) : (
+                      <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2" />
+                    )}
+                  </>
+                )}
+              </button>
+
+              {isUserMenuOpen && (
+                <div className={`absolute ${isCollapsed ? 'left-full ml-2 top-0' : 'bottom-full left-0 right-0 mb-2'} bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-48`}>
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                  >
+                    <User className="flex-shrink-0 h-4 w-4 mr-3" />
+                    Perfil
+                  </Link>
+                  {session?.user?.role === 'admin' && (
+                    <Link
+                      href="/users"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
+                    >
+                      <Shield className="flex-shrink-0 h-4 w-4 mr-3" />
+                      Usuarios
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      signOut()
+                      setIsUserMenuOpen(false)
+                    }}
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                  >
+                    <LogOut className="flex-shrink-0 h-4 w-4 mr-3" />
+                    Cerrar Sesión
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
