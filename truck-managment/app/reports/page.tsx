@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AppLayout from '@/app/components/AppLayout'
-import { BarChart3, Users, Clock } from 'lucide-react'
+import { BarChart3, Users, Clock, Filter, Truck } from 'lucide-react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,20 +28,57 @@ ChartJS.register(
 interface Stats {
   entriesByMonth: { month: number; count: number }[]
   entriesByProvider: { provider: string; count: number }[]
+  trucksByMonth: { month: number; count: number }[]
   avgDuration: number | null
+}
+
+interface FilterOptions {
+  weeks: number[]
+  months: number[]
+  providers: { id: string; name: string }[]
 }
 
 export default function ReportsPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null)
+  const [filters, setFilters] = useState({
+    week: '',
+    month: '',
+    providerId: ''
+  })
 
   useEffect(() => {
+    fetchFilterOptions()
     fetchStats()
   }, [])
 
+  useEffect(() => {
+    fetchStats()
+  }, [filters])
+
+  const fetchFilterOptions = async () => {
+    try {
+      const response = await fetch('/api/stats/filter-options')
+      if (response.ok) {
+        const data = await response.json()
+        setFilterOptions(data)
+      }
+    } catch (error) {
+      console.error('Error fetching filter options:', error)
+    }
+  }
+
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/stats')
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (filters.week) params.append('week', filters.week)
+      if (filters.month) params.append('month', filters.month)
+      if (filters.providerId) params.append('providerId', filters.providerId)
+
+      const url = `/api/stats${params.toString() ? '?' + params.toString() : ''}`
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setStats(data)
@@ -51,6 +88,21 @@ export default function ReportsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFilterChange = (filterType: string, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }))
+  }
+
+  const clearFilters = () => {
+    setFilters({
+      week: '',
+      month: '',
+      providerId: ''
+    })
   }
 
   if (loading) {
@@ -67,7 +119,7 @@ export default function ReportsPage() {
     return (
       <AppLayout>
         <div className="text-center py-12">
-          <p className="text-gray-500">Error al cargar datos</p>
+          <p className="text-gray-700">Error al cargar datos</p>
         </div>
       </AppLayout>
     )
@@ -143,14 +195,128 @@ export default function ReportsPage() {
     },
   }
 
+  const trucksBarData = {
+    labels: stats.trucksByMonth.map(item => monthNames[item.month - 1]),
+    datasets: [
+      {
+        label: 'Camiones por Mes',
+        data: stats.trucksByMonth.map(item => item.count),
+        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+        borderColor: 'rgba(34, 197, 94, 1)',
+        borderWidth: 1,
+      },
+    ],
+  }
+
+  const trucksBarOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Tendencia de Camiones por Mes',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+        },
+      },
+    },
+  }
+
   return (
     <AppLayout>
       <div className="px-4 py-6 sm:px-0">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900">Reportes y Analytics</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <p className="mt-2 text-sm text-gray-600">
             Visualiza estadísticas y tendencias de las entradas y salidas.
           </p>
+        </div>
+
+        {/* Filters Section */}
+        <div className="bg-gray-50 p-4 sm:p-6 rounded-lg shadow-sm border border-gray-300 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <Filter className="h-5 w-5 text-gray-500 mr-2" />
+              <h2 className="text-lg font-medium text-gray-900">Filtros</h2>
+            </div>
+            {(filters.week || filters.month || filters.providerId) && (
+              <button
+                onClick={clearFilters}
+                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Week Filter */}
+            <div>
+              <label htmlFor="week-filter" className="block text-sm font-medium text-gray-900 mb-1">
+                Semana del Año
+              </label>
+              <select
+                id="week-filter"
+                value={filters.week}
+                onChange={(e) => handleFilterChange('week', e.target.value)}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white text-gray-900"
+              >
+                <option value="">Todas las semanas</option>
+                {filterOptions?.weeks.map((week) => (
+                  <option key={week} value={week}>
+                    Semana {week}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Month Filter */}
+            <div>
+              <label htmlFor="month-filter" className="block text-sm font-medium text-gray-900 mb-1">
+                Mes del Año
+              </label>
+              <select
+                id="month-filter"
+                value={filters.month}
+                onChange={(e) => handleFilterChange('month', e.target.value)}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white text-gray-900"
+              >
+                <option value="">Todos los meses</option>
+                {filterOptions?.months.map((month) => (
+                  <option key={month} value={month}>
+                    {monthNames[month - 1]}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Provider Filter */}
+            <div>
+              <label htmlFor="provider-filter" className="block text-sm font-medium text-gray-900 mb-1">
+                Proveedor
+              </label>
+              <select
+                id="provider-filter"
+                value={filters.providerId}
+                onChange={(e) => handleFilterChange('providerId', e.target.value)}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white text-gray-900"
+              >
+                <option value="">Todos los proveedores</option>
+                {filterOptions?.providers.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
@@ -163,9 +329,16 @@ export default function ReportsPage() {
           </div>
         </div>
 
+        {/* Trucks by Month Trend Chart */}
+        {stats.trucksByMonth.length > 0 && (
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+            <Bar data={trucksBarData} options={trucksBarOptions} />
+          </div>
+        )}
+
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
           <h2 className="text-lg font-medium text-gray-900 mb-6">Estadísticas Generales</h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
                 <BarChart3 className="h-8 w-8 text-indigo-600" />
@@ -173,25 +346,34 @@ export default function ReportsPage() {
               <p className="text-3xl font-bold text-gray-900">
                 {stats.entriesByMonth.reduce((sum, item) => sum + item.count, 0)}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Total Entradas</p>
+              <p className="text-sm text-gray-700 mt-1">Total Entradas</p>
             </div>
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                <Users className="h-8 w-8 text-green-600" />
+                <Truck className="h-8 w-8 text-green-600" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.trucksByMonth.reduce((sum, item) => sum + item.count, 0)}
+              </p>
+              <p className="text-sm text-gray-700 mt-1">Total Camiones</p>
+            </div>
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <Users className="h-8 w-8 text-blue-600" />
               </div>
               <p className="text-3xl font-bold text-gray-900">
                 {stats.entriesByProvider.length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Proveedores Activos</p>
+              <p className="text-sm text-gray-700 mt-1">Proveedores Activos</p>
             </div>
-            <div className="text-center sm:col-span-2 lg:col-span-1">
+            <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
                 <Clock className="h-8 w-8 text-yellow-600" />
               </div>
               <p className="text-3xl font-bold text-gray-900">
                 {stats.avgDuration ? Math.round(stats.avgDuration) : 0}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Duración Promedio (min)</p>
+              <p className="text-sm text-gray-700 mt-1">Duración Promedio (min)</p>
             </div>
           </div>
         </div>
