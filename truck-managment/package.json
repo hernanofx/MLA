@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "ESLINT_NO_DEV_ERRORS=true next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
