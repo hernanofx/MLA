@@ -125,6 +125,26 @@ export default function EntriesPage() {
     setCurrentPage(1)
   }
 
+  const deleteEntry = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta entrada? Esta acción no se puede deshacer.')) return
+
+    try {
+      const response = await fetch(`/api/entries/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        // Refetch current page to update pagination if needed
+        fetchEntries(currentPage)
+      } else {
+        alert('Error al eliminar la entrada')
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error)
+      alert('Error al eliminar la entrada')
+    }
+  }
+
   useEffect(() => {
     fetchFilterOptions()
   }, [])
@@ -321,6 +341,7 @@ export default function EntriesPage() {
                           <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <ActionMenu
                               editHref={`/entries/${entry.id}/edit`}
+                              onDelete={() => deleteEntry(entry.id)}
                             />
                           </td>
                         </tr>
