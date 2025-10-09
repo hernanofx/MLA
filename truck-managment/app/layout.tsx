@@ -18,10 +18,14 @@ export const metadata: Metadata = {
   title: "Truck Management System",
   description: "Sistema de control de entrada y salida de camiones",
   icons: {
-    icon: '/images/logo.png',
+    icon: [
+      { url: '/images/logo.png', sizes: 'any' },
+      { url: '/images/logo.png', sizes: '120x120', type: 'image/png' }
+    ],
     shortcut: '/images/logo.png',
     apple: '/images/logo.png',
   },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
