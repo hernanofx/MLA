@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { User, Mail, Shield, Save, Key, ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
+import Sidebar from '@/app/components/Sidebar'
 
 interface UserProfile {
   id: string
@@ -145,20 +146,16 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-500 mb-4 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver al Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Perfil de Usuario</h1>
-          <p className="mt-2 text-gray-600">Gestiona tu información personal y configuración de seguridad</p>
-        </div>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900">Perfil de Usuario</h1>
+              <p className="mt-2 text-gray-600">Gestiona tu información personal y configuración de seguridad</p>
+            </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Profile Summary Sidebar */}
@@ -426,6 +423,8 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+          </div>
+        </main>
       </div>
     </div>
   )

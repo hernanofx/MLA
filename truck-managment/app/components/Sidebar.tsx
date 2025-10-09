@@ -12,14 +12,65 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     // Emit event when collapsed state changes
     window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { isCollapsed } }))
-  }, [isCollapsed])
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout)
+      }
+    }
+  }, [isCollapsed, hoverTimeout])
 
   const toggleSidebar = () => {
+    // Cancelar cualquier timeout pendiente
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
+
+    // Resetear estado de hover cuando se hace toggle manual
+    setIsHovered(false)
     setIsCollapsed(!isCollapsed)
+  }
+
+  const handleMouseEnter = () => {
+    // Cancelar cualquier timeout pendiente
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
+
+    // Solo expandir si está colapsada y no es mobile
+    if (isCollapsed && window.innerWidth >= 768) {
+      const timeout = setTimeout(() => {
+        setIsHovered(true)
+        setIsCollapsed(false)
+      }, 300) // 300ms delay para abrir
+      setHoverTimeout(timeout)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    // Cancelar cualquier timeout pendiente
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
+
+    // Solo colapsar si fue expandida por hover
+    if (isHovered && window.innerWidth >= 768) {
+      const timeout = setTimeout(() => {
+        setIsHovered(false)
+        setIsCollapsed(true)
+      }, 500) // 500ms delay para cerrar (más tiempo para dar oportunidad de mover el mouse)
+      setHoverTimeout(timeout)
+    }
   }
 
   const toggleMobileMenu = () => {
@@ -113,7 +164,7 @@ export default function Sidebar() {
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-md shadow-lg z-[9999]">
                     <Link
                       href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
@@ -125,7 +176,14 @@ export default function Sidebar() {
                     {session?.user?.role === 'admin' && (
                       <Link
                         href="/users"
-                        onClick={() => setIsUserMenuOpen(false)}
+                        onClick={() => {
+                          setIsUserMenuOpen(false)
+                          // Si la sidebar estaba expandida por hover, colapsarla al navegar
+                          if (isHovered) {
+                            setIsHovered(false)
+                            setIsCollapsed(true)
+                          }
+                        }}
                         className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
                       >
                         <Shield className="flex-shrink-0 h-4 w-4 mr-3" />
@@ -136,6 +194,11 @@ export default function Sidebar() {
                       onClick={() => {
                         signOut()
                         setIsUserMenuOpen(false)
+                        // Si la sidebar estaba expandida por hover, colapsarla al cerrar sesión
+                        if (isHovered) {
+                          setIsHovered(false)
+                          setIsCollapsed(true)
+                        }
                       }}
                       className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
                     >
@@ -151,7 +214,11 @@ export default function Sidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <div className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ${isCollapsed ? 'md:w-16' : 'md:w-64'}`}>
+      <div
+        className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ${isCollapsed ? 'md:w-16' : 'md:w-64'}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
@@ -187,6 +254,13 @@ export default function Sidebar() {
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                     title={isCollapsed ? item.name : undefined}
+                    onClick={() => {
+                      // Si la sidebar estaba expandida por hover, colapsarla al navegar
+                      if (isHovered) {
+                        setIsHovered(false)
+                        setIsCollapsed(true)
+                      }
+                    }}
                   >
                     <item.icon className="flex-shrink-0 h-5 w-5" />
                     {!isCollapsed && <span className="ml-3">{item.name}</span>}
@@ -216,10 +290,17 @@ export default function Sidebar() {
               </button>
 
               {isUserMenuOpen && (
-                <div className={`absolute ${isCollapsed ? 'left-full ml-2 top-0' : 'bottom-full left-0 right-0 mb-2'} bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-48`}>
+                <div className={`absolute ${isCollapsed ? 'left-full ml-2 top-0' : 'bottom-full left-0 right-0 mb-2'} bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-48`}>
                   <Link
                     href="/profile"
-                    onClick={() => setIsUserMenuOpen(false)}
+                    onClick={() => {
+                      setIsUserMenuOpen(false)
+                      // Si la sidebar estaba expandida por hover, colapsarla al navegar
+                      if (isHovered) {
+                        setIsHovered(false)
+                        setIsCollapsed(true)
+                      }
+                    }}
                     className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100"
                   >
                     <User className="flex-shrink-0 h-4 w-4 mr-3" />
