@@ -58,7 +58,7 @@ export default function NewTruckPage() {
                 value={licensePlate}
                 onChange={(e) => setLicensePlate(e.target.value)}
                 required
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3"
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
               />
             </div>
 

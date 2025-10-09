@@ -55,6 +55,13 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // Redirect to /entries after successful login
+      if (url.startsWith('/')) return `${baseUrl}/entries`
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
     }
   },
   pages: {

@@ -16,8 +16,22 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
 
+    // Filter parameters
+    const providerId = searchParams.get('providerId')
+    const truckId = searchParams.get('truckId')
+    const week = searchParams.get('week')
+    const month = searchParams.get('month')
+
+    // Build where clause
+    const where: any = {}
+    if (providerId) where.providerId = providerId
+    if (truckId) where.truckId = truckId
+    if (week) where.week = parseInt(week)
+    if (month) where.month = parseInt(month)
+
     const [entries, total] = await Promise.all([
       prisma.entry.findMany({
+        where,
         include: {
           provider: true,
           truck: true
@@ -26,7 +40,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit
       }),
-      prisma.entry.count()
+      prisma.entry.count({ where })
     ])
 
     return NextResponse.json({

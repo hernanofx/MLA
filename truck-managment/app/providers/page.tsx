@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import AppLayout from '@/app/components/AppLayout'
+import ActionMenu from '@/app/components/ActionMenu'
 
 interface Provider {
   id: string
@@ -16,11 +18,12 @@ export default function ProvidersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
-  const limit = 10
+  const [limit, setLimit] = useState(25)
+  const router = useRouter()
 
   useEffect(() => {
     fetchProviders(currentPage)
-  }, [currentPage])
+  }, [currentPage, limit])
 
   const fetchProviders = async (page: number = 1) => {
     try {
@@ -58,6 +61,11 @@ export default function ProvidersPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+  }
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit)
+    setCurrentPage(1)
   }
 
   if (loading) {
@@ -102,15 +110,12 @@ export default function ProvidersPage() {
                       <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Fecha de Creación
                       </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                        <span className="sr-only">Acciones</span>
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {providers.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="py-4 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
+                        <td colSpan={2} className="py-4 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
                           No hay proveedores registrados
                         </td>
                       </tr>
@@ -124,20 +129,10 @@ export default function ProvidersPage() {
                             {new Date(provider.createdAt).toLocaleDateString()}
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-4">
-                              <Link
-                                href={`/providers/${provider.id}/edit`}
-                                className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                              >
-                                Editar
-                              </Link>
-                              <button
-                                onClick={() => deleteProvider(provider.id)}
-                                className="text-red-600 hover:text-red-900 text-sm font-medium"
-                              >
-                                Eliminar
-                              </button>
-                            </div>
+                            <ActionMenu
+                              onEdit={() => router.push(`/providers/${provider.id}/edit`)}
+                              onDelete={() => deleteProvider(provider.id)}
+                            />
                           </td>
                         </tr>
                       ))
@@ -150,11 +145,28 @@ export default function ProvidersPage() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <div className="text-sm text-gray-700 text-center sm:text-left">
+        <div className="mt-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="text-sm text-gray-700">
               Mostrando {providers.length > 0 ? ((currentPage - 1) * limit) + 1 : 0} a {Math.min(currentPage * limit, total)} de {total} resultados
             </div>
+            <div className="flex items-center space-x-2">
+              <label htmlFor="limit-select" className="text-sm text-gray-700">
+                Mostrar:
+              </label>
+              <select
+                id="limit-select"
+                value={limit}
+                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+          {totalPages > 1 && (
             <div className="flex flex-wrap justify-center sm:justify-end gap-1">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
@@ -184,8 +196,8 @@ export default function ProvidersPage() {
                 Siguiente
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </AppLayout>
   )

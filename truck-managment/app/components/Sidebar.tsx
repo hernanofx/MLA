@@ -9,7 +9,7 @@ import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X }
 export default function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -58,7 +58,10 @@ export default function Sidebar() {
               <Menu className="block h-6 w-6" />
             )}
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Truck Manager</h1>
+          <div className="flex items-center">
+            <img src="/images/logo.png" alt="Logo" className="h-8 w-8 mr-2" />
+            <h1 className="text-lg font-bold text-gray-900">Truck Manager</h1>
+          </div>
           <div className="w-10"></div> {/* Spacer for centering */}
         </div>
       </div>
@@ -70,6 +73,7 @@ export default function Sidebar() {
           <div className="relative flex w-full max-w-xs flex-col bg-white">
             <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4 mb-5">
+                <img src="/images/logo.png" alt="Logo" className="h-8 w-8 mr-3" />
                 <h1 className="text-xl font-bold text-gray-900">Truck Manager</h1>
               </div>
               <nav className="flex-1 px-2 space-y-1">
@@ -122,7 +126,15 @@ export default function Sidebar() {
                 {isCollapsed ? '→' : '←'}
               </button>
               {!isCollapsed && (
-                <h1 className="ml-2 text-xl font-bold text-gray-900">Truck Manager</h1>
+                <div className="ml-2 flex items-center">
+                  <img src="/images/logo.png" alt="Logo" className="h-6 w-6 mr-2" />
+                  <h1 className="text-xl font-bold text-gray-900">Truck Manager</h1>
+                </div>
+              )}
+              {isCollapsed && (
+                <div className="ml-2">
+                  <img src="/images/logo.png" alt="Logo" className="h-6 w-6" />
+                </div>
               )}
             </div>
             <nav className="mt-5 flex-1 px-2 space-y-1">

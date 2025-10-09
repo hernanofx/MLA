@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import AppLayout from '@/app/components/AppLayout'
+import ActionMenu from '@/app/components/ActionMenu'
+import { useRouter } from 'next/navigation'
 import { UserPlus, Edit, Trash2, Shield, User } from 'lucide-react'
 
 interface User {
@@ -17,6 +19,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     fetchUsers()
@@ -102,9 +105,6 @@ export default function UsersPage() {
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:table-cell">
                         Fecha de Creación
                       </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                        <span className="sr-only">Acciones</span>
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -147,22 +147,10 @@ export default function UsersPage() {
                           {new Date(user.createdAt).toLocaleDateString('es-ES')}
                         </td>
                         <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <div className="flex items-center justify-end space-x-2">
-                            <button
-                              onClick={() => setEditingUser(user)}
-                              className="text-indigo-600 hover:text-indigo-900 p-1"
-                              title="Editar"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(user.id)}
-                              className="text-red-600 hover:text-red-900 p-1"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
+                          <ActionMenu
+                            onEdit={() => setEditingUser(user)}
+                            onDelete={() => handleDelete(user.id)}
+                          />
                         </td>
                       </tr>
                     ))}
@@ -256,7 +244,7 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                 required
               />
             </div>
@@ -269,7 +257,7 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 id="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                 required
               />
             </div>
@@ -282,7 +270,7 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 id="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                 required={!user}
               />
             </div>
@@ -294,7 +282,7 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 id="role"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'user' })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
               >
                 <option value="user">Usuario</option>
                 <option value="admin">Administrador</option>
