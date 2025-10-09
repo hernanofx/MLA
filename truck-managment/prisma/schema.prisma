@@ -28,6 +28,7 @@ model Provider {
   entries       Entry[]
   contacts      Contact[]
   responsible   User?     @relation(fields: [responsibleId], references: [id])
+  loads         Load[]
 }
 
 model Contact {
@@ -46,6 +47,7 @@ model Truck {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   entries      Entry[]
+  loads        Load[]
 }
 
 model Entry {
@@ -57,6 +59,23 @@ model Entry {
   week            Int?
   month           Int?
   durationMinutes Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  provider        Provider  @relation(fields: [providerId], references: [id])
+  truck           Truck     @relation(fields: [truckId], references: [id])
+}
+
+model Load {
+  id              String    @id @default(cuid())
+  providerId      String
+  truckId         String
+  arrivalTime     DateTime?
+  departureTime   DateTime?
+  week            Int?
+  month           Int?
+  durationMinutes Int?
+  quantity        String?
+  container       String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   provider        Provider  @relation(fields: [providerId], references: [id])

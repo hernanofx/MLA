@@ -48,6 +48,20 @@ export async function GET(request: Request) {
       ...params
     ) as { month: number; count: bigint }[]
 
+    // Loads by month (filtered)
+    const loadsByMonthQuery = `
+      SELECT month, COUNT(*) as count
+      FROM "Load"
+      WHERE 1=1 ${whereConditions}
+      GROUP BY month
+      ORDER BY month
+    `
+
+    const loadsByMonth = await prisma.$queryRawUnsafe(
+      loadsByMonthQuery,
+      ...params
+    ) as { month: number; count: bigint }[]
+
     // Entries by provider (filtered)
     const entriesByProviderQuery = `
       SELECT p.name as provider, COUNT(e.id) as count
@@ -60,6 +74,21 @@ export async function GET(request: Request) {
 
     const entriesByProvider = await prisma.$queryRawUnsafe(
       entriesByProviderQuery,
+      ...params
+    ) as { provider: string; count: bigint }[]
+
+    // Loads by provider (filtered)
+    const loadsByProviderQuery = `
+      SELECT p.name as provider, COUNT(l.id) as count
+      FROM "Load" l
+      JOIN "Provider" p ON l."providerId" = p.id
+      WHERE 1=1 ${whereConditions}
+      GROUP BY p.id, p.name
+      ORDER BY count DESC
+    `
+
+    const loadsByProvider = await prisma.$queryRawUnsafe(
+      loadsByProviderQuery,
       ...params
     ) as { provider: string; count: bigint }[]
 
@@ -77,6 +106,20 @@ export async function GET(request: Request) {
       ...params
     ) as { month: number; count: bigint }[]
 
+    // Trucks by month from loads
+    const trucksByMonthLoadsQuery = `
+      SELECT month, COUNT(*) as count
+      FROM "Load"
+      WHERE 1=1 ${whereConditions}
+      GROUP BY month
+      ORDER BY month
+    `
+
+    const trucksByMonthLoads = await prisma.$queryRawUnsafe(
+      trucksByMonthLoadsQuery,
+      ...params
+    ) as { month: number; count: bigint }[]
+
     // Average duration (filtered)
     const avgDurationWhere: any = {}
     if (week) avgDurationWhere.week = parseInt(week)
@@ -88,14 +131,27 @@ export async function GET(request: Request) {
       _avg: { durationMinutes: true }
     })
 
+    // Average duration for loads
+    const avgDurationLoads = await prisma.load.aggregate({
+      where: avgDurationWhere,
+      _avg: { durationMinutes: true }
+    })
+
     return NextResponse.json({
       entriesByMonth: entriesByMonth.map(item => ({ month: item.month, count: Number(item.count) })),
+      loadsByMonth: loadsByMonth.map(item => ({ month: item.month, count: Number(item.count) })),
       entriesByProvider: entriesByProvider.map(item => ({
         provider: item.provider,
         count: Number(item.count)
       })),
+      loadsByProvider: loadsByProvider.map(item => ({
+        provider: item.provider,
+        count: Number(item.count)
+      })),
       trucksByMonth: trucksByMonth.map(item => ({ month: item.month, count: Number(item.count) })),
-      avgDuration: avgDuration._avg.durationMinutes
+      trucksByMonthLoads: trucksByMonthLoads.map(item => ({ month: item.month, count: Number(item.count) })),
+      avgDuration: avgDuration._avg.durationMinutes,
+      avgDurationLoads: avgDurationLoads._avg.durationMinutes
     })
   } catch (error) {
     console.error('Error in stats API:', error)

@@ -1,0 +1,442 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import AppLayout from '@/app/components/AppLayout'
+import ActionMenu from '@/app/components/ActionMenu'
+
+interface Load {
+  id: string
+  arrivalTime: string | null
+  departureTime: string | null
+  week: number
+  month: number
+  durationMinutes: number | null
+  quantity: string | null
+  container: string | null
+  createdAt: string
+  provider: { name: string }
+  truck: { licensePlate: string }
+}
+
+interface Provider {
+  id: string
+  name: string
+}
+
+interface Truck {
+  id: string
+  licensePlate: string
+}
+
+export default function LoadsPage() {
+  const [loads, setLoads] = useState<Load[]>([])
+  const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [limit, setLimit] = useState(25)
+  const router = useRouter()
+
+  // Filter states
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [trucks, setTrucks] = useState<Truck[]>([])
+  const [selectedProvider, setSelectedProvider] = useState('')
+  const [selectedTruck, setSelectedTruck] = useState('')
+  const [selectedWeek, setSelectedWeek] = useState('')
+  const [selectedMonth, setSelectedMonth] = useState('')
+  const [availableWeeks, setAvailableWeeks] = useState<number[]>([])
+  const [availableMonths, setAvailableMonths] = useState<number[]>([])
+
+  const fetchLoads = async (page: number = 1) => {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      })
+
+      if (selectedProvider) params.append('providerId', selectedProvider)
+      if (selectedTruck) params.append('truckId', selectedTruck)
+      if (selectedWeek) params.append('week', selectedWeek)
+      if (selectedMonth) params.append('month', selectedMonth)
+
+      const response = await fetch(`/api/loads?${params}`)
+      if (response.ok) {
+        const data = await response.json()
+        setLoads(data.loads)
+        setTotalPages(data.pagination.totalPages)
+        setTotal(data.pagination.total)
+        setCurrentPage(page)
+      }
+    } catch (error) {
+      console.error('Error fetching loads:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchFilterOptions = async () => {
+    try {
+      // Fetch providers
+      const providersResponse = await fetch('/api/providers')
+      if (providersResponse.ok) {
+        const providersData = await providersResponse.json()
+        setProviders(providersData.providers || [])
+      }
+
+      // Fetch trucks
+      const trucksResponse = await fetch('/api/trucks')
+      if (trucksResponse.ok) {
+        const trucksData = await trucksResponse.json()
+        setTrucks(trucksData.trucks || [])
+      }
+
+      // Fetch available weeks and months
+      const filterOptionsResponse = await fetch('/api/loads/filter-options')
+      if (filterOptionsResponse.ok) {
+        const filterData = await filterOptionsResponse.json()
+        setAvailableWeeks(filterData.weeks || [])
+        setAvailableMonths(filterData.months || [])
+      }
+    } catch (error) {
+      console.error('Error fetching filter options:', error)
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleFilterChange = () => {
+    setCurrentPage(1)
+    fetchLoads(1)
+  }
+
+  const clearFilters = () => {
+    setSelectedProvider('')
+    setSelectedTruck('')
+    setSelectedWeek('')
+    setSelectedMonth('')
+    setCurrentPage(1)
+    fetchLoads(1)
+  }
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit)
+    setCurrentPage(1)
+  }
+
+  const deleteLoad = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta carga? Esta acción no se puede deshacer.')) return
+
+    try {
+      const response = await fetch(`/api/loads/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        // Refetch current page to update pagination if needed
+        fetchLoads(currentPage)
+      } else {
+        alert('Error al eliminar la carga')
+      }
+    } catch (error) {
+      console.error('Error deleting load:', error)
+      alert('Error al eliminar la carga')
+    }
+  }
+
+  useEffect(() => {
+    fetchFilterOptions()
+  }, [])
+
+  useEffect(() => {
+    fetchLoads(currentPage)
+  }, [currentPage, selectedProvider, selectedTruck, selectedWeek, selectedMonth, limit])
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </AppLayout>
+    )
+  }
+
+  return (
+    <AppLayout>
+      <div className="px-4 py-6 sm:px-0">
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            <h1 className="text-2xl font-semibold text-gray-900">Cargas</h1>
+            <p className="mt-2 text-sm text-gray-700">
+              Lista de todas las cargas registradas.
+            </p>
+          </div>
+          <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <Link
+              href="/loads/new"
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              Nueva Carga
+            </Link>
+          </div>
+        </div>
+        
+        {/* Filters */}
+        <div className="mt-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label htmlFor="provider-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Proveedor
+              </label>
+              <select
+                id="provider-filter"
+                value={selectedProvider}
+                onChange={(e) => setSelectedProvider(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+              >
+                <option value="">Todos los proveedores</option>
+                {providers.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="truck-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Camión
+              </label>
+              <select
+                id="truck-filter"
+                value={selectedTruck}
+                onChange={(e) => setSelectedTruck(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+              >
+                <option value="">Todos los camiones</option>
+                {trucks.map((truck) => (
+                  <option key={truck.id} value={truck.id}>
+                    {truck.licensePlate}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="week-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Semana
+              </label>
+              <select
+                id="week-filter"
+                value={selectedWeek}
+                onChange={(e) => setSelectedWeek(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+              >
+                <option value="">Todas las semanas</option>
+                {availableWeeks.map((week) => (
+                  <option key={week} value={week}>
+                    Semana {week}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="month-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Mes
+              </label>
+              <select
+                id="month-filter"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+              >
+                <option value="">Todos los meses</option>
+                {availableMonths.map((month) => (
+                  <option key={month} value={month}>
+                    {new Date(2024, month - 1).toLocaleString('es-ES', { month: 'long' })}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Limpiar Filtros
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col">
+          <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+              <div className="shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                        Proveedor
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">
+                        Camión
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">
+                        Llegada
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">
+                        Salida
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:table-cell">
+                        Duración
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
+                        Cantidad
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
+                        Contenedora
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
+                        Semana
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
+                        Mes
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {loads.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="py-4 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6 md:col-span-8 lg:col-span-9 xl:col-span-9">
+                          No hay cargas registradas
+                        </td>
+                      </tr>
+                    ) : (
+                      loads.map((load) => (
+                        <tr key={load.id}>
+                          <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
+                            <div className="font-medium text-gray-900">{load.provider.name}</div>
+                            <div className="text-gray-500 sm:hidden">{load.truck.licensePlate}</div>
+                            <div className="text-gray-400 text-xs sm:hidden mt-1">
+                              {load.arrivalTime ? new Date(load.arrivalTime).toLocaleDateString() : 'Sin llegada'}
+                            </div>
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">
+                            {load.truck.licensePlate}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden md:table-cell">
+                            {load.arrivalTime ? new Date(load.arrivalTime).toLocaleString() : 'No registrada'}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden md:table-cell">
+                            {load.departureTime ? new Date(load.departureTime).toLocaleString() : 'No registrada'}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden lg:table-cell">
+                            {load.durationMinutes ? `${load.durationMinutes} min` : 'N/A'}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                            {load.quantity || 'N/A'}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                            {load.container || 'N/A'}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                            {load.week}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                            {load.month}
+                          </td>
+                          <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            <ActionMenu
+                              editHref={`/loads/${load.id}/edit`}
+                              onDelete={() => deleteLoad(load.id)}
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="text-sm text-gray-700">
+              Mostrando {loads.length > 0 ? ((currentPage - 1) * limit) + 1 : 0} a {Math.min(currentPage * limit, total)} de {total} resultados
+            </div>
+            <div className="flex items-center space-x-2">
+              <label htmlFor="limit-select" className="text-sm text-gray-700">
+                Mostrar:
+              </label>
+              <select
+                id="limit-select"
+                value={limit}
+                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex flex-wrap justify-center sm:justify-end gap-1">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Anterior
+              </button>
+              
+              {/* Mobile pagination - show current page and nearby pages */}
+              <div className="hidden sm:flex items-center space-x-1">
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                  if (pageNum > totalPages) return null
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                        pageNum === currentPage
+                          ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Mobile current page indicator */}
+              <div className="sm:hidden flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
+                {currentPage} / {totalPages}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                Siguiente →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </AppLayout>
+  )
+}

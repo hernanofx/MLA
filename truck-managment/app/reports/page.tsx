@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AppLayout from '@/app/components/AppLayout'
-import { BarChart3, Users, Clock, Filter, Truck } from 'lucide-react'
+import { BarChart3, Users, Clock, Filter, Truck, Package } from 'lucide-react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -27,9 +27,13 @@ ChartJS.register(
 
 interface Stats {
   entriesByMonth: { month: number; count: number }[]
+  loadsByMonth: { month: number; count: number }[]
   entriesByProvider: { provider: string; count: number }[]
+  loadsByProvider: { provider: string; count: number }[]
   trucksByMonth: { month: number; count: number }[]
+  trucksByMonthLoads: { month: number; count: number }[]
   avgDuration: number | null
+  avgDurationLoads: number | null
 }
 
 interface FilterOptions {
@@ -199,7 +203,7 @@ export default function ReportsPage() {
     labels: stats.trucksByMonth.map(item => monthNames[item.month - 1]),
     datasets: [
       {
-        label: 'Camiones por Mes',
+        label: 'Camiones por Mes (Entradas)',
         data: stats.trucksByMonth.map(item => item.count),
         backgroundColor: 'rgba(34, 197, 94, 0.8)',
         borderColor: 'rgba(34, 197, 94, 1)',
@@ -216,7 +220,7 @@ export default function ReportsPage() {
       },
       title: {
         display: true,
-        text: 'Tendencia de Camiones por Mes',
+        text: 'Tendencia de Camiones por Mes (Entradas)',
       },
     },
     scales: {
@@ -225,6 +229,79 @@ export default function ReportsPage() {
         ticks: {
           stepSize: 1,
         },
+      },
+    },
+  }
+
+  const loadsBarData = {
+    labels: stats.loadsByMonth.map(item => monthNames[item.month - 1]),
+    datasets: [
+      {
+        label: 'Cargas por Mes',
+        data: stats.loadsByMonth.map(item => item.count),
+        backgroundColor: 'rgba(168, 85, 247, 0.8)',
+        borderColor: 'rgba(168, 85, 247, 1)',
+        borderWidth: 1,
+      },
+    ],
+  }
+
+  const loadsBarOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Distribución de Cargas por Mes',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+        },
+      },
+    },
+  }
+
+  const loadsPieData = {
+    labels: stats.loadsByProvider.map(item => item.provider),
+    datasets: [
+      {
+        data: stats.loadsByProvider.map(item => item.count),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(255, 206, 86, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)',
+          'rgba(255, 159, 64, 0.8)',
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  }
+
+  const loadsPieOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+      },
+      title: {
+        display: true,
+        text: 'Cargas por Proveedor',
       },
     },
   }
@@ -329,10 +406,61 @@ export default function ReportsPage() {
           </div>
         </div>
 
+        {/* Loads Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
+            <Bar data={loadsBarData} options={loadsBarOptions} />
+          </div>
+
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
+            <Pie data={loadsPieData} options={loadsPieOptions} />
+          </div>
+        </div>
+
         {/* Trucks by Month Trend Chart */}
         {stats.trucksByMonth.length > 0 && (
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
             <Bar data={trucksBarData} options={trucksBarOptions} />
+          </div>
+        )}
+
+        {/* Trucks by Month from Loads */}
+        {stats.trucksByMonthLoads.length > 0 && (
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+            <Bar 
+              data={{
+                labels: stats.trucksByMonthLoads.map(item => monthNames[item.month - 1]),
+                datasets: [
+                  {
+                    label: 'Camiones por Mes (Cargas)',
+                    data: stats.trucksByMonthLoads.map(item => item.count),
+                    backgroundColor: 'rgba(245, 101, 101, 0.8)',
+                    borderColor: 'rgba(245, 101, 101, 1)',
+                    borderWidth: 1,
+                  },
+                ],
+              }} 
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top' as const,
+                  },
+                  title: {
+                    display: true,
+                    text: 'Tendencia de Camiones por Mes (Cargas)',
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1,
+                    },
+                  },
+                },
+              }} 
+            />
           </div>
         )}
 
@@ -349,11 +477,20 @@ export default function ReportsPage() {
               <p className="text-sm text-gray-700 mt-1">Total Entradas</p>
             </div>
             <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                <Package className="h-8 w-8 text-purple-600" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.loadsByMonth.reduce((sum, item) => sum + item.count, 0)}
+              </p>
+              <p className="text-sm text-gray-700 mt-1">Total Cargas</p>
+            </div>
+            <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
                 <Truck className="h-8 w-8 text-green-600" />
               </div>
               <p className="text-3xl font-bold text-gray-900">
-                {stats.trucksByMonth.reduce((sum, item) => sum + item.count, 0)}
+                {stats.trucksByMonth.reduce((sum, item) => sum + item.count, 0) + stats.trucksByMonthLoads.reduce((sum, item) => sum + item.count, 0)}
               </p>
               <p className="text-sm text-gray-700 mt-1">Total Camiones</p>
             </div>
@@ -362,7 +499,7 @@ export default function ReportsPage() {
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
               <p className="text-3xl font-bold text-gray-900">
-                {stats.entriesByProvider.length}
+                {new Set([...stats.entriesByProvider.map(p => p.provider), ...stats.loadsByProvider.map(p => p.provider)]).size}
               </p>
               <p className="text-sm text-gray-700 mt-1">Proveedores Activos</p>
             </div>
@@ -373,7 +510,16 @@ export default function ReportsPage() {
               <p className="text-3xl font-bold text-gray-900">
                 {stats.avgDuration ? Math.round(stats.avgDuration) : 0}
               </p>
-              <p className="text-sm text-gray-700 mt-1">Duración Promedio (min)</p>
+              <p className="text-sm text-gray-700 mt-1">Duración Promedio Entradas (min)</p>
+            </div>
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 rounded-full mb-4">
+                <Clock className="h-8 w-8 text-pink-600" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.avgDurationLoads ? Math.round(stats.avgDurationLoads) : 0}
+              </p>
+              <p className="text-sm text-gray-700 mt-1">Duración Promedio Cargas (min)</p>
             </div>
           </div>
         </div>
