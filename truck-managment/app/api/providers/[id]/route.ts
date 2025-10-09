@@ -15,7 +15,16 @@ export async function GET(
     }
 
     const provider = await prisma.provider.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        responsible: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     })
 
     if (!provider) {
@@ -39,15 +48,29 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name } = await request.json()
+    const { name, responsibleId } = await request.json()
 
-    if (!name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    // Allow updating either name or responsibleId or both
+    if (!name && responsibleId === undefined) {
+      return NextResponse.json({ error: 'At least one field (name or responsibleId) is required' }, { status: 400 })
     }
+
+    const updateData: any = {}
+    if (name !== undefined) updateData.name = name
+    if (responsibleId !== undefined) updateData.responsibleId = responsibleId
 
     const provider = await prisma.provider.update({
       where: { id },
-      data: { name }
+      data: updateData,
+      include: {
+        responsible: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     })
 
     return NextResponse.json(provider)

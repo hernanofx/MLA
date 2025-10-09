@@ -9,6 +9,18 @@ import { Plus, User, Mail } from 'lucide-react'
 interface Provider {
   id: string
   name: string
+  responsibleId?: string
+  responsible?: {
+    id: string
+    name: string
+    email: string
+  }
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
 }
 
 interface Contact {
@@ -20,10 +32,13 @@ interface Contact {
 
 export default function EditProviderPage() {
   const [name, setName] = useState('')
+  const [responsibleId, setResponsibleId] = useState('')
+  const [users, setUsers] = useState<User[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [contactsLoading, setContactsLoading] = useState(false)
+  const [usersLoading, setUsersLoading] = useState(false)
   const [error, setError] = useState('')
   const [showContactForm, setShowContactForm] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
@@ -34,6 +49,7 @@ export default function EditProviderPage() {
   useEffect(() => {
     fetchProvider()
     fetchContacts()
+    fetchUsers()
   }, [id])
 
   const fetchProvider = async () => {
@@ -42,6 +58,7 @@ export default function EditProviderPage() {
       if (response.ok) {
         const provider: Provider = await response.json()
         setName(provider.name)
+        setResponsibleId(provider.responsibleId || '')
       } else {
         setError('Proveedor no encontrado')
       }
@@ -49,6 +66,21 @@ export default function EditProviderPage() {
       setError('Error al cargar proveedor')
     } finally {
       setFetchLoading(false)
+    }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true)
+      const response = await fetch('/api/users')
+      if (response.ok) {
+        const data = await response.json()
+        setUsers(data)
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    } finally {
+      setUsersLoading(false)
     }
   }
 
@@ -78,7 +110,10 @@ export default function EditProviderPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ 
+          name,
+          responsibleId: responsibleId || null
+        })
       })
 
       if (response.ok) {
@@ -164,6 +199,29 @@ export default function EditProviderPage() {
                     required
                     className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="responsible" className="block text-sm font-medium text-gray-700 mb-2">
+                    Responsable
+                  </label>
+                  <select
+                    id="responsible"
+                    value={responsibleId}
+                    onChange={(e) => setResponsibleId(e.target.value)}
+                    disabled={usersLoading}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+                  >
+                    <option value="">Sin asignar</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.email})
+                      </option>
+                    ))}
+                  </select>
+                  {usersLoading && (
+                    <p className="mt-1 text-sm text-gray-500">Cargando usuarios...</p>
+                  )}
                 </div>
 
                 {error && (

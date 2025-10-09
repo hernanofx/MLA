@@ -23,6 +23,13 @@ export async function GET(request: NextRequest) {
         include: {
           _count: {
             select: { contacts: true }
+          },
+          responsible: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
           }
         }
       }),
@@ -50,14 +57,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name } = await request.json()
+    const { name, responsibleId } = await request.json()
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
     const provider = await prisma.provider.create({
-      data: { name }
+      data: { 
+        name,
+        responsibleId: responsibleId || null
+      },
+      include: {
+        responsible: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     })
 
     return NextResponse.json(provider, { status: 201 })

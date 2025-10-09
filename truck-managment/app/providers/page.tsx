@@ -10,6 +10,12 @@ interface Provider {
   id: string
   name: string
   createdAt: string
+  responsibleId?: string | null
+  responsible?: {
+    id: string
+    name: string
+    email: string
+  } | null
   _count?: {
     contacts: number
   }
@@ -22,6 +28,12 @@ interface Contact {
   createdAt: string
 }
 
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
 export default function ProvidersPage() {
   const [providers, setProviders] = useState<Provider[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,6 +41,9 @@ export default function ProvidersPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [limit, setLimit] = useState(25)
+  const [editingResponsible, setEditingResponsible] = useState<string | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
   const [viewingContactsProvider, setViewingContactsProvider] = useState<Provider | null>(null)
   const [contacts, setContacts] = useState<Contact[]>([])
   const [contactsLoading, setContactsLoading] = useState(false)
@@ -36,6 +51,7 @@ export default function ProvidersPage() {
 
   useEffect(() => {
     fetchProviders(currentPage)
+    fetchUsers()
   }, [currentPage, limit])
 
   useEffect(() => {
@@ -90,6 +106,54 @@ export default function ProvidersPage() {
       console.error('Error fetching contacts:', error)
     } finally {
       setContactsLoading(false)
+    }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true)
+      const response = await fetch('/api/users')
+      if (response.ok) {
+        const data = await response.json()
+        setUsers(data)
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  const updateProviderResponsible = async (providerId: string, responsibleId: string | null) => {
+    try {
+      const response = await fetch(`/api/providers/${providerId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ responsibleId })
+      })
+
+      if (response.ok) {
+        const updatedProvider = await response.json()
+        // Update the provider in the local state with the full updated data
+        setProviders(providers.map(provider =>
+          provider.id === providerId
+            ? {
+                ...provider,
+                ...updatedProvider
+              }
+            : provider
+        ))
+        setEditingResponsible(null)
+      } else {
+        const errorData = await response.json()
+        console.error('Error updating provider responsible:', errorData.error)
+        alert(`Error al actualizar el responsable: ${errorData.error}`)
+      }
+    } catch (error) {
+      console.error('Error updating provider responsible:', error)
+      alert('Error de conexión al actualizar el responsable')
     }
   }
 
@@ -149,6 +213,9 @@ export default function ProvidersPage() {
                         Nombre
                       </th>
                       <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Responsable
+                      </th>
+                      <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Contactos
                       </th>
                       <th scope="col" className="hidden md:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -159,7 +226,7 @@ export default function ProvidersPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {providers.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="py-2 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
+                        <td colSpan={4} className="py-2 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
                           No hay proveedores registrados
                         </td>
                       </tr>
@@ -168,6 +235,39 @@ export default function ProvidersPage() {
                         <tr key={provider.id} className="h-12">
                           <td className="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-900 sm:pl-6">
                             {provider.name}
+                          </td>
+                          <td className="hidden sm:table-cell whitespace-nowrap px-3 py-2 text-sm text-gray-500">
+                            {editingResponsible === provider.id ? (
+                              <select
+                                value={provider.responsibleId || ''}
+                                onChange={(e) => updateProviderResponsible(provider.id, e.target.value || null)}
+                                onBlur={() => setEditingResponsible(null)}
+                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500"
+                                autoFocus
+                              >
+                                <option value="">Sin asignar</option>
+                                {users.map((user) => (
+                                  <option key={user.id} value={user.id}>
+                                    {user.name}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span
+                                className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+                                onClick={() => setEditingResponsible(provider.id)}
+                              >
+                                {provider.responsible ? (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    {provider.responsible.name}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    Sin asignar
+                                  </span>
+                                )}
+                              </span>
+                            )}
                           </td>
                           <td className="hidden sm:table-cell whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

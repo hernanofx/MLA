@@ -9,22 +9,25 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String     @id @default(cuid())
+  email     String     @unique
   password  String
   name      String?
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      String     @default("user")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  providers Provider[]
 }
 
 model Provider {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  entries   Entry[]
-  contacts  Contact[]
+  id            String    @id @default(cuid())
+  name          String    @unique
+  responsibleId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  entries       Entry[]
+  contacts      Contact[]
+  responsible   User?     @relation(fields: [responsibleId], references: [id])
 }
 
 model Contact {
