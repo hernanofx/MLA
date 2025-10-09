@@ -19,11 +19,22 @@ model User {
 }
 
 model Provider {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   entries   Entry[]
+  contacts  Contact[]
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  providerId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 }
 
 model Truck {
