@@ -10,17 +10,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 })
     }
 
-    // First, resolve the migration issue
-    console.log('Resolving migration issue...')
+    // First, resolve the migration issue by updating the failed migration
+    console.log('Resolving failed migration...')
     try {
+      // Update the failed migration to mark it as applied
       await prisma.$executeRaw`
-        INSERT INTO "_prisma_migrations" ("id", "checksum", "finished_at", "migration_name", "logs", "rolled_back_at", "started_at", "applied_steps_count")
-        VALUES ('20251009030457_add_responsible_to_provider', 'checksum_placeholder', NOW(), '20251009030457_add_responsible_to_provider', NULL, NULL, NOW(), 2)
-        ON CONFLICT ("id") DO NOTHING
+        UPDATE "_prisma_migrations"
+        SET "finished_at" = NOW(),
+             "rolled_back_at" = NULL,
+             "applied_steps_count" = 2
+        WHERE "migration_name" = '20251009030457_add_responsible_to_provider'
+        AND "finished_at" IS NULL
       `
-      console.log('Migration resolved successfully')
+      console.log('Failed migration resolved successfully')
     } catch (resolveError) {
-      console.log('Migration may already be resolved:', resolveError)
+      console.log('Migration resolution attempt:', resolveError)
     }
 
     // Check if Load table exists by trying to query it
