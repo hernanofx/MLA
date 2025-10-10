@@ -157,7 +157,7 @@ export default function ReportsPage() {
         labels: {
           font: {
             size: 13,
-            weight: "500" as const,
+            weight: 500,
           },
           color: "#374151",
           padding: 16,
@@ -170,7 +170,7 @@ export default function ReportsPage() {
         text: "Distribución de Entradas por Mes",
         font: {
           size: 15,
-          weight: "600" as const,
+          weight: 600,
         },
         color: "#111827",
         padding: {
@@ -234,7 +234,7 @@ export default function ReportsPage() {
         labels: {
           font: {
             size: 12,
-            weight: "500" as const,
+            weight: 500,
           },
           color: "#374151",
           padding: 12,
@@ -247,7 +247,7 @@ export default function ReportsPage() {
         text: "Entradas por Proveedor",
         font: {
           size: 15,
-          weight: "600" as const,
+          weight: 600,
         },
         color: "#111827",
         padding: {
@@ -281,7 +281,7 @@ export default function ReportsPage() {
         labels: {
           font: {
             size: 13,
-            weight: "500" as const,
+            weight: 500,
           },
           color: "#374151",
           padding: 16,
@@ -294,7 +294,7 @@ export default function ReportsPage() {
         text: "Tendencia de Camiones por Mes (Entradas)",
         font: {
           size: 15,
-          weight: "600" as const,
+          weight: 600,
         },
         color: "#111827",
         padding: {
@@ -354,7 +354,7 @@ export default function ReportsPage() {
         labels: {
           font: {
             size: 13,
-            weight: "500" as const,
+            weight: 500,
           },
           color: "#374151",
           padding: 16,
@@ -367,7 +367,7 @@ export default function ReportsPage() {
         text: "Distribución de Cargas por Mes",
         font: {
           size: 15,
-          weight: "600" as const,
+          weight: 600,
         },
         color: "#111827",
         padding: {
@@ -428,24 +428,24 @@ export default function ReportsPage() {
     maintainAspectRatio: true,
     plugins: {
       legend: {
-        position: "bottom" as const,
+        position: "right" as const,
         labels: {
           font: {
-            size: 12,
-            weight: "500" as const,
+            size: 13,
+            weight: 500,
           },
           color: "#374151",
-          padding: 12,
+          padding: 16,
           usePointStyle: true,
           pointStyle: "circle",
         },
       },
       title: {
         display: true,
-        text: "Cargas por Proveedor",
+        text: "Distribución de Cargas por Estado",
         font: {
           size: 15,
-          weight: "600" as const,
+          weight: 600,
         },
         color: "#111827",
         padding: {
@@ -454,7 +454,7 @@ export default function ReportsPage() {
         },
       },
     },
-  }
+  };
 
   return (
     <AppLayout>
@@ -594,7 +594,7 @@ export default function ReportsPage() {
                     labels: {
                       font: {
                         size: 13,
-                        weight: "500" as const,
+                        weight: 500,
                       },
                       color: "#374151",
                       padding: 16,
@@ -607,7 +607,7 @@ export default function ReportsPage() {
                     text: "Tendencia de Camiones por Mes (Cargas)",
                     font: {
                       size: 15,
-                      weight: "600" as const,
+                      weight: 600,
                     },
                     color: "#111827",
                     padding: {
