@@ -4,7 +4,9 @@ import { useState } from 'react'
 import AppLayout from '@/app/components/AppLayout'
 import { LayoutDashboard, Building2, Truck, ClipboardList, Package, Warehouse, BarChart3, HelpCircle, Bell, Users, User, Plus, Search, Edit, Settings, CheckCircle, XCircle, Filter, UserPlus, Shield, Trash2, TrendingUp, FileText, Download, Calendar } from 'lucide-react'
 
-const modules = [
+type ModuleId = 'dashboard' | 'providers' | 'trucks' | 'entries' | 'loads' | 'stocks' | 'reports' | 'notifications' | 'users'
+
+const modules: { id: ModuleId; name: string; icon: any; description: string }[] = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, description: 'Vista general del sistema y estadísticas principales' },
   { id: 'providers', name: 'Proveedores', icon: Building2, description: 'Gestión de proveedores y sus contactos' },
   { id: 'trucks', name: 'Camiones', icon: Truck, description: 'Administración de flota de camiones' },
@@ -982,7 +984,7 @@ const moduleContent = {
 }
 
 export default function HelpPage() {
-  const [selectedModule, setSelectedModule] = useState<string>('dashboard')
+  const [selectedModule, setSelectedModule] = useState<ModuleId>('dashboard')
 
   return (
     <AppLayout>
