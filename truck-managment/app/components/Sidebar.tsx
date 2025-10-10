@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell } from 'lucide-react'
+import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell, HelpCircle } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -110,6 +110,7 @@ export default function Sidebar() {
     { name: 'Cargas/Descargas', href: '/loads', icon: Package },
     { name: 'Stock', href: '/stocks', icon: Warehouse },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
+    { name: 'Ayuda', href: '/help', icon: HelpCircle },
   ]
 
   // Navigation is the same for all users - users access is in the dropdown menu
@@ -436,8 +437,12 @@ export default function Sidebar() {
                   )}
                   <button
                     onClick={() => {
-                      signOut()
+                      signOut({ callbackUrl: '/login' })
                       setIsUserMenuOpen(false)
+                      if (isHovered) {
+                        setIsHovered(false)
+                        setIsCollapsed(true)
+                      }
                     }}
                     className="flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-colors duration-150"
                   >
