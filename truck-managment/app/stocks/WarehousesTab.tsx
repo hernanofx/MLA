@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import ActionMenu from '@/app/components/ActionMenu';
 
 interface Warehouse {
   id: string;
@@ -59,65 +60,139 @@ export default function WarehousesTab() {
     }
   };
 
-  if (loading) return <div>Cargando...</div>;
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este almacén?')) return;
+
+    try {
+      const res = await fetch(`/api/warehouses/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        fetchWarehouses();
+      }
+    } catch (error) {
+      console.error('Failed to delete warehouse:', error);
+    }
+  };
+
+  if (loading) return <div className="flex items-center justify-center py-12">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+  </div>;
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Almacenes</h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          {showForm ? 'Cancelar' : 'Nuevo Almacén'}
-        </button>
+      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">Almacenes</h2>
+          <p className="mt-2 text-sm text-gray-700">Gestiona los almacenes del sistema</p>
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
+          >
+            {showForm ? 'Cancelar' : 'Nuevo Almacén'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-6 p-4 border rounded">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input
-              type="text"
-              placeholder="Nombre"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="border p-2 rounded"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Dirección"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="border p-2 rounded"
-            />
-            <input
-              type="text"
-              placeholder="Descripción"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="border p-2 rounded"
-            />
+        <div className="mb-8 bg-white shadow sm:rounded-lg border border-gray-200">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Crear Nuevo Almacén</h3>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    Descripción
+                  </label>
+                  <textarea
+                    id="description"
+                    rows={3}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  Crear Almacén
+                </button>
+              </div>
+            </form>
           </div>
-          <button type="submit" className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-            Crear
-          </button>
-        </form>
+        </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {warehouses.map((warehouse) => (
-          <div key={warehouse.id} className="border p-4 rounded shadow">
-            <h3 className="text-lg font-semibold">{warehouse.name}</h3>
-            <p className="text-gray-600">{warehouse.address}</p>
-            <p className="text-sm text-gray-500">{warehouse.description}</p>
-            <p className="text-sm">Ubicaciones: {warehouse.locations.length}</p>
-            <div className="mt-2 flex space-x-2">
-              <button className="text-blue-500 hover:text-blue-700">Editar</button>
-              <button className="text-red-500 hover:text-red-700">Eliminar</button>
-            </div>
-          </div>
-        ))}
+      <div className="bg-white shadow overflow-hidden sm:rounded-md border border-gray-200">
+        <ul className="divide-y divide-gray-200">
+          {warehouses.length === 0 ? (
+            <li className="px-6 py-4 text-center text-gray-500">
+              No hay almacenes registrados
+            </li>
+          ) : (
+            warehouses.map((warehouse) => (
+              <li key={warehouse.id} className="px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <div className="flex-1">
+                        <h3 className="text-sm font-medium text-gray-900">{warehouse.name}</h3>
+                        <p className="text-sm text-gray-500">{warehouse.address}</p>
+                        <p className="text-sm text-gray-500">{warehouse.description}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {warehouse.locations.length} ubicación{warehouse.locations.length !== 1 ? 'es' : ''}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <ActionMenu
+                      editHref={`/stocks/warehouses/${warehouse.id}/edit`}
+                      onDelete={() => handleDelete(warehouse.id)}
+                    />
+                  </div>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );
