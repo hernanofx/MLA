@@ -11,28 +11,48 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '25')
+    const skip = (page - 1) * limit
     const locationId = searchParams.get('locationId');
     const entryId = searchParams.get('entryId');
 
-    const inventories = await prisma.inventory.findMany({
-      where: {
-        ...(locationId && { locationId }),
-        ...(entryId && { entryId }),
-      },
-      include: {
-        entry: {
-          include: {
-            provider: true,
+    const where: any = {
+      ...(locationId && { locationId }),
+      ...(entryId && { entryId }),
+    }
+
+    const [inventories, total] = await Promise.all([
+      prisma.inventory.findMany({
+        where,
+        include: {
+          entry: {
+            include: {
+              provider: true,
+            },
+          },
+          location: {
+            include: {
+              warehouse: true,
+            },
           },
         },
-        location: {
-          include: {
-            warehouse: true,
-          },
-        },
-      },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.inventory.count({ where })
+    ]);
+
+    return NextResponse.json({
+      inventories,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
     });
-    return NextResponse.json(inventories);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch inventory' }, { status: 500 });
   }

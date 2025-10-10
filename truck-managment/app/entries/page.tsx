@@ -398,51 +398,71 @@ export default function EntriesPage() {
               </select>
             </div>
           </div>
-          {totalPages > 1 && (
-            <div className="flex flex-wrap justify-center sm:justify-end gap-1">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                ← Anterior
-              </button>
-              
-              {/* Mobile pagination - show current page and nearby pages */}
-              <div className="hidden sm:flex items-center space-x-1">
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
-                  if (pageNum > totalPages) return null
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
-                        pageNum === currentPage
-                          ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-              </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                const params = new URLSearchParams()
+                if (selectedProvider) params.append('providerId', selectedProvider)
+                if (selectedTruck) params.append('truckId', selectedTruck)
+                if (selectedWeek) params.append('week', selectedWeek)
+                if (selectedMonth) params.append('month', selectedMonth)
+                const url = `/api/entries/export?${params}`
+                window.open(url, '_blank')
+              }}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              title="Exportar a Excel"
+            >
+              <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Excel
+            </button>
+            {totalPages > 1 && (
+              <div className="flex flex-wrap justify-center sm:justify-end gap-1">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Anterior
+                </button>
+                
+                {/* Mobile pagination - show current page and nearby pages */}
+                <div className="hidden sm:flex items-center space-x-1">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                    if (pageNum > totalPages) return null
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                          pageNum === currentPage
+                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    )
+                  })}
+                </div>
 
-              {/* Mobile current page indicator */}
-              <div className="sm:hidden flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
-                {currentPage} / {totalPages}
-              </div>
+                {/* Mobile current page indicator */}
+                <div className="sm:hidden flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
+                  {currentPage} / {totalPages}
+                </div>
 
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                Siguiente →
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </AppLayout>
