@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
 import ActionMenu from '@/app/components/ActionMenu'
 
@@ -49,6 +50,7 @@ export default function ProvidersPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [contactsLoading, setContactsLoading] = useState(false)
   const router = useRouter()
+  const { data: session } = useSession()
 
   useEffect(() => {
     fetchProviders(currentPage)
@@ -199,12 +201,14 @@ export default function ProvidersPage() {
             </p>
           </div>
           <div className="flex justify-center sm:justify-end">
-            <Link
-              href="/providers/new"
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
-            >
-              Nuevo Proveedor
-            </Link>
+            {session?.user?.role === 'admin' && (
+              <Link
+                href="/providers/new"
+                className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
+              >
+                Nuevo Proveedor
+              </Link>
+            )}
           </div>
         </div>
         <div className="mt-8 flex flex-col">
@@ -259,8 +263,8 @@ export default function ProvidersPage() {
                               </select>
                             ) : (
                               <span
-                                className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors"
-                                onClick={() => setEditingResponsible(provider.id)}
+                                className={`cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors ${session?.user?.role !== 'admin' ? 'cursor-default' : ''}`}
+                                onClick={() => session?.user?.role === 'admin' && setEditingResponsible(provider.id)}
                               >
                                 {provider.responsible ? (
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -283,11 +287,13 @@ export default function ProvidersPage() {
                             {new Date(provider.createdAt).toLocaleDateString()}
                           </td>
                           <td className="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <ActionMenu
-                              onViewContacts={() => setViewingContactsProvider(provider)}
-                              editHref={`/providers/${provider.id}/edit`}
-                              onDelete={() => deleteProvider(provider.id)}
-                            />
+                            {session?.user?.role === 'admin' && (
+                              <ActionMenu
+                                onViewContacts={() => setViewingContactsProvider(provider)}
+                                editHref={`/providers/${provider.id}/edit`}
+                                onDelete={() => deleteProvider(provider.id)}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))

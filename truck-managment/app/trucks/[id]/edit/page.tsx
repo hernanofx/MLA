@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
 
 interface Truck {
@@ -17,10 +18,16 @@ export default function EditTruckPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
+  const { data: session, status } = useSession()
 
   useEffect(() => {
+    if (status === 'loading') return
+    if (!session || session.user.role !== 'admin') {
+      router.push('/trucks')
+      return
+    }
     fetchTruck()
-  }, [id])
+  }, [id, session, status])
 
   const fetchTruck = async () => {
     try {
@@ -36,6 +43,20 @@ export default function EditTruckPage() {
     } finally {
       setFetchLoading(false)
     }
+  }
+
+  if (status === 'loading' || fetchLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (!session || session.user.role !== 'admin') {
+    return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

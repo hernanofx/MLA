@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
 
 interface Provider {
@@ -29,6 +30,31 @@ export default function NewLoadPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const { data: session, status } = useSession()
+
+  useEffect(() => {
+    if (status === 'loading') return
+    if (!session || session.user.role !== 'admin') {
+      router.push('/loads')
+      return
+    }
+    fetchProviders()
+    fetchTrucks()
+  }, [session, status, router])
+
+  if (status === 'loading') {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (!session || session.user.role !== 'admin') {
+    return null
+  }
 
   useEffect(() => {
     fetchProviders()

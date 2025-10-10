@@ -64,6 +64,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (session.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { providerId, truckId, arrivalTime, departureTime } = await request.json()
 
     if (!providerId || !truckId) {

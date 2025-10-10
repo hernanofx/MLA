@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
 import ActionMenu from '@/app/components/ActionMenu'
 
@@ -20,6 +21,7 @@ export default function TrucksPage() {
   const [total, setTotal] = useState(0)
   const [limit, setLimit] = useState(25)
   const router = useRouter()
+  const { data: session } = useSession()
 
   useEffect(() => {
     fetchTrucks(currentPage)
@@ -89,12 +91,14 @@ export default function TrucksPage() {
             </p>
           </div>
           <div className="flex justify-center sm:justify-end">
-            <Link
-              href="/trucks/new"
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
-            >
-              Nuevo Camión
-            </Link>
+            {session?.user?.role === 'admin' && (
+              <Link
+                href="/trucks/new"
+                className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
+              >
+                Nuevo Camión
+              </Link>
+            )}
           </div>
         </div>
         <div className="mt-8 flex flex-col">
@@ -129,10 +133,12 @@ export default function TrucksPage() {
                             {new Date(truck.createdAt).toLocaleDateString()}
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <ActionMenu
-                              editHref={`/trucks/${truck.id}/edit`}
-                              onDelete={() => deleteTruck(truck.id)}
-                            />
+                            {session?.user?.role === 'admin' && (
+                              <ActionMenu
+                                editHref={`/trucks/${truck.id}/edit`}
+                                onDelete={() => deleteTruck(truck.id)}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))
