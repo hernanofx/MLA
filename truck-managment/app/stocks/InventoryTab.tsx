@@ -68,11 +68,15 @@ export default function InventoryTab() {
   const fetchEntries = async () => {
     try {
       const res = await fetch('/api/entries');
+      console.log('Fetch response ok:', res.ok);
+      console.log('Response status:', res.status);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setEntries(Array.isArray(data) ? data : []);
+      console.log('Entries data:', data);
+      console.log('Entries to set:', data.entries);
+      setEntries(data.entries || []);
     } catch (error) {
       console.error('Failed to fetch entries:', error);
       setEntries([]);

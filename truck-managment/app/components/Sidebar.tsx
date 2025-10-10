@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse } from 'lucide-react'
+import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -82,7 +82,7 @@ export default function Sidebar() {
   }
 
   const baseNavigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Proveedores', href: '/providers', icon: Building2 },
     { name: 'Camiones', href: '/trucks', icon: Truck },
     { name: 'Entradas/Salidas', href: '/entries', icon: ClipboardList },
