@@ -19,20 +19,31 @@ export default function LocationsTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ warehouseId: '', name: '', description: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [limit] = useState(25);
 
   useEffect(() => {
-    fetchLocations();
+    fetchLocations(currentPage);
     fetchWarehouses();
-  }, []);
+  }, [currentPage]);
 
-  const fetchLocations = async () => {
+  const fetchLocations = async (page: number = 1) => {
     try {
-      const res = await fetch('/api/locations');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      });
+      const res = await fetch(`/api/locations?${params}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setLocations(Array.isArray(data) ? data : []);
+      setLocations(data.locations || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotal(data.pagination?.total || 0);
+      setCurrentPage(page);
     } catch (error) {
       console.error('Failed to fetch locations:', error);
       setLocations([]);
@@ -208,6 +219,60 @@ export default function LocationsTab() {
             ))
           )}
         </ul>
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+          <div className="text-sm text-gray-700">
+            Mostrando {locations.length > 0 ? ((currentPage - 1) * limit) + 1 : 0} a {Math.min(currentPage * limit, total)} de {total} resultados
+          </div>
+        </div>
+        {totalPages > 1 && (
+          <div className="flex flex-wrap justify-center sm:justify-end gap-1">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              ← Anterior
+            </button>
+            
+            {/* Mobile pagination - show current page and nearby pages */}
+            <div className="hidden sm:flex items-center space-x-1">
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                if (pageNum > totalPages) return null
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                      pageNum === currentPage
+                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Mobile current page indicator */}
+            <div className="sm:hidden flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
+              {currentPage} / {totalPages}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

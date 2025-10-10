@@ -91,14 +91,8 @@ export default function Sidebar() {
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
   ]
 
-  // Add users navigation for admin users
-  const adminNavigation = session?.user?.role === 'admin' ? [
-    ...baseNavigation,
-    { name: 'Usuarios', href: '/users', icon: Shield },
-  ] : baseNavigation
-
-  // Navigation is the same for all users now - users menu moved to dropdown
-  const navigation = adminNavigation
+  // Navigation is the same for all users - users access is in the dropdown menu
+  const navigation = baseNavigation
 
   return (
     <>
