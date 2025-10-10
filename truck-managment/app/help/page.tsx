@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import AppLayout from '@/app/components/AppLayout'
-import { LayoutDashboard, Building2, Truck, ClipboardList, Package, Warehouse, BarChart3, HelpCircle, Bell, Users, Plus, Search, Edit, Settings, CheckCircle, XCircle, Filter, UserPlus, Shield, Trash2, TrendingUp, FileText, Download, Calendar } from 'lucide-react'
+import { LayoutDashboard, Building2, Truck, ClipboardList, Package, Warehouse, BarChart3, HelpCircle, Bell, Users, User, Plus, Search, Edit, Settings, CheckCircle, XCircle, Filter, UserPlus, Shield, Trash2, TrendingUp, FileText, Download, Calendar } from 'lucide-react'
 
 const modules = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, description: 'Vista general del sistema y estadísticas principales' },
