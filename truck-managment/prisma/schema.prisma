@@ -8,6 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum NotificationType {
+  NEW_PROVIDER
+  NEW_TRUCK
+  NEW_ENTRY
+  NEW_LOAD
+  NEW_INVENTORY
+}
+
 model User {
   id        String     @id @default(cuid())
   email     String     @unique
@@ -17,6 +25,8 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   providers Provider[]
+  notifications Notification[]
+  preferences UserNotificationPreferences?
 }
 
 model Provider {
@@ -115,4 +125,23 @@ model Inventory {
   updatedAt  DateTime  @updatedAt
   entry      Entry     @relation(fields: [entryId], references: [id])
   location   Location  @relation(fields: [locationId], references: [id])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  message   String
+  userId    String
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserNotificationPreferences {
+  userId       String @id
+  newProvider  Boolean @default(true)
+  newTruck     Boolean @default(true)
+  newEntry     Boolean @default(true)
+  newLoad      Boolean @default(true)
+  newInventory Boolean @default(true)
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

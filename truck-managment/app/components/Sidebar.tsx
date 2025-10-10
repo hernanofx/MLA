@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard } from 'lucide-react'
+import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -14,10 +14,31 @@ export default function Sidebar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     // Emit event when collapsed state changes
     window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { isCollapsed } }))
+
+    // Fetch unread notifications count
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/notifications')
+        if (response.ok) {
+          const data = await response.json()
+          setUnreadCount(data.unreadCount || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error)
+      }
+    }
+
+    if (session) {
+      fetchUnreadCount()
+      // Poll every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000)
+      return () => clearInterval(interval)
+    }
 
     // Cleanup timeout on unmount
     return () => {
@@ -25,7 +46,7 @@ export default function Sidebar() {
         clearTimeout(hoverTimeout)
       }
     }
-  }, [isCollapsed, hoverTimeout])
+  }, [isCollapsed, hoverTimeout, session])
 
   const toggleSidebar = () => {
     // Cancelar cualquier timeout pendiente
@@ -187,6 +208,19 @@ export default function Sidebar() {
                 {isUserMenuOpen && (
                   <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
                     <Link
+                      href="/notifications"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                    >
+                      <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
+                      Notificaciones
+                      {unreadCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                    <Link
                       href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
@@ -307,6 +341,33 @@ export default function Sidebar() {
           
           {/* <CHANGE> Premium user section with enhanced dropdown */}
           <div className="flex-shrink-0 border-t border-neutral-200/80 p-3 bg-neutral-50/50">
+            {/* Notifications Bell */}
+            <div className={`mb-2 ${isCollapsed ? 'flex justify-center' : ''}`}>
+              <Link
+                href="/notifications"
+                className={`group relative flex items-center px-3 py-2 text-sm font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm transition-all duration-200 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
+                title={isCollapsed ? 'Notificaciones' : undefined}
+                onClick={() => {
+                  if (isHovered) {
+                    setIsHovered(false)
+                    setIsCollapsed(true)
+                  }
+                }}
+              >
+                <div className="relative">
+                  <Bell className="flex-shrink-0 h-5 w-5 text-neutral-600 group-hover:text-neutral-900 transition-colors duration-200" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-semibold">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </div>
+                {!isCollapsed && (
+                  <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200">Notificaciones</span>
+                )}
+              </Link>
+            </div>
+
             <div className="relative w-full">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -330,6 +391,25 @@ export default function Sidebar() {
 
               {isUserMenuOpen && (
                 <div className={`absolute ${isCollapsed ? 'left-full ml-2 top-0' : 'bottom-full left-0 right-0 mb-2'} bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] min-w-[200px] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
+                  <Link
+                    href="/notifications"
+                    onClick={() => {
+                      setIsUserMenuOpen(false)
+                      if (isHovered) {
+                        setIsHovered(false)
+                        setIsCollapsed(true)
+                      }
+                    }}
+                    className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                  >
+                    <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
+                    Notificaciones
+                    {unreadCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
                   <Link
                     href="/profile"
                     onClick={() => {

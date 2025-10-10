@@ -79,6 +79,22 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Create notifications for subscribed users
+    const subscribedUsers = await prisma.userNotificationPreferences.findMany({
+      where: { newProvider: true },
+      select: { userId: true }
+    })
+
+    if (subscribedUsers.length > 0) {
+      await prisma.notification.createMany({
+        data: subscribedUsers.map(user => ({
+          type: 'NEW_PROVIDER',
+          message: `Nuevo proveedor creado: ${provider.name}`,
+          userId: user.userId
+        }))
+      })
+    }
+
     return NextResponse.json(provider, { status: 201 })
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

@@ -55,6 +55,22 @@ export async function POST(request: NextRequest) {
       data: { licensePlate }
     })
 
+    // Create notifications for subscribed users
+    const subscribedUsers = await prisma.userNotificationPreferences.findMany({
+      where: { newTruck: true },
+      select: { userId: true }
+    })
+
+    if (subscribedUsers.length > 0) {
+      await prisma.notification.createMany({
+        data: subscribedUsers.map(user => ({
+          type: 'NEW_TRUCK',
+          message: `Nuevo camión registrado: ${truck.licensePlate}`,
+          userId: user.userId
+        }))
+      })
+    }
+
     return NextResponse.json(truck, { status: 201 })
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
