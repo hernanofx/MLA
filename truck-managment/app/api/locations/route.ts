@@ -5,15 +5,35 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const warehouseId = searchParams.get('warehouseId');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '25');
+    const skip = (page - 1) * limit;
 
-    const locations = await prisma.location.findMany({
-      where: warehouseId ? { warehouseId } : {},
-      include: {
-        warehouse: true,
-        inventories: true,
-      },
+    const where = warehouseId ? { warehouseId } : {};
+
+    const [locations, total] = await Promise.all([
+      prisma.location.findMany({
+        where,
+        include: {
+          warehouse: true,
+          inventories: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.location.count({ where })
+    ]);
+
+    return NextResponse.json({
+      locations,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
     });
-    return NextResponse.json(locations);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch locations' }, { status: 500 });
   }

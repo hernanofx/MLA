@@ -18,10 +18,7 @@ export const metadata: Metadata = {
   title: "Truck Management System",
   description: "Sistema de control de entrada y salida de camiones",
   icons: {
-    icon: [
-      { url: '/images/logo.png', sizes: 'any' },
-      { url: '/images/logo.png', sizes: '120x120', type: 'image/png' }
-    ],
+    icon: '/images/logo.png',
     shortcut: '/images/logo.png',
     apple: '/images/logo.png',
   },
