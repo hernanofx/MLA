@@ -363,9 +363,6 @@ export default function Sidebar() {
                     </span>
                   )}
                 </div>
-                {!isCollapsed && (
-                  <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200">Notificaciones</span>
-                )}
               </Link>
             </div>
 
