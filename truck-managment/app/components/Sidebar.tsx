@@ -199,7 +199,7 @@ export default function Sidebar() {
                     )}
                     <button
                       onClick={() => {
-                        signOut()
+                        signOut({ callbackUrl: '/login' })
                         setIsUserMenuOpen(false)
                         // Si la sidebar estaba expandida por hover, colapsarla al cerrar sesión
                         if (isHovered) {
