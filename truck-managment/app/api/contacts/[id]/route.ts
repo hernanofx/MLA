@@ -43,7 +43,7 @@ export async function PUT(
     }
 
     const { id } = await params
-    const { name, email } = await request.json()
+    const { name, email, phone } = await request.json()
 
     if (!name || !email) {
       return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
@@ -53,7 +53,8 @@ export async function PUT(
       where: { id },
       data: {
         name,
-        email
+        email,
+        phone
       }
     })
 

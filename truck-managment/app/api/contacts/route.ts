@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, email, providerId } = await request.json()
+    const { name, email, phone, providerId } = await request.json()
 
     if (!name || !email || !providerId) {
       return NextResponse.json({ error: 'Name, email and providerId are required' }, { status: 400 })
@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         email,
+        phone,
         providerId
       }
     })

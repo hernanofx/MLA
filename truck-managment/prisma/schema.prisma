@@ -35,6 +35,7 @@ model Contact {
   id         String   @id @default(cuid())
   name       String
   email      String
+  phone      String?
   providerId String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

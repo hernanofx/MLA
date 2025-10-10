@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import AppLayout from '@/app/components/AppLayout'
 import ActionMenu from '@/app/components/ActionMenu'
-import { Plus, User, Mail } from 'lucide-react'
+import { Plus, User, Mail, Phone } from 'lucide-react'
 
 interface Provider {
   id: string
@@ -27,6 +27,7 @@ interface Contact {
   id: string
   name: string
   email: string
+  phone?: string
   createdAt: string
 }
 
@@ -283,6 +284,12 @@ export default function EditProviderPage() {
                             <Mail className="w-3 h-3 mr-1" />
                             {contact.email}
                           </p>
+                          {contact.phone && (
+                            <p className="text-sm text-gray-500 flex items-center">
+                              <Phone className="w-3 h-3 mr-1" />
+                              {contact.phone}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <ActionMenu
@@ -337,7 +344,8 @@ interface ContactFormProps {
 function ContactForm({ contact, providerId, onClose, onSuccess }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: contact?.name || '',
-    email: contact?.email || ''
+    email: contact?.email || '',
+    phone: contact?.phone || ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -407,6 +415,19 @@ function ContactForm({ contact, providerId, onClose, onSuccess }: ContactFormPro
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 h-10 px-3"
                 required
+              />
+            </div>
+            <div>
+              <label htmlFor="contact-phone" className="block text-sm font-medium text-gray-700">
+                Teléfono
+              </label>
+              <input
+                type="tel"
+                id="contact-phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900 h-10 px-3"
+                placeholder="+1234567890"
               />
             </div>
 

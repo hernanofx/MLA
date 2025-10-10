@@ -25,6 +25,7 @@ interface Contact {
   id: string
   name: string
   email: string
+  phone?: string
   createdAt: string
 }
 
@@ -88,9 +89,13 @@ export default function ProvidersPage() {
       if (response.ok) {
         // Refetch current page to update pagination if needed
         fetchProviders(currentPage)
+      } else {
+        const errorData = await response.json()
+        alert(`Error al eliminar el proveedor: ${errorData.error}`)
       }
     } catch (error) {
       console.error('Error deleting provider:', error)
+      alert('Error de conexión al eliminar el proveedor')
     }
   }
 
@@ -386,6 +391,9 @@ export default function ProvidersPage() {
                         <div>
                           <h4 className="text-sm font-medium text-gray-900">{contact.name}</h4>
                           <p className="text-sm text-gray-500">{contact.email}</p>
+                          {contact.phone && (
+                            <p className="text-sm text-gray-500">{contact.phone}</p>
+                          )}
                         </div>
                         <div className="flex space-x-2">
                           <button
@@ -402,6 +410,15 @@ export default function ProvidersPage() {
                           >
                             Copiar email
                           </button>
+                          {contact.phone && (
+                            <button
+                              onClick={() => copyToClipboard(contact.phone!)}
+                              className="text-xs text-indigo-600 hover:text-indigo-500"
+                              title="Copiar teléfono"
+                            >
+                              Copiar teléfono
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

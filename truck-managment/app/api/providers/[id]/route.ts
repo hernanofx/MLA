@@ -90,12 +90,29 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check if provider has associated entries
+    const entriesCount = await prisma.entry.count({
+      where: { providerId: id }
+    })
+
+    // Check if provider has associated loads
+    const loadsCount = await prisma.load.count({
+      where: { providerId: id }
+    })
+
+    if (entriesCount > 0 || loadsCount > 0) {
+      return NextResponse.json({
+        error: `No se puede eliminar el proveedor porque tiene ${entriesCount} entrada${entriesCount !== 1 ? 's' : ''} y ${loadsCount} carga${loadsCount !== 1 ? 's' : ''} asociada${loadsCount !== 1 ? 's' : ''}. Elimine primero las entradas y cargas relacionadas.`
+      }, { status: 400 })
+    }
+
     await prisma.provider.delete({
       where: { id }
     })
 
     return NextResponse.json({ message: 'Provider deleted' })
   } catch (error) {
+    console.error('Error deleting provider:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
