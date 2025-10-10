@@ -51,6 +51,13 @@ export default function LoadsPage() {
   const [availableWeeks, setAvailableWeeks] = useState<number[]>([])
   const [availableMonths, setAvailableMonths] = useState<number[]>([])
 
+  const filteredProviders = providers.filter(p => 
+    p.name.toLowerCase().includes(selectedProviderName.toLowerCase())
+  )
+  const filteredTrucks = trucks.filter(t => 
+    t.licensePlate.toLowerCase().includes(selectedTruckName.toLowerCase())
+  )
+
   const fetchLoads = async (page: number = 1) => {
     try {
       const params = new URLSearchParams({
@@ -111,8 +118,8 @@ export default function LoadsPage() {
   }
 
   const handleFilterChange = () => {
-    const providerId = providers.find(p => p.name === selectedProviderName)?.id || ''
-    const truckId = trucks.find(t => t.licensePlate === selectedTruckName)?.id || ''
+    const providerId = providers.find(p => p.name.toLowerCase() === selectedProviderName.toLowerCase())?.id || ''
+    const truckId = trucks.find(t => t.licensePlate.toLowerCase() === selectedTruckName.toLowerCase())?.id || ''
     setSelectedProvider(providerId)
     setSelectedTruck(truckId)
     setCurrentPage(1)
@@ -210,7 +217,7 @@ export default function LoadsPage() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
               />
               <datalist id="providers-datalist">
-                {providers.map((provider) => (
+                {filteredProviders.map((provider) => (
                   <option key={provider.id} value={provider.name} />
                 ))}
               </datalist>
@@ -230,7 +237,7 @@ export default function LoadsPage() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
               />
               <datalist id="trucks-datalist">
-                {trucks.map((truck) => (
+                {filteredTrucks.map((truck) => (
                   <option key={truck.id} value={truck.licensePlate} />
                 ))}
               </datalist>
