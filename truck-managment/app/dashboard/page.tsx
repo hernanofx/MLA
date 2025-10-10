@@ -41,6 +41,145 @@ async function getStats() {
   }
 }
 
+async function getRecentActivities() {
+  const [
+    recentProviders,
+    recentTrucks,
+    recentEntries,
+    recentLoads,
+    recentWarehouses,
+    recentLocations,
+    recentInventory,
+  ] = await Promise.all([
+    prisma.provider.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, name: true, createdAt: true }
+    }),
+    prisma.truck.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, licensePlate: true, createdAt: true }
+    }),
+    prisma.entry.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      select: { 
+        id: true, 
+        createdAt: true,
+        provider: { select: { name: true } },
+        truck: { select: { licensePlate: true } }
+      }
+    }),
+    prisma.load.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      select: { 
+        id: true, 
+        createdAt: true,
+        provider: { select: { name: true } },
+        truck: { select: { licensePlate: true } }
+      }
+    }),
+    prisma.warehouse.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, name: true, createdAt: true }
+    }),
+    prisma.location.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      select: { 
+        id: true, 
+        name: true, 
+        createdAt: true,
+        warehouse: { select: { name: true } }
+      }
+    }),
+    prisma.inventory.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      select: { 
+        id: true, 
+        quantity: true,
+        status: true,
+        createdAt: true,
+        location: { 
+          select: { 
+            name: true,
+            warehouse: { select: { name: true } }
+          }
+        }
+      }
+    }),
+  ])
+
+  // Combine all activities and sort by createdAt
+  const activities = [
+    ...recentProviders.map(p => ({
+      id: p.id,
+      type: 'provider' as const,
+      title: `Nuevo proveedor: ${p.name}`,
+      description: 'Proveedor registrado en el sistema',
+      createdAt: p.createdAt,
+      color: 'emerald'
+    })),
+    ...recentTrucks.map(t => ({
+      id: t.id,
+      type: 'truck' as const,
+      title: `Nuevo camión: ${t.licensePlate}`,
+      description: 'Camión registrado en el sistema',
+      createdAt: t.createdAt,
+      color: 'amber'
+    })),
+    ...recentEntries.map(e => ({
+      id: e.id,
+      type: 'entry' as const,
+      title: `Nueva entrada: ${e.provider.name}`,
+      description: `Camión ${e.truck.licensePlate}`,
+      createdAt: e.createdAt,
+      color: 'blue'
+    })),
+    ...recentLoads.map(l => ({
+      id: l.id,
+      type: 'load' as const,
+      title: `Nueva carga: ${l.provider.name}`,
+      description: `Camión ${l.truck.licensePlate}`,
+      createdAt: l.createdAt,
+      color: 'indigo'
+    })),
+    ...recentWarehouses.map(w => ({
+      id: w.id,
+      type: 'warehouse' as const,
+      title: `Nuevo almacén: ${w.name}`,
+      description: 'Almacén registrado en el sistema',
+      createdAt: w.createdAt,
+      color: 'violet'
+    })),
+    ...recentLocations.map(l => ({
+      id: l.id,
+      type: 'location' as const,
+      title: `Nueva ubicación: ${l.name}`,
+      description: `En almacén ${l.warehouse.name}`,
+      createdAt: l.createdAt,
+      color: 'orange'
+    })),
+    ...recentInventory.map(i => ({
+      id: i.id,
+      type: 'inventory' as const,
+      title: `Nuevo inventario: ${i.quantity} items`,
+      description: `${i.location.warehouse.name} - ${i.location.name} (${i.status})`,
+      createdAt: i.createdAt,
+      color: 'teal'
+    })),
+  ]
+
+  // Sort by createdAt descending and take top 10
+  return activities
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 10)
+}
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
 
@@ -49,6 +188,7 @@ export default async function DashboardPage() {
   }
 
   const stats = await getStats()
+  const recentActivities = await getRecentActivities()
 
   return (
     <AppLayout>
@@ -366,29 +506,39 @@ export default async function DashboardPage() {
               </div>
             </div>
             <div className="px-6 py-5">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2 ring-4 ring-blue-100"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">Dashboard actualizado con nuevas métricas</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Incluye operaciones de carga e inventario</p>
-                  </div>
+              {recentActivities.length > 0 ? (
+                <div className="space-y-4">
+                  {recentActivities.map((activity) => (
+                    <div key={`${activity.type}-${activity.id}`} className="flex items-start gap-3">
+                      <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ring-4 ${
+                        activity.color === 'blue' ? 'bg-blue-500 ring-blue-100' :
+                        activity.color === 'indigo' ? 'bg-indigo-500 ring-indigo-100' :
+                        activity.color === 'emerald' ? 'bg-emerald-500 ring-emerald-100' :
+                        activity.color === 'amber' ? 'bg-amber-500 ring-amber-100' :
+                        activity.color === 'violet' ? 'bg-violet-500 ring-violet-100' :
+                        activity.color === 'orange' ? 'bg-orange-500 ring-orange-100' :
+                        'bg-teal-500 ring-teal-100'
+                      }`}></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{activity.description}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {activity.createdAt.toLocaleDateString("es-ES", {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 bg-indigo-500 rounded-full mt-2 ring-4 ring-indigo-100"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">Módulo de stock completamente funcional</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Gestión de almacenes, ubicaciones e inventario</p>
-                  </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-500">No hay actividades recientes</p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 bg-emerald-500 rounded-full mt-2 ring-4 ring-emerald-100"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">Interfaz responsive y moderna</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Optimizada para todos los dispositivos</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
