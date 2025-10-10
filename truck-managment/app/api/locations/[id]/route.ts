@@ -30,11 +30,12 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
-    const { name, description } = body;
+    const { warehouseId, name, description } = body;
 
     const location = await prisma.location.update({
       where: { id },
       data: {
+        warehouseId,
         name,
         description,
       },

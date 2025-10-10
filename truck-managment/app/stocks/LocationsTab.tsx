@@ -178,7 +178,7 @@ export default function LocationsTab() {
         </div>
       )}
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-md border border-gray-200">
+      <div className="bg-white shadow overflow-visible sm:rounded-md border border-gray-200">
         <ul className="divide-y divide-gray-200">
           {locations.length === 0 ? (
             <li className="px-6 py-4 text-center text-gray-500">

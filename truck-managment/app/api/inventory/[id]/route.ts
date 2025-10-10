@@ -34,11 +34,13 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
-    const { quantity, status } = body;
+    const { entryId, locationId, quantity, status } = body;
 
     const inventory = await prisma.inventory.update({
       where: { id },
       data: {
+        entryId,
+        locationId,
         quantity,
         status,
       },
