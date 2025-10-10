@@ -1,0 +1,62 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const inventory = await prisma.inventory.findUnique({
+      where: { id: params.id },
+      include: {
+        entry: true,
+        location: {
+          include: {
+            warehouse: true,
+          },
+        },
+      },
+    });
+    if (!inventory) {
+      return NextResponse.json({ error: 'Inventory not found' }, { status: 404 });
+    }
+    return NextResponse.json(inventory);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch inventory' }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await request.json();
+    const { quantity, status } = body;
+
+    const inventory = await prisma.inventory.update({
+      where: { id: params.id },
+      data: {
+        quantity,
+        status,
+      },
+    });
+    return NextResponse.json(inventory);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update inventory' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await prisma.inventory.delete({
+      where: { id: params.id },
+    });
+    return NextResponse.json({ message: 'Inventory deleted' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete inventory' }, { status: 500 });
+  }
+}
