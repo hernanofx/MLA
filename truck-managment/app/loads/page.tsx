@@ -117,15 +117,6 @@ export default function LoadsPage() {
     setCurrentPage(page)
   }
 
-  const handleFilterChange = () => {
-    const providerId = providers.find(p => p.name.toLowerCase() === selectedProviderName.toLowerCase())?.id || ''
-    const truckId = trucks.find(t => t.licensePlate.toLowerCase() === selectedTruckName.toLowerCase())?.id || ''
-    setSelectedProvider(providerId)
-    setSelectedTruck(truckId)
-    setCurrentPage(1)
-    fetchLoads(1)
-  }
-
   const clearFilters = () => {
     setSelectedProvider('')
     setSelectedTruck('')
@@ -154,7 +145,8 @@ export default function LoadsPage() {
         // Refetch current page to update pagination if needed
         fetchLoads(currentPage)
       } else {
-        alert('Error al eliminar la carga')
+        const errorData = await response.json()
+        alert(`Error al eliminar la carga: ${errorData.error}`)
       }
     } catch (error) {
       console.error('Error deleting load:', error)
@@ -165,6 +157,13 @@ export default function LoadsPage() {
   useEffect(() => {
     fetchFilterOptions()
   }, [])
+
+  useEffect(() => {
+    const providerId = providers.find(p => p.name.toLowerCase() === selectedProviderName.toLowerCase())?.id || ''
+    const truckId = trucks.find(t => t.licensePlate.toLowerCase() === selectedTruckName.toLowerCase())?.id || ''
+    setSelectedProvider(providerId)
+    setSelectedTruck(truckId)
+  }, [selectedProviderName, selectedTruckName, providers, trucks])
 
   useEffect(() => {
     fetchLoads(currentPage)

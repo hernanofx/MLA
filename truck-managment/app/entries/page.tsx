@@ -115,15 +115,6 @@ export default function EntriesPage() {
     setCurrentPage(page)
   }
 
-  const handleFilterChange = () => {
-    const providerId = providers.find(p => p.name.toLowerCase() === selectedProviderName.toLowerCase())?.id || ''
-    const truckId = trucks.find(t => t.licensePlate.toLowerCase() === selectedTruckName.toLowerCase())?.id || ''
-    setSelectedProvider(providerId)
-    setSelectedTruck(truckId)
-    setCurrentPage(1)
-    fetchEntries(1)
-  }
-
   const clearFilters = () => {
     setSelectedProvider('')
     setSelectedTruck('')
@@ -152,7 +143,8 @@ export default function EntriesPage() {
         // Refetch current page to update pagination if needed
         fetchEntries(currentPage)
       } else {
-        alert('Error al eliminar la entrada')
+        const errorData = await response.json()
+        alert(`Error al eliminar la entrada: ${errorData.error}`)
       }
     } catch (error) {
       console.error('Error deleting entry:', error)
@@ -163,6 +155,13 @@ export default function EntriesPage() {
   useEffect(() => {
     fetchFilterOptions()
   }, [])
+
+  useEffect(() => {
+    const providerId = providers.find(p => p.name.toLowerCase() === selectedProviderName.toLowerCase())?.id || ''
+    const truckId = trucks.find(t => t.licensePlate.toLowerCase() === selectedTruckName.toLowerCase())?.id || ''
+    setSelectedProvider(providerId)
+    setSelectedTruck(truckId)
+  }, [selectedProviderName, selectedTruckName, providers, trucks])
 
   useEffect(() => {
     fetchEntries(currentPage)

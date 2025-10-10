@@ -106,11 +106,17 @@ export async function DELETE(
 
     const { id } = await params
 
+    // Delete associated inventories first
+    await prisma.inventory.deleteMany({
+      where: { entryId: id }
+    })
+
+    // Then delete the entry
     await prisma.entry.delete({
       where: { id }
     })
 
-    return NextResponse.json({ message: 'Entry deleted successfully' })
+    return NextResponse.json({ message: 'Entry and associated inventories deleted successfully' })
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
