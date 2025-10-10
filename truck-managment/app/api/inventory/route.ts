@@ -13,7 +13,11 @@ export async function GET(request: NextRequest) {
         ...(entryId && { entryId }),
       },
       include: {
-        entry: true,
+        entry: {
+          include: {
+            provider: true,
+          },
+        },
         location: {
           include: {
             warehouse: true,
