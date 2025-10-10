@@ -42,6 +42,8 @@ export default function EntriesPage() {
   const [trucks, setTrucks] = useState<Truck[]>([])
   const [selectedProvider, setSelectedProvider] = useState('')
   const [selectedTruck, setSelectedTruck] = useState('')
+  const [selectedProviderName, setSelectedProviderName] = useState('')
+  const [selectedTruckName, setSelectedTruckName] = useState('')
   const [selectedWeek, setSelectedWeek] = useState('')
   const [selectedMonth, setSelectedMonth] = useState('')
   const [availableWeeks, setAvailableWeeks] = useState<number[]>([])
@@ -107,6 +109,10 @@ export default function EntriesPage() {
   }
 
   const handleFilterChange = () => {
+    const providerId = providers.find(p => p.name === selectedProviderName)?.id || ''
+    const truckId = trucks.find(t => t.licensePlate === selectedTruckName)?.id || ''
+    setSelectedProvider(providerId)
+    setSelectedTruck(truckId)
     setCurrentPage(1)
     fetchEntries(1)
   }
@@ -114,6 +120,8 @@ export default function EntriesPage() {
   const clearFilters = () => {
     setSelectedProvider('')
     setSelectedTruck('')
+    setSelectedProviderName('')
+    setSelectedTruckName('')
     setSelectedWeek('')
     setSelectedMonth('')
     setCurrentPage(1)
@@ -190,38 +198,40 @@ export default function EntriesPage() {
               <label htmlFor="provider-filter" className="block text-sm font-medium text-gray-700 mb-1">
                 Proveedor
               </label>
-              <select
+              <input
+                type="text"
                 id="provider-filter"
-                value={selectedProvider}
-                onChange={(e) => setSelectedProvider(e.target.value)}
+                list="providers-datalist"
+                value={selectedProviderName}
+                onChange={(e) => setSelectedProviderName(e.target.value)}
+                placeholder="Buscar proveedor..."
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
-              >
-                <option value="">Todos los proveedores</option>
+              />
+              <datalist id="providers-datalist">
                 {providers.map((provider) => (
-                  <option key={provider.id} value={provider.id}>
-                    {provider.name}
-                  </option>
+                  <option key={provider.id} value={provider.name} />
                 ))}
-              </select>
+              </datalist>
             </div>
 
             <div>
               <label htmlFor="truck-filter" className="block text-sm font-medium text-gray-700 mb-1">
                 Camión
               </label>
-              <select
+              <input
+                type="text"
                 id="truck-filter"
-                value={selectedTruck}
-                onChange={(e) => setSelectedTruck(e.target.value)}
+                list="trucks-datalist"
+                value={selectedTruckName}
+                onChange={(e) => setSelectedTruckName(e.target.value)}
+                placeholder="Buscar camión..."
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
-              >
-                <option value="">Todos los camiones</option>
+              />
+              <datalist id="trucks-datalist">
                 {trucks.map((truck) => (
-                  <option key={truck.id} value={truck.id}>
-                    {truck.licensePlate}
-                  </option>
+                  <option key={truck.id} value={truck.licensePlate} />
                 ))}
-              </select>
+              </datalist>
             </div>
 
             <div>
