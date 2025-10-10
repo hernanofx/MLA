@@ -11,7 +11,7 @@ interface PageProps {
 
 export default async function EditLocationPage({ params }: PageProps) {
   const session = await getServerSession(authOptions)
-  if (!session) {
+  if (!session || session.user.role !== 'admin') {
     return <div>No autorizado</div>
   }
 

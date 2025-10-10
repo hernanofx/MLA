@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import ActionMenu from '@/app/components/ActionMenu';
 
 interface Inventory {
@@ -42,6 +43,7 @@ export default function InventoryTab() {
     quantity: 1,
     status: 'stored'
   });
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetchInventories();
@@ -138,12 +140,14 @@ export default function InventoryTab() {
           <p className="mt-2 text-sm text-gray-700">Gestiona el inventario de paquetes en las ubicaciones</p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
-          >
-            {showForm ? 'Cancelar' : 'Nuevo Registro'}
-          </button>
+          {session?.user?.role === 'admin' && (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
+            >
+              {showForm ? 'Cancelar' : 'Nuevo Registro'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -297,10 +301,12 @@ export default function InventoryTab() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <ActionMenu
-                        editHref={`/stocks/inventory/${inv.id}/edit`}
-                        onDelete={() => handleDelete(inv.id)}
-                      />
+                      {session?.user?.role === 'admin' && (
+                        <ActionMenu
+                          editHref={`/stocks/inventory/${inv.id}/edit`}
+                          onDelete={() => handleDelete(inv.id)}
+                        />
+                      )}
                     </td>
                   </tr>
                 ))

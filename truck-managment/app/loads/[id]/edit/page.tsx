@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
 
 interface Provider {
@@ -48,12 +49,18 @@ export default function EditLoadPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
+  const { data: session, status } = useSession()
 
   useEffect(() => {
+    if (status === 'loading') return
+    if (!session || session.user.role !== 'admin') {
+      router.push('/loads')
+      return
+    }
     fetchLoad()
     fetchProviders()
     fetchTrucks()
-  }, [id])
+  }, [id, session, status])
 
   useEffect(() => {
     if (arrivalTime && departureTime) {
@@ -194,7 +201,7 @@ export default function EditLoadPage() {
     }
   }
 
-  if (fetchLoading) {
+  if (status === 'loading' || fetchLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-12">
@@ -202,6 +209,10 @@ export default function EditLoadPage() {
         </div>
       </AppLayout>
     )
+  }
+
+  if (!session || session.user.role !== 'admin') {
+    return null
   }
 
   if (error && !load) {

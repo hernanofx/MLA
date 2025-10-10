@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
 import ActionMenu from '@/app/components/ActionMenu'
 import { Plus, User, Mail, Phone } from 'lucide-react'
@@ -46,12 +47,18 @@ export default function EditProviderPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
+  const { data: session, status } = useSession()
 
   useEffect(() => {
+    if (status === 'loading') return
+    if (!session || session.user.role !== 'admin') {
+      router.push('/providers')
+      return
+    }
     fetchProvider()
     fetchContacts()
     fetchUsers()
-  }, [id])
+  }, [id, session, status])
 
   const fetchProvider = async () => {
     try {
@@ -149,7 +156,7 @@ export default function EditProviderPage() {
     }
   }
 
-  if (fetchLoading) {
+  if (status === 'loading' || fetchLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-12">
@@ -157,6 +164,10 @@ export default function EditProviderPage() {
         </div>
       </AppLayout>
     )
+  }
+
+  if (!session || session.user.role !== 'admin') {
+    return null
   }
 
   if (error && !name) {

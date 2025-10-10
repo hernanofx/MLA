@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import ActionMenu from '@/app/components/ActionMenu';
 
 interface Warehouse {
@@ -21,6 +22,7 @@ export default function WarehousesTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', address: '', description: '' });
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetchWarehouses();
@@ -87,12 +89,14 @@ export default function WarehousesTab() {
           <p className="mt-2 text-sm text-gray-700">Gestiona los almacenes del sistema</p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
-          >
-            {showForm ? 'Cancelar' : 'Nuevo Almacén'}
-          </button>
+          {session?.user?.role === 'admin' && (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
+            >
+              {showForm ? 'Cancelar' : 'Nuevo Almacén'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -183,10 +187,12 @@ export default function WarehousesTab() {
                     </div>
                   </div>
                   <div className="flex-shrink-0">
-                    <ActionMenu
-                      editHref={`/stocks/warehouses/${warehouse.id}/edit`}
-                      onDelete={() => handleDelete(warehouse.id)}
-                    />
+                    {session?.user?.role === 'admin' && (
+                      <ActionMenu
+                        editHref={`/stocks/warehouses/${warehouse.id}/edit`}
+                        onDelete={() => handleDelete(warehouse.id)}
+                      />
+                    )}
                   </div>
                 </div>
               </li>

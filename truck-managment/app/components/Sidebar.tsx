@@ -374,8 +374,8 @@ export default function Sidebar() {
                 className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm transition-all duration-200 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
                 title={isCollapsed ? 'Menú de usuario' : undefined}
               >
-                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-900 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200">
-                  <User className="h-4 w-4 text-white" />
+                <div className="flex-shrink-0 h-5 w-5 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-900 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200">
+                  <User className="h-3 w-3 text-white" />
                 </div>
                 {!isCollapsed && (
                   <>
