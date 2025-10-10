@@ -27,20 +27,28 @@ export default function LocationsTab() {
   const fetchLocations = async () => {
     try {
       const res = await fetch('/api/locations');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
-      setLocations(data);
+      setLocations(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch locations:', error);
+      setLocations([]);
     }
   };
 
   const fetchWarehouses = async () => {
     try {
       const res = await fetch('/api/warehouses');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
       setWarehouses(data.map((w: any) => ({ id: w.id, name: w.name })));
     } catch (error) {
       console.error('Failed to fetch warehouses:', error);
+      setWarehouses([]);
     } finally {
       setLoading(false);
     }

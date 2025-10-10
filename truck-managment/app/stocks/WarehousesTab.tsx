@@ -28,10 +28,14 @@ export default function WarehousesTab() {
   const fetchWarehouses = async () => {
     try {
       const res = await fetch('/api/warehouses');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
-      setWarehouses(data);
+      setWarehouses(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch warehouses:', error);
+      setWarehouses([]);
     } finally {
       setLoading(false);
     }

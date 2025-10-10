@@ -36,10 +36,14 @@ export default function InventoryTab() {
   const fetchInventories = async () => {
     try {
       const res = await fetch('/api/inventory');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
-      setInventories(data);
+      setInventories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch inventories:', error);
+      setInventories([]);
     } finally {
       setLoading(false);
     }
@@ -135,9 +139,9 @@ export default function InventoryTab() {
           <tbody>
             {inventories.map((inv) => (
               <tr key={inv.id}>
-                <td className="py-2 px-4 border-b">{inv.entry.provider.name}</td>
-                <td className="py-2 px-4 border-b">{inv.location.warehouse.name}</td>
-                <td className="py-2 px-4 border-b">{inv.location.name}</td>
+                <td className="py-2 px-4 border-b">{inv.entry?.provider?.name || 'N/A'}</td>
+                <td className="py-2 px-4 border-b">{inv.location?.warehouse?.name || 'N/A'}</td>
+                <td className="py-2 px-4 border-b">{inv.location?.name || 'N/A'}</td>
                 <td className="py-2 px-4 border-b">{inv.quantity}</td>
                 <td className="py-2 px-4 border-b">{inv.status}</td>
                 <td className="py-2 px-4 border-b">
