@@ -16,10 +16,16 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
     const locationId = searchParams.get('locationId');
     const entryId = searchParams.get('entryId');
+    const providerId = searchParams.get('providerId');
+    const warehouseId = searchParams.get('warehouseId');
+    const status = searchParams.get('status');
 
     const where: any = {
       ...(locationId && { locationId }),
       ...(entryId && { entryId }),
+      ...(status && { status }),
+      ...(providerId && { entry: { providerId } }),
+      ...(warehouseId && { location: { warehouseId } }),
     }
 
     const [inventories, total] = await Promise.all([

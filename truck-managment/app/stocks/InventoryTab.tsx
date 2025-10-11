@@ -21,6 +21,16 @@ interface Inventory {
   };
 }
 
+interface Provider {
+  id: string;
+  name: string;
+}
+
+interface Warehouse {
+  id: string;
+  name: string;
+}
+
 interface Entry {
   id: string;
   provider: { name: string };
@@ -36,6 +46,8 @@ export default function InventoryTab() {
   const [inventories, setInventories] = useState<Inventory[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,6 +56,12 @@ export default function InventoryTab() {
     quantity: 1,
     status: 'stored'
   });
+  const [filters, setFilters] = useState({
+    providerId: '',
+    warehouseId: '',
+    locationId: '',
+    status: ''
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -51,10 +69,13 @@ export default function InventoryTab() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    fetchInventories(currentPage);
-    fetchEntries();
-    fetchLocations();
-  }, [currentPage]);
+    fetchInventories(1); // Reset to page 1 when filters change
+    setCurrentPage(1);
+  }, [filters]);
+
+  useEffect(() => {
+    fetchLocations(filters.warehouseId);
+  }, [filters.warehouseId]);
 
   const fetchInventories = async (page: number = 1) => {
     try {
@@ -62,6 +83,10 @@ export default function InventoryTab() {
         page: page.toString(),
         limit: limit.toString()
       });
+      if (filters.providerId) params.append('providerId', filters.providerId);
+      if (filters.warehouseId) params.append('warehouseId', filters.warehouseId);
+      if (filters.locationId) params.append('locationId', filters.locationId);
+      if (filters.status) params.append('status', filters.status);
       const res = await fetch(`/api/inventory?${params}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -93,9 +118,11 @@ export default function InventoryTab() {
     }
   };
 
-  const fetchLocations = async () => {
+  const fetchLocations = async (warehouseId?: string) => {
     try {
-      const res = await fetch('/api/locations');
+      const params = new URLSearchParams();
+      if (warehouseId) params.append('warehouseId', warehouseId);
+      const res = await fetch(`/api/locations?${params}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -104,6 +131,34 @@ export default function InventoryTab() {
     } catch (error) {
       console.error('Failed to fetch locations:', error);
       setLocations([]);
+    }
+  };
+
+  const fetchProviders = async () => {
+    try {
+      const res = await fetch('/api/providers');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setProviders(data.providers || []);
+    } catch (error) {
+      console.error('Failed to fetch providers:', error);
+      setProviders([]);
+    }
+  };
+
+  const fetchWarehouses = async () => {
+    try {
+      const res = await fetch('/api/warehouses');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setWarehouses(data.map((w: any) => ({ id: w.id, name: w.name })));
+    } catch (error) {
+      console.error('Failed to fetch warehouses:', error);
+      setWarehouses([]);
     }
   };
 
@@ -160,6 +215,84 @@ export default function InventoryTab() {
               {showForm ? 'Cancelar' : 'Nuevo Registro'}
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-8 bg-white shadow sm:rounded-lg border border-gray-200">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label htmlFor="filterProvider" className="block text-sm font-medium text-gray-700">
+                Proveedor
+              </label>
+              <select
+                id="filterProvider"
+                value={filters.providerId}
+                onChange={(e) => setFilters({ ...filters, providerId: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">Todos los proveedores</option>
+                {providers.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filterWarehouse" className="block text-sm font-medium text-gray-700">
+                Almacén
+              </label>
+              <select
+                id="filterWarehouse"
+                value={filters.warehouseId}
+                onChange={(e) => setFilters({ ...filters, warehouseId: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">Todos los almacenes</option>
+                {warehouses.map((warehouse) => (
+                  <option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filterLocation" className="block text-sm font-medium text-gray-700">
+                Ubicación
+              </label>
+              <select
+                id="filterLocation"
+                value={filters.locationId}
+                onChange={(e) => setFilters({ ...filters, locationId: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">Todas las ubicaciones</option>
+                {locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.warehouse.name} - {location.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700">
+                Estado
+              </label>
+              <select
+                id="filterStatus"
+                value={filters.status}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">Todos los estados</option>
+                <option value="stored">Almacenado</option>
+                <option value="shipped">Enviado</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 

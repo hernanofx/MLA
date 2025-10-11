@@ -6,12 +6,12 @@ import InventoryTab from './InventoryTab';
 import LocationsTab from './LocationsTab';
 
 export default function StocksClient() {
-  const [activeTab, setActiveTab] = useState('warehouses');
+  const [activeTab, setActiveTab] = useState('inventory');
 
   const tabs = [
-    { id: 'warehouses', label: 'Almacenes' },
-    { id: 'locations', label: 'Ubicaciones' },
     { id: 'inventory', label: 'Inventario' },
+    { id: 'locations', label: 'Ubicaciones' },
+    { id: 'warehouses', label: 'Almacenes' },
   ];
 
   return (
