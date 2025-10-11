@@ -6,7 +6,9 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   try {
     const warehouses = await prisma.warehouse.findMany({
-      orderBy: { name: 'asc' }
+      include: {
+        locations: true,
+      },
     });
     return NextResponse.json(warehouses);
   } catch (error) {
