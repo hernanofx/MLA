@@ -17,21 +17,10 @@ export async function GET(request: NextRequest) {
 
     const [providers, total] = await Promise.all([
       prisma.provider.findMany({
+        select: { id: true, name: true },
         orderBy: { name: 'asc' },
         skip,
         take: limit,
-        include: {
-          _count: {
-            select: { contacts: true }
-          },
-          responsible: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        }
       }),
       prisma.provider.count()
     ])

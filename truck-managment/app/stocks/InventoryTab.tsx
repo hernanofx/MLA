@@ -138,7 +138,7 @@ export default function InventoryTab() {
 
   const fetchProviders = async () => {
     try {
-      const res = await fetch('/api/providers?limit=1000');
+      const res = await fetch('/api/providers?limit=100');
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }

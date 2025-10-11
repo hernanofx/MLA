@@ -11,9 +11,7 @@ export async function GET() {
     }
 
     const warehouses = await prisma.warehouse.findMany({
-      include: {
-        locations: true,
-      },
+      select: { id: true, name: true },
     });
     return NextResponse.json(warehouses);
   } catch (error) {
