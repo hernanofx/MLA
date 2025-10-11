@@ -5,19 +5,14 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const limit = parseInt(searchParams.get('limit') || '1000')
     const skip = (page - 1) * limit
 
     const [providers, total] = await Promise.all([
       prisma.provider.findMany({
-        select: { id: true, name: true },
+        include: {},
         orderBy: { name: 'asc' },
         skip,
         take: limit,

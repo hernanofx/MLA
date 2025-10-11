@@ -5,13 +5,8 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const warehouses = await prisma.warehouse.findMany({
-      select: { id: true, name: true },
+      include: {},
     });
     return NextResponse.json(warehouses);
   } catch (error) {
