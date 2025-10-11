@@ -7,14 +7,16 @@ import { FileSpreadsheet } from 'lucide-react';
 
 interface Inventory {
   id: string;
-  entryId: string;
+  entryId: string | null;
+  providerId: string | null;
   locationId: string;
   quantity: number;
   status: string;
-  entry: {
+  entry?: {
     id: string;
     provider: { name: string };
   };
+  provider?: { name: string };
   location: {
     name: string;
     warehouse: { name: string };
@@ -51,7 +53,7 @@ export default function InventoryTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    entryId: '',
+    providerId: '',
     locationId: '',
     quantity: 1,
     status: 'stored'
@@ -69,9 +71,11 @@ export default function InventoryTab() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    fetchInventories(1); // Reset to page 1 when filters change
-    setCurrentPage(1);
-  }, [filters]);
+    fetchInventories(currentPage);
+    fetchLocations();
+    fetchProviders();
+    fetchWarehouses();
+  }, [currentPage]);
 
   useEffect(() => {
     fetchLocations(filters.warehouseId);
@@ -171,7 +175,7 @@ export default function InventoryTab() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        setFormData({ entryId: '', locationId: '', quantity: 1, status: 'stored' });
+        setFormData({ providerId: '', locationId: '', quantity: 1, status: 'stored' });
         setShowForm(false);
         fetchInventories(currentPage);
       }
@@ -303,20 +307,20 @@ export default function InventoryTab() {
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="entryId" className="block text-sm font-medium text-gray-700">
-                    Entrada (Proveedor)
+                  <label htmlFor="providerId" className="block text-sm font-medium text-gray-700">
+                    Proveedor
                   </label>
                   <select
-                    id="entryId"
-                    value={formData.entryId}
-                    onChange={(e) => setFormData({ ...formData, entryId: e.target.value })}
+                    id="providerId"
+                    value={formData.providerId}
+                    onChange={(e) => setFormData({ ...formData, providerId: e.target.value })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                   >
-                    <option value="">Seleccionar Entrada</option>
-                    {entries.map((entry) => (
-                      <option key={entry.id} value={entry.id}>
-                        {entry.provider.name} - Entrada {entry.id.slice(-6)}
+                    <option value="">Seleccionar Proveedor</option>
+                    {providers.map((provider) => (
+                      <option key={provider.id} value={provider.id}>
+                        {provider.name}
                       </option>
                     ))}
                   </select>
@@ -425,7 +429,7 @@ export default function InventoryTab() {
                 inventories.map((inv) => (
                   <tr key={inv.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {inv.entry?.provider?.name || 'N/A'}
+                      {inv.entry?.provider?.name || inv.provider?.name || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {inv.location?.warehouse?.name || 'N/A'}

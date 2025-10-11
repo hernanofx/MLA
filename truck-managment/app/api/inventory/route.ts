@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
       ...(locationId && { locationId }),
       ...(entryId && { entryId }),
       ...(status && { status }),
-      ...(providerId && { entry: { providerId } }),
-      ...(warehouseId && { location: { warehouseId } }),
+      ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
+      ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
     }
 
     const [inventories, total] = await Promise.all([
@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
               provider: true,
             },
           },
+          provider: true,
           location: {
             include: {
               warehouse: true,
@@ -76,11 +77,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { entryId, locationId, quantity, status } = body;
+    const { entryId, providerId, locationId, quantity, status } = body;
 
     const inventory = await prisma.inventory.create({
       data: {
         entryId,
+        providerId,
         locationId,
         quantity,
         status,
@@ -91,6 +93,7 @@ export async function POST(request: NextRequest) {
             provider: true,
           },
         },
+        provider: true,
         location: {
           include: {
             warehouse: true,
@@ -106,10 +109,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (subscribedUsers.length > 0) {
+      const providerName = inventory.entry?.provider?.name || inventory.provider?.name || 'Proveedor desconocido'
       await prisma.notification.createMany({
         data: subscribedUsers.map(user => ({
           type: 'NEW_INVENTORY',
-          message: `Nuevo registro de inventario: ${inventory.entry.provider.name} - ${inventory.location.warehouse.name}/${inventory.location.name}`,
+          message: `Nuevo registro de inventario: ${providerName} - ${inventory.location.warehouse.name}/${inventory.location.name}`,
           userId: user.userId
         }))
       })
