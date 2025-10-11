@@ -75,6 +75,10 @@ model Entry {
   provider        Provider  @relation(fields: [providerId], references: [id])
   truck           Truck     @relation(fields: [truckId], references: [id])
   inventories     Inventory[]
+
+  @@index([week])
+  @@index([month])
+  @@index([providerId])
 }
 
 model Load {
@@ -92,6 +96,10 @@ model Load {
   updatedAt       DateTime  @updatedAt
   provider        Provider  @relation(fields: [providerId], references: [id])
   truck           Truck     @relation(fields: [truckId], references: [id])
+
+  @@index([week])
+  @@index([month])
+  @@index([providerId])
 }
 
 model Warehouse {

@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+export const revalidate = 300 // Revalidate every 5 minutes
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,109 +19,83 @@ export async function GET(request: Request) {
     const providerId = searchParams.get('providerId')
 
     // Build where conditions for filtering
-    let whereConditions = ''
-    const params: any[] = []
+    const whereConditions: any = {}
 
     if (week) {
-      whereConditions += ' AND week = $' + (params.length + 1)
-      params.push(parseInt(week))
+      whereConditions.week = parseInt(week)
     }
 
     if (month) {
-      whereConditions += ' AND month = $' + (params.length + 1)
-      params.push(parseInt(month))
+      whereConditions.month = parseInt(month)
     }
 
     if (providerId) {
-      whereConditions += ' AND "providerId" = $' + (params.length + 1)
-      params.push(providerId)
+      whereConditions.providerId = providerId
     }
 
     // Entries by month (filtered)
-    const entriesByMonthQuery = `
-      SELECT month, COUNT(*) as count
-      FROM "Entry"
-      WHERE 1=1 ${whereConditions}
-      GROUP BY month
-      ORDER BY month
-    `
-
-    const entriesByMonth = await prisma.$queryRawUnsafe(
-      entriesByMonthQuery,
-      ...params
-    ) as { month: number; count: bigint }[]
+    const entriesByMonth = await prisma.entry.groupBy({
+      by: ['month'],
+      where: whereConditions,
+      _count: true,
+      orderBy: { month: 'asc' }
+    })
 
     // Loads by month (filtered)
-    const loadsByMonthQuery = `
-      SELECT month, COUNT(*) as count
-      FROM "Load"
-      WHERE 1=1 ${whereConditions}
-      GROUP BY month
-      ORDER BY month
-    `
-
-    const loadsByMonth = await prisma.$queryRawUnsafe(
-      loadsByMonthQuery,
-      ...params
-    ) as { month: number; count: bigint }[]
+    const loadsByMonth = await prisma.load.groupBy({
+      by: ['month'],
+      where: whereConditions,
+      _count: true,
+      orderBy: { month: 'asc' }
+    })
 
     // Entries by provider (filtered)
-    const entriesByProviderQuery = `
-      SELECT p.name as provider, COUNT(e.id) as count
-      FROM "Entry" e
-      JOIN "Provider" p ON e."providerId" = p.id
-      WHERE 1=1 ${whereConditions}
-      GROUP BY p.id, p.name
-      ORDER BY count DESC
-    `
-
-    const entriesByProvider = await prisma.$queryRawUnsafe(
-      entriesByProviderQuery,
-      ...params
-    ) as { provider: string; count: bigint }[]
+    const entriesByProviderRaw = await prisma.entry.findMany({
+      where: whereConditions,
+      include: { provider: { select: { name: true } } }
+    })
+    const entriesByProviderMap = new Map<string, { provider: string; count: number }>()
+    entriesByProviderRaw.forEach(entry => {
+      const key = entry.provider.name
+      if (entriesByProviderMap.has(key)) {
+        entriesByProviderMap.get(key)!.count++
+      } else {
+        entriesByProviderMap.set(key, { provider: key, count: 1 })
+      }
+    })
+    const entriesByProvider = Array.from(entriesByProviderMap.values()).sort((a, b) => b.count - a.count)
 
     // Loads by provider (filtered)
-    const loadsByProviderQuery = `
-      SELECT p.name as provider, COUNT(l.id) as count
-      FROM "Load" l
-      JOIN "Provider" p ON l."providerId" = p.id
-      WHERE 1=1 ${whereConditions}
-      GROUP BY p.id, p.name
-      ORDER BY count DESC
-    `
-
-    const loadsByProvider = await prisma.$queryRawUnsafe(
-      loadsByProviderQuery,
-      ...params
-    ) as { provider: string; count: bigint }[]
+    const loadsByProviderRaw = await prisma.load.findMany({
+      where: whereConditions,
+      include: { provider: { select: { name: true } } }
+    })
+    const loadsByProviderMap = new Map<string, { provider: string; count: number }>()
+    loadsByProviderRaw.forEach(load => {
+      const key = load.provider.name
+      if (loadsByProviderMap.has(key)) {
+        loadsByProviderMap.get(key)!.count++
+      } else {
+        loadsByProviderMap.set(key, { provider: key, count: 1 })
+      }
+    })
+    const loadsByProvider = Array.from(loadsByProviderMap.values()).sort((a, b) => b.count - a.count)
 
     // Trucks by month (filtered) - each entry represents one truck
-    const trucksByMonthQuery = `
-      SELECT month, COUNT(*) as count
-      FROM "Entry"
-      WHERE 1=1 ${whereConditions}
-      GROUP BY month
-      ORDER BY month
-    `
-
-    const trucksByMonth = await prisma.$queryRawUnsafe(
-      trucksByMonthQuery,
-      ...params
-    ) as { month: number; count: bigint }[]
+    const trucksByMonth = await prisma.entry.groupBy({
+      by: ['month'],
+      where: whereConditions,
+      _count: true,
+      orderBy: { month: 'asc' }
+    })
 
     // Trucks by month from loads
-    const trucksByMonthLoadsQuery = `
-      SELECT month, COUNT(*) as count
-      FROM "Load"
-      WHERE 1=1 ${whereConditions}
-      GROUP BY month
-      ORDER BY month
-    `
-
-    const trucksByMonthLoads = await prisma.$queryRawUnsafe(
-      trucksByMonthLoadsQuery,
-      ...params
-    ) as { month: number; count: bigint }[]
+    const trucksByMonthLoads = await prisma.load.groupBy({
+      by: ['month'],
+      where: whereConditions,
+      _count: true,
+      orderBy: { month: 'asc' }
+    })
 
     // Average duration (filtered)
     const avgDurationWhere: any = {}
@@ -138,18 +115,18 @@ export async function GET(request: Request) {
     })
 
     return NextResponse.json({
-      entriesByMonth: entriesByMonth.map(item => ({ month: item.month, count: Number(item.count) })),
-      loadsByMonth: loadsByMonth.map(item => ({ month: item.month, count: Number(item.count) })),
+      entriesByMonth: entriesByMonth.map(item => ({ month: item.month, count: item._count })),
+      loadsByMonth: loadsByMonth.map(item => ({ month: item.month, count: item._count })),
       entriesByProvider: entriesByProvider.map(item => ({
         provider: item.provider,
-        count: Number(item.count)
+        count: item.count
       })),
       loadsByProvider: loadsByProvider.map(item => ({
         provider: item.provider,
-        count: Number(item.count)
+        count: item.count
       })),
-      trucksByMonth: trucksByMonth.map(item => ({ month: item.month, count: Number(item.count) })),
-      trucksByMonthLoads: trucksByMonthLoads.map(item => ({ month: item.month, count: Number(item.count) })),
+      trucksByMonth: trucksByMonth.map(item => ({ month: item.month, count: item._count })),
+      trucksByMonthLoads: trucksByMonthLoads.map(item => ({ month: item.month, count: item._count })),
       avgDuration: avgDuration._avg.durationMinutes,
       avgDurationLoads: avgDurationLoads._avg.durationMinutes
     })
