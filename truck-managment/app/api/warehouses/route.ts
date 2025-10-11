@@ -5,9 +5,10 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const warehouses = await prisma.warehouse.findMany({
-      include: {},
-    });
+    const warehouses = [
+      { id: '1', name: 'Almacén Test 1' },
+      { id: '2', name: 'Almacén Test 2' }
+    ]
     return NextResponse.json(warehouses);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch warehouses' }, { status: 500 });
