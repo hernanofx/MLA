@@ -14,10 +14,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const locationId = searchParams.get('locationId')
     const entryId = searchParams.get('entryId')
+    const providerId = searchParams.get('providerId')
+    const warehouseId = searchParams.get('warehouseId')
+    const status = searchParams.get('status')
 
     const where: any = {
       ...(locationId && { locationId }),
       ...(entryId && { entryId }),
+      ...(status && { status }),
+      ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
+      ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
     }
 
     const inventories = await prisma.inventory.findMany({
@@ -28,6 +34,7 @@ export async function GET(request: NextRequest) {
             provider: true,
           },
         },
+        provider: true,
         location: {
           include: {
             warehouse: true,
@@ -39,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     // Prepare data for Excel
     const excelData = inventories.map(inv => ({
-      'Proveedor': inv.entry?.provider?.name || 'N/A',
+      'Proveedor': inv.entry?.provider?.name || inv.provider?.name || 'N/A',
       'Almacén': inv.location?.warehouse?.name || 'N/A',
       'Ubicación': inv.location?.name || 'N/A',
       'Cantidad': inv.quantity,

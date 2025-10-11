@@ -71,11 +71,9 @@ export default function InventoryTab() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    fetchInventories(currentPage);
-    fetchLocations();
-    fetchProviders();
-    fetchWarehouses();
-  }, [currentPage]);
+    fetchInventories(1);
+    setCurrentPage(1);
+  }, [filters.providerId, filters.warehouseId, filters.locationId, filters.status]);
 
   useEffect(() => {
     fetchLocations(filters.warehouseId);
@@ -140,7 +138,7 @@ export default function InventoryTab() {
 
   const fetchProviders = async () => {
     try {
-      const res = await fetch('/api/providers');
+      const res = await fetch('/api/providers?limit=1000');
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -475,7 +473,12 @@ export default function InventoryTab() {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => {
-              const url = `/api/inventory/export`
+              const params = new URLSearchParams();
+              if (filters.providerId) params.append('providerId', filters.providerId);
+              if (filters.warehouseId) params.append('warehouseId', filters.warehouseId);
+              if (filters.locationId) params.append('locationId', filters.locationId);
+              if (filters.status) params.append('status', filters.status);
+              const url = `/api/inventory/export?${params}`
               window.open(url, '_blank')
             }}
             className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
