@@ -10,12 +10,14 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '1000')
     const skip = (page - 1) * limit
 
-    const providers = [
-      { id: '1', name: 'Proveedor Test 1' },
-      { id: '2', name: 'Proveedor Test 2' }
-    ]
-
-    const total = providers.length
+    const [providers, total] = await Promise.all([
+      prisma.provider.findMany({
+        orderBy: { name: 'asc' },
+        skip,
+        take: limit,
+      }),
+      prisma.provider.count()
+    ])
 
     return NextResponse.json({
       providers,
