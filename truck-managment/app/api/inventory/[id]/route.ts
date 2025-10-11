@@ -17,7 +17,12 @@ export async function GET(
     const inventory = await prisma.inventory.findUnique({
       where: { id },
       include: {
-        entry: true,
+        entry: {
+          include: {
+            provider: true,
+          },
+        },
+        provider: true,
         location: {
           include: {
             warehouse: true,
@@ -50,12 +55,12 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { entryId, locationId, quantity, status } = body;
+    const { providerId, locationId, quantity, status } = body;
 
     const inventory = await prisma.inventory.update({
       where: { id },
       data: {
-        entryId,
+        providerId,
         locationId,
         quantity,
         status,

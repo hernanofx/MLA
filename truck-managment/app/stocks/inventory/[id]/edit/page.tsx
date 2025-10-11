@@ -41,6 +41,8 @@ export default async function EditInventoryPage({ params }: PageProps) {
     include: { warehouse: true }
   })
 
+  const providers = await prisma.provider.findMany()
+
   return (
     <AppLayout>
       <div className="py-6">
@@ -57,7 +59,7 @@ export default async function EditInventoryPage({ params }: PageProps) {
           </div>
 
           <div className="mt-8">
-            <EditInventoryForm inventory={inventory} entries={entries} locations={locations} />
+            <EditInventoryForm inventory={inventory} entries={entries} locations={locations} providers={providers} />
           </div>
         </div>
       </div>
