@@ -100,7 +100,7 @@ export default function InventoryTab() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setLocations(Array.isArray(data) ? data : []);
+      setLocations(Array.isArray(data.locations) ? data.locations : []);
     } catch (error) {
       console.error('Failed to fetch locations:', error);
       setLocations([]);
