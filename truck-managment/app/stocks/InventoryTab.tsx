@@ -79,6 +79,11 @@ export default function InventoryTab() {
     fetchLocations(filters.warehouseId);
   }, [filters.warehouseId]);
 
+  useEffect(() => {
+    fetchProviders();
+    fetchWarehouses();
+  }, []);
+
   const fetchInventories = async (page: number = 1) => {
     try {
       const params = new URLSearchParams({
