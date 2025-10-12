@@ -15,6 +15,20 @@ export async function GET(request: NextRequest) {
         orderBy: { name: 'asc' },
         skip,
         take: limit,
+        include: {
+          responsible: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          _count: {
+            select: {
+              contacts: true
+            }
+          }
+        }
       }),
       prisma.provider.count()
     ])
