@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MLA । Truck Management System",
+  title: "MLA । Cross Dock Management Network",
   description: "Sistema de control de entrada y salida de camiones",
   icons: {
     icon: '/images/logo.png',
