@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const providerId = searchParams.get('providerId');
     const warehouseId = searchParams.get('warehouseId');
     const status = searchParams.get('status');
+    const trackingNumber = searchParams.get('trackingNumber');
 
     const where: any = {
       ...(locationId && { locationId }),
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
       ...(status && { status }),
       ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
       ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
+      ...(trackingNumber && { trackingNumbers: { has: trackingNumber } }),
     }
 
     const [inventories, total] = await Promise.all([
@@ -77,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { entryId, providerId, locationId, quantity, status } = body;
+    const { entryId, providerId, locationId, quantity, status, trackingNumbers } = body;
 
     const inventory = await prisma.inventory.create({
       data: {
@@ -86,6 +88,7 @@ export async function POST(request: NextRequest) {
         locationId,
         quantity,
         status,
+        trackingNumbers: trackingNumbers || [],
       },
       include: {
         entry: {

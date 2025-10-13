@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const providerId = searchParams.get('providerId')
     const warehouseId = searchParams.get('warehouseId')
     const status = searchParams.get('status')
+    const trackingNumber = searchParams.get('trackingNumber')
 
     const where: any = {
       ...(locationId && { locationId }),
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
       ...(status && { status }),
       ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
       ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
+      ...(trackingNumber && { trackingNumbers: { has: trackingNumber } }),
     }
 
     const inventories = await prisma.inventory.findMany({
@@ -50,6 +52,7 @@ export async function GET(request: NextRequest) {
       'Almacén': inv.location?.warehouse?.name || 'N/A',
       'Ubicación': inv.location?.name || 'N/A',
       'Cantidad': inv.quantity,
+      'Tracking Numbers': inv.trackingNumbers.join(', '),
       'Estado': inv.status === 'stored' ? 'Almacenado' : 'Enviado',
       'Fecha de Creación': new Date(inv.createdAt).toLocaleString('es-ES')
     }))
@@ -64,6 +67,7 @@ export async function GET(request: NextRequest) {
       { wch: 15 }, // Almacén
       { wch: 15 }, // Ubicación
       { wch: 10 }, // Cantidad
+      { wch: 25 }, // Tracking Numbers
       { wch: 12 }, // Estado
       { wch: 20 }  // Fecha de Creación
     ]

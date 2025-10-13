@@ -12,6 +12,7 @@ interface Inventory {
   locationId: string;
   quantity: number;
   status: string;
+  trackingNumbers: string[];
   entry?: {
     id: string;
     provider: { name: string };
@@ -56,13 +57,15 @@ export default function InventoryTab() {
     providerId: '',
     locationId: '',
     quantity: 1,
-    status: 'stored'
+    status: 'stored',
+    trackingNumbers: [] as string[],
   });
   const [filters, setFilters] = useState({
     providerId: '',
     warehouseId: '',
     locationId: '',
-    status: ''
+    status: '',
+    trackingNumber: '',
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -73,7 +76,7 @@ export default function InventoryTab() {
   useEffect(() => {
     fetchInventories(1);
     setCurrentPage(1);
-  }, [filters.providerId, filters.warehouseId, filters.locationId, filters.status]);
+  }, [filters.providerId, filters.warehouseId, filters.locationId, filters.status, filters.trackingNumber]);
 
   useEffect(() => {
     fetchLocations(filters.warehouseId);
@@ -94,6 +97,7 @@ export default function InventoryTab() {
       if (filters.warehouseId) params.append('warehouseId', filters.warehouseId);
       if (filters.locationId) params.append('locationId', filters.locationId);
       if (filters.status) params.append('status', filters.status);
+      if (filters.trackingNumber) params.append('trackingNumber', filters.trackingNumber);
       const res = await fetch(`/api/inventory?${params}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -178,7 +182,7 @@ export default function InventoryTab() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        setFormData({ providerId: '', locationId: '', quantity: 1, status: 'stored' });
+        setFormData({ providerId: '', locationId: '', quantity: 1, status: 'stored', trackingNumbers: [] });
         setShowForm(false);
         fetchInventories(currentPage);
       }
@@ -299,6 +303,19 @@ export default function InventoryTab() {
                 <option value="shipped">Enviado</option>
               </select>
             </div>
+            <div>
+              <label htmlFor="filterTrackingNumber" className="block text-sm font-medium text-gray-700">
+                Tracking Number
+              </label>
+              <input
+                type="text"
+                id="filterTrackingNumber"
+                value={filters.trackingNumber}
+                onChange={(e) => setFilters({ ...filters, trackingNumber: e.target.value })}
+                placeholder="Buscar por tracking number"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -375,6 +392,19 @@ export default function InventoryTab() {
                     <option value="shipped">Enviado</option>
                   </select>
                 </div>
+                <div>
+                  <label htmlFor="trackingNumbers" className="block text-sm font-medium text-gray-700">
+                    Tracking Numbers
+                  </label>
+                  <input
+                    type="text"
+                    id="trackingNumbers"
+                    value={formData.trackingNumbers.join(', ')}
+                    onChange={(e) => setFormData({ ...formData, trackingNumbers: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
+                    placeholder="Ingrese tracking numbers separados por coma"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
               </div>
               <div className="mt-6 flex justify-end space-x-3">
                 <button
@@ -414,6 +444,9 @@ export default function InventoryTab() {
                   Cantidad
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tracking Numbers
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
                 <th scope="col" className="relative px-6 py-3">
@@ -424,7 +457,7 @@ export default function InventoryTab() {
             <tbody className="bg-white divide-y divide-gray-200">
               {inventories.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
                     No hay registros de inventario
                   </td>
                 </tr>
@@ -442,6 +475,9 @@ export default function InventoryTab() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {inv.quantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {inv.trackingNumbers.length > 0 ? inv.trackingNumbers.join(', ') : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -483,6 +519,7 @@ export default function InventoryTab() {
               if (filters.warehouseId) params.append('warehouseId', filters.warehouseId);
               if (filters.locationId) params.append('locationId', filters.locationId);
               if (filters.status) params.append('status', filters.status);
+              if (filters.trackingNumber) params.append('trackingNumber', filters.trackingNumber);
               const url = `/api/inventory/export?${params}`
               window.open(url, '_blank')
             }}
