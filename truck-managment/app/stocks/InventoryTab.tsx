@@ -12,7 +12,7 @@ interface Inventory {
   locationId: string;
   quantity: number;
   status: string;
-  trackingNumbers: string[];
+  trackingNumbers: string | null;
   entry?: {
     id: string;
     provider: { name: string };
@@ -58,7 +58,7 @@ export default function InventoryTab() {
     locationId: '',
     quantity: 1,
     status: 'stored',
-    trackingNumbers: [] as string[],
+    trackingNumbers: '',
   });
   const [filters, setFilters] = useState({
     providerId: '',
@@ -182,7 +182,7 @@ export default function InventoryTab() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        setFormData({ providerId: '', locationId: '', quantity: 1, status: 'stored', trackingNumbers: [] });
+        setFormData({ providerId: '', locationId: '', quantity: 1, status: 'stored', trackingNumbers: '' });
         setShowForm(false);
         fetchInventories(currentPage);
       }
@@ -399,8 +399,8 @@ export default function InventoryTab() {
                   <input
                     type="text"
                     id="trackingNumbers"
-                    value={formData.trackingNumbers.join(', ')}
-                    onChange={(e) => setFormData({ ...formData, trackingNumbers: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
+                    value={formData.trackingNumbers}
+                    onChange={(e) => setFormData({ ...formData, trackingNumbers: e.target.value })}
                     placeholder="Ingrese tracking numbers separados por coma"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
@@ -477,7 +477,7 @@ export default function InventoryTab() {
                       {inv.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {inv.trackingNumbers.length > 0 ? inv.trackingNumbers.join(', ') : 'N/A'}
+                      {inv.trackingNumbers || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

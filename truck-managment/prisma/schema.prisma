@@ -131,7 +131,7 @@ model Inventory {
   locationId String
   quantity   Int       @default(1)
   status     String    @default("stored")
-  trackingNumbers String[]
+  trackingNumbers String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   entry      Entry?    @relation(fields: [entryId], references: [id])

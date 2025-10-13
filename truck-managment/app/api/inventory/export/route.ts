@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       ...(status && { status }),
       ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
       ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
-      ...(trackingNumber && { trackingNumbers: { some: { contains: trackingNumber, mode: 'insensitive' } } }),
+      ...(trackingNumber && { trackingNumbers: { contains: trackingNumber, mode: 'insensitive' } }),
     }
 
     const inventories = await prisma.inventory.findMany({
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       'Almacén': inv.location?.warehouse?.name || 'N/A',
       'Ubicación': inv.location?.name || 'N/A',
       'Cantidad': inv.quantity,
-      'Tracking Numbers': inv.trackingNumbers.join(', '),
+      'Tracking Numbers': inv.trackingNumbers || 'N/A',
       'Estado': inv.status === 'stored' ? 'Almacenado' : 'Enviado',
       'Fecha de Creación': new Date(inv.createdAt).toLocaleString('es-ES')
     }))

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       ...(status && { status }),
       ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
       ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
-      ...(trackingNumber && { trackingNumbers: { some: { contains: trackingNumber, mode: 'insensitive' } } }),
+      ...(trackingNumber && { trackingNumbers: { contains: trackingNumber, mode: 'insensitive' } }),
     }
 
     const [inventories, total] = await Promise.all([
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         locationId,
         quantity,
         status,
-        trackingNumbers: trackingNumbers || [],
+        trackingNumbers: trackingNumbers || null,
       },
       include: {
         entry: {
