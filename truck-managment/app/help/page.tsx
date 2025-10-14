@@ -835,6 +835,10 @@ const moduleContent = {
               <li><strong>📥 Nuevas Entradas:</strong> Cuando se registra una entrada de mercancías.</li>
               <li><strong>📦 Nuevas Cargas:</strong> Cuando se crea una nueva carga o envío.</li>
               <li><strong>📋 Nuevos Registros de Inventario:</strong> Cuando se actualiza el inventario.</li>
+              <li><strong>🗺️ Nuevas Zonas:</strong> Cuando se crea una nueva zona de cobertura en el mapa.</li>
+              <li><strong>✏️ Ediciones de Zonas:</strong> Cuando se modifica la información o geometría de una zona existente.</li>
+              <li><strong>➕ Asignaciones de Proveedores a Zonas:</strong> Cuando se asigna un proveedor a una zona específica.</li>
+              <li><strong>➖ Desasignaciones de Proveedores de Zonas:</strong> Cuando se remueve la asignación de un proveedor de una zona.</li>
             </ul>
           </div>
         </section>
