@@ -33,7 +33,12 @@ export default function MapsPage() {
   useEffect(() => {
     // Fetch zones
     fetch('/api/zones')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data)) {
           setZones(data);
@@ -49,7 +54,12 @@ export default function MapsPage() {
 
     // Fetch providers
     fetch('/api/providers')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data)) {
           setProviders(data);
