@@ -134,6 +134,18 @@ export default function MapsPage() {
     setSelectedZone(zone);
   };
 
+  const handleDrawCreated = (geoJson: any) => {
+    setNewZone({
+      postalCodes: '',
+      province: '',
+      department: '',
+      locality: '',
+      type: '',
+      geometry: JSON.stringify(geoJson, null, 2),
+    });
+    setShowCreateModal(true);
+  };
+
   const removeProviderAssignment = async (coverageId: string) => {
     if (!confirm('¿Estás seguro de que quieres remover esta asignación de proveedor?')) return;
 
@@ -479,7 +491,7 @@ export default function MapsPage() {
 
         {/* Map Panel */}
         <div className="flex-1">
-          <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} />
+          <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} onDrawCreated={handleDrawCreated} />
         </div>
       </div>
 

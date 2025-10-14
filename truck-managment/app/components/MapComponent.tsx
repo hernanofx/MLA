@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
+import 'leaflet-draw';
 
 interface Zone {
   id: string;
@@ -26,10 +28,60 @@ interface MapComponentProps {
   zones: Zone[];
   onZoneSelect: (zone: Zone) => void;
   selectedZone?: Zone | null;
+  onDrawCreated?: (geoJson: any) => void;
 }
 
-function MapController({ zones, onZoneSelect, selectedZone }: MapComponentProps) {
+function MapController({ zones, onZoneSelect, selectedZone, onDrawCreated }: MapComponentProps) {
   const map = useMap();
+
+  useEffect(() => {
+    // Crear grupo para elementos dibujados
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    // Agregar control de dibujo
+    const drawControl = new (L as any).Control.Draw({
+      edit: {
+        featureGroup: drawnItems,
+        remove: true,
+      },
+      draw: {
+        polygon: true,
+        rectangle: true,
+        circle: false,
+        marker: false,
+        polyline: false,
+      },
+    });
+    map.addControl(drawControl);
+
+    // Evento cuando se crea un dibujo
+    map.on((L as any).Draw.Event.CREATED, (e: any) => {
+      const layer = e.layer;
+      drawnItems.addLayer(layer);
+      if (onDrawCreated) {
+        onDrawCreated(layer.toGeoJSON());
+      }
+    });
+
+    // Evento cuando se edita un dibujo
+    map.on((L as any).Draw.Event.EDITED, (e: any) => {
+      e.layers.eachLayer((layer: any) => {
+        // Opcional: manejar edición
+      });
+    });
+
+    // Evento cuando se elimina un dibujo
+    map.on((L as any).Draw.Event.DELETED, (e: any) => {
+      // Opcional: manejar eliminación
+    });
+
+    // Cleanup
+    return () => {
+      map.removeControl(drawControl);
+      map.removeLayer(drawnItems);
+    };
+  }, [map, onDrawCreated]);
 
   useEffect(() => {
     if (zones && Array.isArray(zones) && zones.length > 0) {
