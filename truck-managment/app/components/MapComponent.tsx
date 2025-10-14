@@ -40,8 +40,6 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    console.log('Inicializando mapa...');
-
     // Crear mapa centrado en Buenos Aires
     const map = L.map(mapRef.current).setView([-34.6037, -58.3816], 11);
 
@@ -86,7 +84,6 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
       
       if (onDrawCreated) {
         const geoJSON = layer.toGeoJSON();
-        console.log('Nuevo dibujo creado:', geoJSON);
         onDrawCreated(geoJSON.geometry);
       }
     });
@@ -109,35 +106,59 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
     // Limpiar capas anteriores
     zonesLayer.clearLayers();
 
-    console.log(`=== RENDERIZANDO ZONAS ===`);
-    console.log(`Total zonas recibidas: ${zones.length}`);
-
-    let validZonesCount = 0;
-    let invalidZonesCount = 0;
-
-    zones.forEach((zone, index) => {
-      if (!zone.geometry) {
-        console.warn(`⚠️ Zona sin geometría: ${zone.locality}`);
-        invalidZonesCount++;
-        return;
-      }
+    zones.forEach((zone) => {
+      if (!zone.geometry) return;
 
       try {
-        // Verificar que la geometría sea válida
-        if (!zone.geometry.type || !zone.geometry.coordinates) {
-          console.error(`❌ Geometría inválida para zona ${zone.locality}:`, zone.geometry);
-          invalidZonesCount++;
+        if (!zone.geometry.type || !zone.geometry.coordinates) return;
+
+        const isSelected = selectedZone?.id === zone.id;
+        const hasCoverage = zone.coverages && zone.coverages.length > 0;
+        
+        const color = isSelected ? '#3B82F6' : (hasCoverage ? '#10B981' : '#EF4444');
+
+        // Popup con información
+        const providersText = zone.coverages && zone.coverages.length > 0
+          ? zone.coverages.map(c => c.provider.name).join(', ')
+          : 'Sin proveedores asignados';
+        
+        const popupContent = `
+          <div class="p-2">
+            <h3 class="font-bold text-lg mb-2">${zone.locality}</h3>
+            <p class="text-sm mb-1"><strong>Códigos Postales:</strong> ${zone.postalCodes.slice(0, 5).join(', ')}${zone.postalCodes.length > 5 ? '...' : ''}</p>
+            <p class="text-sm mb-1"><strong>Ubicación:</strong> ${zone.province}, ${zone.department}</p>
+            <p class="text-sm mb-1"><strong>Tipo:</strong> ${zone.type}</p>
+            <p class="text-sm mb-2"><strong>Proveedores:</strong> ${providersText}</p>
+            ${hasCoverage ? `<p class="text-xs text-green-600 mt-1">✓ Con cobertura</p>` : `<p class="text-xs text-red-600 mt-1">✗ Sin cobertura</p>`}
+          </div>
+        `;
+
+        // Manejar MultiPoint con 1 o 2 puntos como marcadores circulares
+        if (zone.geometry.type === 'MultiPoint' && zone.geometry.coordinates.length < 3) {
+          const [lng, lat] = zone.geometry.coordinates[0];
+          const circle = L.circleMarker([lat, lng], {
+            radius: isSelected ? 12 : 8,
+            color: color,
+            fillColor: color,
+            fillOpacity: isSelected ? 0.6 : 0.4,
+            weight: isSelected ? 3 : 2,
+          });
+          
+          circle.bindPopup(popupContent);
+          circle.on('click', () => {
+            onZoneSelect(zone);
+          });
+          
+          zonesLayer.addLayer(circle);
           return;
         }
 
-        // Convertir MultiPoint a Polygon si es necesario
+        // Convertir MultiPoint a Polygon si tiene 3+ puntos
         let geometryToRender = zone.geometry;
-        if (zone.geometry.type === 'MultiPoint') {
-          console.log(`🔄 Convirtiendo MultiPoint a Polygon: ${zone.locality}`);
+        if (zone.geometry.type === 'MultiPoint' && zone.geometry.coordinates.length >= 3) {
           const coordinates = zone.geometry.coordinates;
-          
-          // Asegurarse de que el polígono esté cerrado (primer punto = último punto)
           const polygonCoords = [...coordinates];
+          
           if (JSON.stringify(polygonCoords[0]) !== JSON.stringify(polygonCoords[polygonCoords.length - 1])) {
             polygonCoords.push(polygonCoords[0]);
           }
@@ -148,110 +169,67 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
           };
         }
 
-        const isSelected = selectedZone?.id === zone.id;
-        const hasCoverage = zone.coverages && zone.coverages.length > 0;
-
-        // Crear capa GeoJSON
+        // Crear capa GeoJSON para polígonos
         const geoJsonLayer = L.geoJSON(geometryToRender, {
           style: {
-            color: isSelected ? '#3B82F6' : (hasCoverage ? '#10B981' : '#EF4444'),
+            color: color,
             weight: isSelected ? 3 : 2,
             opacity: 1,
             fillOpacity: isSelected ? 0.4 : 0.2,
           },
           onEachFeature: (feature, layer) => {
-            // Popup con información
-            const providersText = zone.coverages && zone.coverages.length > 0
-              ? zone.coverages.map(c => c.provider.name).join(', ')
-              : 'Sin proveedores asignados';
-            
-            const popupContent = `
-              <div class="p-2">
-                <h3 class="font-bold text-lg mb-2">${zone.locality}</h3>
-                <p class="text-sm mb-1"><strong>Códigos Postales:</strong> ${zone.postalCodes.slice(0, 5).join(', ')}${zone.postalCodes.length > 5 ? '...' : ''}</p>
-                <p class="text-sm mb-1"><strong>Ubicación:</strong> ${zone.province}, ${zone.department}</p>
-                <p class="text-sm mb-1"><strong>Tipo:</strong> ${zone.type}</p>
-                <p class="text-sm mb-2"><strong>Proveedores:</strong> ${providersText}</p>
-                ${hasCoverage ? `<p class="text-xs text-green-600 mt-1">✓ Con cobertura</p>` : `<p class="text-xs text-red-600 mt-1">✗ Sin cobertura</p>`}
-              </div>
-            `;
-            
             layer.bindPopup(popupContent);
-
-            // Click para seleccionar
             layer.on('click', () => {
-              console.log('Zona clickeada:', zone.locality);
               onZoneSelect(zone);
             });
           },
         });
 
         zonesLayer.addLayer(geoJsonLayer);
-        validZonesCount++;
-
-        console.log(`✓ Zona renderizada [${index + 1}/${zones.length}]: ${zone.locality}`, {
-          id: zone.id,
-          hasGeometry: !!zone.geometry,
-          geometryType: zone.geometry?.type,
-          isSelected,
-          hasCoverage
-        });
-
       } catch (error) {
-        console.error(`❌ Error renderizando zona ${zone.locality}:`, error, zone.geometry);
-        invalidZonesCount++;
+        // Error silencioso
       }
     });
 
-    console.log(`=== RESUMEN DE RENDERIZADO ===`);
-    console.log(`Total zonas: ${zones.length}`);
-    console.log(`Válidas: ${validZonesCount}`);
-    console.log(`Inválidas: ${invalidZonesCount}`);
-    console.log(`Capas en mapa: ${zonesLayer.getLayers().length}`);
-
-    // Ajustar vista del mapa a las zonas
-    if (zonesLayer.getLayers().length > 0) {
+    // Auto zoom si hay zonas
+    if (zones.length > 0 && zonesLayer.getLayers().length > 0) {
       try {
         const bounds = zonesLayer.getBounds();
-        console.log('Ajustando bounds del mapa:', bounds);
-        map.fitBounds(bounds, { 
-          padding: [50, 50],
-          maxZoom: 13
-        });
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+        }
       } catch (error) {
-        console.error('Error ajustando bounds:', error);
+        // Error silencioso
       }
     }
-
   }, [zones, selectedZone, onZoneSelect]);
 
   // Zoom a zona seleccionada
   useEffect(() => {
     const map = mapInstanceRef.current;
-    const zonesLayer = zonesLayerRef.current;
     
-    if (!map || !zonesLayer || !selectedZone) return;
+    if (!map || !selectedZone || !selectedZone.geometry) return;
 
-    console.log('=== ZOOM A ZONA SELECCIONADA ===');
-    console.log('Zona:', selectedZone.locality);
-    console.log('Geometría:', selectedZone.geometry);
-
-    // Intentar hacer zoom directamente a la geometría
-    if (selectedZone.geometry && selectedZone.geometry.type && selectedZone.geometry.coordinates) {
-      try {
+    try {
+      if (selectedZone.geometry.type === 'MultiPoint' && selectedZone.geometry.coordinates.length < 3) {
+        // Zoom a punto único
+        const [lng, lat] = selectedZone.geometry.coordinates[0];
+        map.flyTo([lat, lng], 14, { duration: 1 });
+      } else {
+        // Zoom a polígono
         const geoJsonLayer = L.geoJSON(selectedZone.geometry);
         const bounds = geoJsonLayer.getBounds();
-        console.log('Bounds de zona seleccionada:', bounds);
-        map.flyToBounds(bounds, { 
-          padding: [100, 100],
-          maxZoom: 14,
-          duration: 1
-        });
-      } catch (error) {
-        console.error('Error haciendo zoom a zona:', error);
+        if (bounds.isValid()) {
+          map.flyToBounds(bounds, { 
+            padding: [100, 100],
+            maxZoom: 14,
+            duration: 1
+          });
+        }
       }
+    } catch (error) {
+      // Error silencioso
     }
-
   }, [selectedZone]);
 
   return (
