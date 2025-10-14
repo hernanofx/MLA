@@ -34,23 +34,42 @@ function MapController({ zones, onZoneSelect }: MapComponentProps) {
       const group = L.featureGroup();
       zones.forEach(zone => {
         if (zone.geometry) {
+          const hasCoverage = zone.coverages && zone.coverages.length > 0;
           const layer = L.geoJSON(zone.geometry, {
             style: {
-              color: 'blue',
+              color: hasCoverage ? '#10B981' : '#EF4444', // Green for covered, red for uncovered
               weight: 2,
-              opacity: 0.7,
+              opacity: 0.8,
+              fillColor: hasCoverage ? '#10B981' : '#EF4444',
+              fillOpacity: 0.3,
             },
             onEachFeature: (feature, layer) => {
               layer.on('click', () => {
                 onZoneSelect(zone);
               });
-              layer.bindPopup(`<b>${zone.locality}</b><br>Códigos: ${zone.postalCodes.join(', ')}`);
+              const providersText = zone.coverages && zone.coverages.length > 0
+                ? zone.coverages.map(c => c.provider.name).join(', ')
+                : 'Sin proveedores asignados';
+              layer.bindPopup(`
+                <div class="p-2">
+                  <h3 class="font-bold text-lg mb-2">${zone.locality}</h3>
+                  <p class="text-sm mb-1"><strong>Códigos Postales:</strong> ${zone.postalCodes.slice(0, 5).join(', ')}${zone.postalCodes.length > 5 ? '...' : ''}</p>
+                  <p class="text-sm mb-1"><strong>Ubicación:</strong> ${zone.province}, ${zone.department}</p>
+                  <p class="text-sm mb-1"><strong>Tipo:</strong> ${zone.type}</p>
+                  <p class="text-sm mb-2"><strong>Proveedores:</strong> ${providersText}</p>
+                  <p class="text-xs text-gray-600">Haz click para ver detalles</p>
+                </div>
+              `);
             },
           });
           group.addLayer(layer);
         }
       });
-      map.fitBounds(group.getBounds());
+
+      // Fit map to show all zones
+      if (group.getLayers().length > 0) {
+        map.fitBounds(group.getBounds(), { padding: [20, 20] });
+      }
     }
   }, [zones, map, onZoneSelect]);
 
