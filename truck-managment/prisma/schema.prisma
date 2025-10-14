@@ -14,6 +14,10 @@ enum NotificationType {
   NEW_ENTRY
   NEW_LOAD
   NEW_INVENTORY
+  NEW_ZONE
+  EDIT_ZONE
+  ASSIGN_PROVIDER
+  UNASSIGN_PROVIDER
 }
 
 model User {
@@ -156,6 +160,10 @@ model UserNotificationPreferences {
   newEntry     Boolean @default(true)
   newLoad      Boolean @default(true)
   newInventory Boolean @default(true)
+  newZone      Boolean @default(true)
+  editZone     Boolean @default(true)
+  assignProvider Boolean @default(true)
+  unassignProvider Boolean @default(true)
   user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

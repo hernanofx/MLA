@@ -73,22 +73,39 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const preferences = await request.json()
+    const { type, message } = await request.json()
 
-    const updatedPreferences = await prisma.userNotificationPreferences.upsert({
-      where: { userId: session.user.id },
-      update: preferences,
-      create: { userId: session.user.id, ...preferences }
+    // Obtener todos los usuarios con preferencias activadas para este tipo
+    const usersWithPreferences = await prisma.userNotificationPreferences.findMany({
+      where: {
+        [type.toLowerCase()]: true
+      },
+      include: {
+        user: true
+      }
     })
 
-    return NextResponse.json(updatedPreferences)
+    // Crear notificaciones para esos usuarios
+    const notifications = await Promise.all(
+      usersWithPreferences.map(pref =>
+        prisma.notification.create({
+          data: {
+            type,
+            message,
+            userId: pref.userId
+          }
+        })
+      )
+    )
+
+    return NextResponse.json({ success: true, notifications })
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }

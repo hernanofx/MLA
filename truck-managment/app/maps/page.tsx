@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import AppLayout from '../components/AppLayout';
 import ActionMenu from '../components/ActionMenu';
 import { Search, MapPin, Users, CheckCircle, XCircle, Plus, X, Edit2, Trash2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 // Dynamically import the map component to avoid SSR issues
 const MapComponent = dynamic(() => import('../components/MapComponent'), {
@@ -37,6 +38,9 @@ interface Provider {
 }
 
 export default function MapsPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'admin';
+
   const [zones, setZones] = useState<Zone[]>([]);
   const [filteredZones, setFilteredZones] = useState<Zone[]>([]);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
@@ -122,6 +126,16 @@ export default function MapsPage() {
         if (updatedZone) {
           setSelectedZone(updatedZone);
         }
+        // Send notification
+        const providerName = providers.find(p => p.id === selectedProviderId)?.name || 'Proveedor';
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'ASSIGN_PROVIDER',
+            message: `Proveedor ${providerName} asignado a zona ${selectedZone.locality}`
+          })
+        });
       }
     } catch (error) {
       console.error('Error assigning provider:', error);
@@ -162,6 +176,17 @@ export default function MapsPage() {
         if (updatedZone) {
           setSelectedZone(updatedZone);
         }
+        // Send notification
+        const coverage = selectedZone?.coverages.find(c => c.id === coverageId);
+        const providerName = coverage?.provider.name || 'Proveedor';
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'UNASSIGN_PROVIDER',
+            message: `Proveedor ${providerName} desasignado de zona ${selectedZone?.locality}`
+          })
+        });
       }
     } catch (error) {
       console.error('Error removing provider assignment:', error);
@@ -207,6 +232,15 @@ export default function MapsPage() {
           locality: '',
           type: '',
           geometry: '',
+        });
+        // Send notification
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'NEW_ZONE',
+            message: `Nueva zona creada: ${newZone.locality}`
+          })
         });
       } else {
         const error = await response.json();
@@ -274,6 +308,15 @@ export default function MapsPage() {
           type: '',
           geometry: '',
         });
+        // Send notification
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'EDIT_ZONE',
+            message: `Zona editada: ${editingZone.locality}`
+          })
+        });
       } else {
         const error = await response.json();
         alert(`Error al actualizar zona: ${error.error || 'Error desconocido'}`);
@@ -333,13 +376,15 @@ export default function MapsPage() {
           <div className="p-4 border-b border-gray-200 sticky top-0 z-10 bg-white">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-xl font-bold text-gray-900">Mapa de Cobertura</h1>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="Nueva Zona"
-              >
-                <Plus className="h-5 w-5" />
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Nueva Zona"
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              )}
             </div>
             {/* Search */}
             <div className="relative">
@@ -411,13 +456,14 @@ export default function MapsPage() {
                 </h3>
                 {/* ActionMenu de tres puntitos */}
                 <div>
-                  {/** Importar ActionMenu arriba: import ActionMenu from '../components/ActionMenu'; */}
-                  <ActionMenu
-                    onEdit={() => openEditModal(selectedZone)}
-                    onDelete={() => deleteZone(selectedZone.id)}
-                    editLabel="Editar"
-                    deleteLabel="Eliminar"
-                  />
+                  {isAdmin && (
+                    <ActionMenu
+                      onEdit={() => openEditModal(selectedZone)}
+                      onDelete={() => deleteZone(selectedZone.id)}
+                      editLabel="Editar"
+                      deleteLabel="Eliminar"
+                    />
+                  )}
                 </div>
               </div>
 
