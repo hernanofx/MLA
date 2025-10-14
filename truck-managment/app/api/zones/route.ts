@@ -11,9 +11,21 @@ export async function GET() {
           },
         },
       },
+      orderBy: {
+        locality: 'asc',
+      },
     });
+
+    console.log(`API /zones: Devolviendo ${zones.length} zonas`);
+    const zonesWithGeometry = zones.filter(z => z.geometry);
+    console.log(`Zonas con geometría: ${zonesWithGeometry.length}`);
+    if (zonesWithGeometry.length > 0) {
+      console.log('Primera zona con geometría:', zonesWithGeometry[0].locality, zonesWithGeometry[0].geometry);
+    }
+
     return NextResponse.json(zones);
   } catch (error) {
+    console.error('Error fetching zones:', error);
     return NextResponse.json({ error: 'Failed to fetch zones' }, { status: 500 });
   }
 }

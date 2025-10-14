@@ -65,16 +65,6 @@ export default function MapsPage() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    // Filter zones based on search term
-    const filtered = zones.filter(zone =>
-      zone.locality.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zone.postalCodes.some(cp => cp.includes(searchTerm)) ||
-      zone.province.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredZones(filtered);
-  }, [zones, searchTerm]);
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -82,6 +72,23 @@ export default function MapsPage() {
       const zonesRes = await fetch('/api/zones');
       if (zonesRes.ok) {
         const zonesData = await zonesRes.json();
+        
+        console.log('=== DATOS DE ZONAS RECIBIDOS ===');
+        console.log('Total zonas:', zonesData.length);
+        console.log('Primera zona:', zonesData[0]);
+        console.log('Zonas con geometría:', zonesData.filter((z: Zone) => z.geometry).length);
+        console.log('Zonas sin geometría:', zonesData.filter((z: Zone) => !z.geometry).length);
+        
+        // Verificar zona específica "Agronomia"
+        const agronomia = zonesData.find((z: Zone) => z.locality === 'Agronomia');
+        if (agronomia) {
+          console.log('=== ZONA AGRONOMIA ===');
+          console.log('ID:', agronomia.id);
+          console.log('Geometría:', agronomia.geometry);
+          console.log('Tipo de geometría:', agronomia.geometry?.type);
+          console.log('Coordenadas válidas:', Array.isArray(agronomia.geometry?.coordinates));
+        }
+        
         if (Array.isArray(zonesData)) {
           setZones(zonesData);
           setFilteredZones(zonesData);
@@ -102,6 +109,16 @@ export default function MapsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Filter zones based on search term
+    const filtered = zones.filter(zone =>
+      zone.locality.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      zone.postalCodes.some(cp => cp.includes(searchTerm)) ||
+      zone.province.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredZones(filtered);
+  }, [zones, searchTerm]);
 
   const assignProvider = async () => {
     if (!selectedZone || !selectedProviderId) return;
