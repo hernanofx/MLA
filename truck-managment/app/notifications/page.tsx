@@ -20,6 +20,10 @@ interface Preferences {
   newEntry: boolean
   newLoad: boolean
   newInventory: boolean
+  newZone: boolean
+  editZone: boolean
+  assignProvider: boolean
+  unassignProvider: boolean
 }
 
 export default function NotificationsPage() {
@@ -33,7 +37,11 @@ export default function NotificationsPage() {
     newTruck: true,
     newEntry: true,
     newLoad: true,
-    newInventory: true
+    newInventory: true,
+    newZone: true,
+    editZone: true,
+    assignProvider: true,
+    unassignProvider: true
   })
   const [activeTab, setActiveTab] = useState<'notifications' | 'preferences'>('notifications')
   const [error, setError] = useState('')
@@ -130,6 +138,14 @@ export default function NotificationsPage() {
         return '📦'
       case 'NEW_INVENTORY':
         return '📋'
+      case 'NEW_ZONE':
+        return '🗺️'
+      case 'EDIT_ZONE':
+        return '✏️'
+      case 'ASSIGN_PROVIDER':
+        return '➕'
+      case 'UNASSIGN_PROVIDER':
+        return '➖'
       default:
         return '🔔'
     }
@@ -340,6 +356,58 @@ export default function NotificationsPage() {
                         />
                         <label htmlFor="newInventory" className="ml-3 text-sm font-medium text-gray-700">
                           📋 Nuevos Registros de Inventario
+                        </label>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          id="newZone"
+                          type="checkbox"
+                          checked={preferences.newZone}
+                          onChange={(e) => setPreferences({ ...preferences, newZone: e.target.checked })}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="newZone" className="ml-3 text-sm font-medium text-gray-700">
+                          🗺️ Nuevas Zonas
+                        </label>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          id="editZone"
+                          type="checkbox"
+                          checked={preferences.editZone}
+                          onChange={(e) => setPreferences({ ...preferences, editZone: e.target.checked })}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="editZone" className="ml-3 text-sm font-medium text-gray-700">
+                          ✏️ Ediciones de Zonas
+                        </label>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          id="assignProvider"
+                          type="checkbox"
+                          checked={preferences.assignProvider}
+                          onChange={(e) => setPreferences({ ...preferences, assignProvider: e.target.checked })}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="assignProvider" className="ml-3 text-sm font-medium text-gray-700">
+                          ➕ Asignaciones de Proveedores a Zonas
+                        </label>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          id="unassignProvider"
+                          type="checkbox"
+                          checked={preferences.unassignProvider}
+                          onChange={(e) => setPreferences({ ...preferences, unassignProvider: e.target.checked })}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="unassignProvider" className="ml-3 text-sm font-medium text-gray-700">
+                          ➖ Desasignaciones de Proveedores de Zonas
                         </label>
                       </div>
                     </div>
