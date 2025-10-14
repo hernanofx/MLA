@@ -3,11 +3,12 @@ import { prisma } from '../../../../lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const zone = await prisma.zone.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         coverages: {
           include: {
@@ -27,12 +28,13 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await request.json();
     const zone = await prisma.zone.update({
-      where: { id: params.id },
+      where: { id },
       data: body,
     });
     return NextResponse.json(zone);
@@ -43,11 +45,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await prisma.zone.delete({
-      where: { id: params.id },
+      where: { id },
     });
     return NextResponse.json({ message: 'Zone deleted' });
   } catch (error) {
