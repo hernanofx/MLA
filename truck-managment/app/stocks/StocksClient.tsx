@@ -9,7 +9,7 @@ export default function StocksClient() {
   const [activeTab, setActiveTab] = useState('inventory');
 
   const tabs = [
-    { id: 'inventory', label: 'Inventario' },
+    { id: 'inventory', label: 'Devoluciones' },
     { id: 'locations', label: 'Ubicaciones' },
     { id: 'warehouses', label: 'Almacenes' },
   ];
@@ -18,7 +18,7 @@ export default function StocksClient() {
     <div className="px-4 py-6 sm:px-0">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Gestión de Stock</h1>
-        <p className="mt-2 text-sm text-gray-600">Administra almacenes, ubicaciones e inventario</p>
+        <p className="mt-2 text-sm text-gray-600">Administra almacenes, ubicaciones y devoluciones</p>
       </div>
 
       <div className="mb-6">

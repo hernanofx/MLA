@@ -253,6 +253,12 @@ export default function NewLoadPage() {
                 type="text"
                 value={container}
                 onChange={(e) => setContainer(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    setContainer(container + ' ')
+                  }
+                }}
                 placeholder="Ej: ABC123, CONT-456"
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
               />

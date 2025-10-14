@@ -108,7 +108,7 @@ export default function InventoryTab() {
       setTotal(data.pagination?.total || 0);
       setCurrentPage(page);
     } catch (error) {
-      console.error('Failed to fetch inventories:', error);
+      console.error('Failed to fetch devoluciones:', error);
       setInventories([]);
     } finally {
       setLoading(false);
@@ -187,12 +187,12 @@ export default function InventoryTab() {
         fetchInventories(currentPage);
       }
     } catch (error) {
-      console.error('Failed to create inventory:', error);
+      console.error('Failed to create devolución:', error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este registro de inventario?')) return;
+    if (!confirm('¿Estás seguro de que quieres eliminar este registro de devolución?')) return;
 
     try {
       const res = await fetch(`/api/inventory/${id}`, {
@@ -202,7 +202,7 @@ export default function InventoryTab() {
         fetchInventories(currentPage);
       }
     } catch (error) {
-      console.error('Failed to delete inventory:', error);
+      console.error('Failed to delete devolución:', error);
     }
   };
 
@@ -214,8 +214,8 @@ export default function InventoryTab() {
     <div>
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Inventario</h2>
-          <p className="mt-2 text-sm text-gray-700">Gestiona el inventario de paquetes en las ubicaciones</p>
+          <h2 className="text-2xl font-semibold text-gray-900">Ingreso de devoluciones</h2>
+          <p className="mt-2 text-sm text-gray-700">Gestiona el ingreso de devoluciones en las ubicaciones</p>
         </div>
         <div className="mt-4 sm:mt-0">
           {session?.user?.role === 'admin' && (
@@ -223,7 +223,7 @@ export default function InventoryTab() {
               onClick={() => setShowForm(!showForm)}
               className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 h-10"
             >
-              {showForm ? 'Cancelar' : 'Nuevo Registro'}
+              {showForm ? 'Cancelar' : 'Nueva Devolución'}
             </button>
           )}
         </div>
@@ -323,7 +323,7 @@ export default function InventoryTab() {
       {showForm && (
         <div className="mb-8 bg-white shadow sm:rounded-lg border border-gray-200">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Crear Nuevo Registro de Inventario</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Crear Nuevo Registro de Devolución</h3>
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
@@ -458,7 +458,7 @@ export default function InventoryTab() {
               {inventories.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
-                    No hay registros de inventario
+                    No hay registros de devoluciones
                   </td>
                 </tr>
               ) : (
