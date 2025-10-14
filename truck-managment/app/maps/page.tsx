@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import AppLayout from '../components/AppLayout';
-import { Search, MapPin, Users, CheckCircle, XCircle, Plus, X } from 'lucide-react';
+import { Search, MapPin, Users, CheckCircle, XCircle, Plus, X, Edit2, Trash2 } from 'lucide-react';
 
 // Dynamically import the map component to avoid SSR issues
 const MapComponent = dynamic(() => import('../components/MapComponent'), {
@@ -45,6 +45,8 @@ export default function MapsPage() {
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingZone, setEditingZone] = useState<Zone | null>(null);
   const [newZone, setNewZone] = useState({
     postalCodes: '',
     province: '',
@@ -203,6 +205,97 @@ export default function MapsPage() {
     }
   };
 
+  const openEditModal = (zone: Zone) => {
+    setEditingZone(zone);
+    setNewZone({
+      postalCodes: zone.postalCodes.join(', '),
+      province: zone.province,
+      department: zone.department,
+      locality: zone.locality,
+      type: zone.type,
+      geometry: JSON.stringify(zone.geometry, null, 2),
+    });
+    setShowEditModal(true);
+  };
+
+  const updateZone = async () => {
+    if (!editingZone) return;
+
+    try {
+      // Parse postal codes (comma separated)
+      const postalCodesArray = newZone.postalCodes.split(',').map(cp => cp.trim()).filter(cp => cp);
+      
+      // Parse geometry (expecting GeoJSON format)
+      let geometryObj;
+      try {
+        geometryObj = JSON.parse(newZone.geometry);
+      } catch (e) {
+        alert('El formato del geometry debe ser un JSON válido');
+        return;
+      }
+
+      const response = await fetch(`/api/zones/${editingZone.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postalCodes: postalCodesArray,
+          province: newZone.province,
+          department: newZone.department,
+          locality: newZone.locality,
+          type: newZone.type,
+          geometry: geometryObj,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh zones data
+        await loadData();
+        // Close modal and reset form
+        setShowEditModal(false);
+        setEditingZone(null);
+        setNewZone({
+          postalCodes: '',
+          province: '',
+          department: '',
+          locality: '',
+          type: '',
+          geometry: '',
+        });
+      } else {
+        const error = await response.json();
+        alert(`Error al actualizar zona: ${error.error || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error updating zone:', error);
+      alert('Error al actualizar zona');
+    }
+  };
+
+  const deleteZone = async (zoneId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta zona? Esta acción no se puede deshacer.')) return;
+
+    try {
+      const response = await fetch(`/api/zones/${zoneId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Refresh zones data
+        await loadData();
+        // Clear selection if deleted zone was selected
+        if (selectedZone?.id === zoneId) {
+          setSelectedZone(null);
+        }
+      } else {
+        const error = await response.json();
+        alert(`Error al eliminar zona: ${error.error || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting zone:', error);
+      alert('Error al eliminar zona');
+    }
+  };
+
   const getZoneStatus = (zone: Zone) => {
     return zone.coverages.length > 0 ? 'covered' : 'uncovered';
   };
@@ -299,9 +392,27 @@ export default function MapsPage() {
           {/* Zone Details Panel */}
           {selectedZone && (
             <div className="border-t border-gray-200 bg-gray-50 p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                {selectedZone.locality}
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {selectedZone.locality}
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openEditModal(selectedZone)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Editar zona"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteZone(selectedZone.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Eliminar zona"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
 
               <div className="space-y-3">
                 <div>
@@ -388,7 +499,7 @@ export default function MapsPage() {
 
       {/* Create Zone Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Crear Nueva Zona</h2>
@@ -495,6 +606,127 @@ export default function MapsPage() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Crear Zona
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Zone Modal */}
+      {showEditModal && editingZone && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Editar Zona: {editingZone.locality}</h2>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingZone(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Códigos Postales (separados por comas)
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="1234, 5678, 9012"
+                  value={newZone.postalCodes}
+                  onChange={(e) => setNewZone({ ...newZone, postalCodes: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Provincia
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Buenos Aires"
+                  value={newZone.province}
+                  onChange={(e) => setNewZone({ ...newZone, province: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Departamento
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="La Plata"
+                  value={newZone.department}
+                  onChange={(e) => setNewZone({ ...newZone, department: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Localidad
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="City Bell"
+                  value={newZone.locality}
+                  onChange={(e) => setNewZone({ ...newZone, locality: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="BARRIO, CIUDAD, etc."
+                  value={newZone.type}
+                  onChange={(e) => setNewZone({ ...newZone, type: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Geometry (GeoJSON)
+                </label>
+                <textarea
+                  rows={8}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                  placeholder={'{\n  "type": "Polygon",\n  "coordinates": [[[-58.123, -34.456], ...]]\n}'}
+                  value={newZone.geometry}
+                  onChange={(e) => setNewZone({ ...newZone, geometry: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formato GeoJSON válido. Puedes usar herramientas como geojson.io para crear geometrías.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingZone(null);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={updateZone}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Guardar Cambios
               </button>
             </div>
           </div>
