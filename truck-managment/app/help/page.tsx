@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import AppLayout from '@/app/components/AppLayout'
-import { LayoutDashboard, Building2, Truck, ClipboardList, Package, Warehouse, BarChart3, HelpCircle, Bell, Users, User, Plus, Search, Edit, Settings, CheckCircle, XCircle, Filter, UserPlus, Shield, Trash2, TrendingUp, FileText, Download, Calendar } from 'lucide-react'
+import { LayoutDashboard, Building2, Truck, ClipboardList, Package, Warehouse, BarChart3, HelpCircle, Bell, Users, User, Plus, Search, Edit, Settings, CheckCircle, XCircle, Filter, UserPlus, Shield, Trash2, TrendingUp, FileText, Download, Calendar, MapPin } from 'lucide-react'
 
-type ModuleId = 'dashboard' | 'providers' | 'trucks' | 'entries' | 'loads' | 'stocks' | 'reports' | 'notifications' | 'users'
+type ModuleId = 'dashboard' | 'providers' | 'trucks' | 'entries' | 'loads' | 'stocks' | 'reports' | 'notifications' | 'users' | 'maps'
 
 const modules: { id: ModuleId; name: string; icon: any; description: string }[] = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, description: 'Vista general del sistema y estadísticas principales' },
@@ -16,6 +16,7 @@ const modules: { id: ModuleId; name: string; icon: any; description: string }[] 
   { id: 'reports', name: 'Reportes', icon: BarChart3, description: 'Generación de reportes y estadísticas' },
   { id: 'notifications', name: 'Notificaciones', icon: Bell, description: 'Gestión de notificaciones y preferencias' },
   { id: 'users', name: 'Usuarios', icon: Users, description: 'Administración de usuarios del sistema' },
+  { id: 'maps', name: 'Mapas', icon: MapPin, description: 'Visualización y gestión de zonas de cobertura' },
 ]
 
 const moduleContent = {
@@ -974,6 +975,168 @@ const moduleContent = {
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
                 <strong>Emails únicos:</strong> Cada usuario debe tener un email único en el sistema.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    )
+  },
+  maps: {
+    title: "Ayuda - Mapas",
+    content: (
+      <div className="space-y-8">
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Funcionalidades principales</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-start">
+                <MapPin className="h-6 w-6 text-green-600 mr-3 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900">Visualizar Zonas</h3>
+                  <p className="text-gray-600">Ve todas las zonas de cobertura en un mapa interactivo con colores según estado.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <Search className="h-6 w-6 text-blue-600 mr-3 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900">Buscar Zonas</h3>
+                  <p className="text-gray-600">Encuentra zonas por localidad, código postal o provincia.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <Plus className="h-6 w-6 text-purple-600 mr-3 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900">Crear Zonas</h3>
+                  <p className="text-gray-600">Dibuja nuevas zonas en el mapa o importa geometrías GeoJSON (solo administradores).</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <Users className="h-6 w-6 text-orange-600 mr-3 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-900">Asignar Proveedores</h3>
+                  <p className="text-gray-600">Vincula proveedores a zonas específicas para gestión de cobertura.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Cómo usar el mapa de cobertura</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <ol className="list-decimal list-inside space-y-4 text-gray-700">
+              <li>
+                <strong>Accede al módulo:</strong> Desde el menú lateral, haz clic en "Mapas".
+              </li>
+              <li>
+                <strong>Explora el mapa:</strong> Usa zoom y movimiento para navegar por las zonas de cobertura.
+              </li>
+              <li>
+                <strong>Selecciona una zona:</strong> Haz clic en cualquier zona del mapa para ver sus detalles en el panel lateral.
+              </li>
+              <li>
+                <strong>Busca zonas:</strong> Usa la barra de búsqueda para filtrar zonas por localidad, código postal o provincia.
+              </li>
+              <li>
+                <strong>Ver proveedores asignados:</strong> En el panel de detalles, revisa qué proveedores cubren la zona seleccionada.
+              </li>
+              <li>
+                <strong>Asignar proveedor:</strong> Selecciona un proveedor del dropdown y haz clic en "Asignar" para vincularlo a la zona.
+              </li>
+              <li>
+                <strong>Remover asignación:</strong> Haz clic en la X roja junto a un proveedor para remover su asignación a la zona.
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Herramientas de dibujo (solo administradores)</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 flex items-center">
+                  <Edit className="h-5 w-5 mr-2 text-blue-600" />
+                  Dibujar Polígonos
+                </h3>
+                <p className="text-gray-600 ml-7">Haz clic en el ícono de polígono en la barra superior del mapa y dibuja la forma deseada.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 flex items-center">
+                  <Edit className="h-5 w-5 mr-2 text-green-600" />
+                  Dibujar Rectángulos
+                </h3>
+                <p className="text-gray-600 ml-7">Usa la herramienta de rectángulo para crear zonas cuadradas o rectangulares.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 flex items-center">
+                  <Settings className="h-5 w-5 mr-2 text-purple-600" />
+                  Editar Formas
+                </h3>
+                <p className="text-gray-600 ml-7">Arrastra vértices para modificar formas existentes o elimina dibujos no deseados.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Estados de las zonas</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <ul className="space-y-3 text-gray-700">
+              <li><strong className="text-green-600">● Verde:</strong> Zona cubierta (tiene proveedores asignados).</li>
+              <li><strong className="text-red-600">● Rojo:</strong> Zona sin cobertura (sin proveedores asignados).</li>
+              <li><strong className="text-blue-600">● Azul:</strong> Zona seleccionada actualmente.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Campos de zona importantes</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <ul className="space-y-3 text-gray-700">
+              <li><strong>Códigos Postales:</strong> Lista de códigos postales que cubre la zona.</li>
+              <li><strong>Provincia/Departamento:</strong> Ubicación administrativa de la zona.</li>
+              <li><strong>Localidad:</strong> Nombre de la ciudad o barrio representado.</li>
+              <li><strong>Tipo:</strong> Clasificación de la zona (BARRIO, CIUDAD, etc.).</li>
+              <li><strong>Geometría:</strong> Forma geográfica en formato GeoJSON.</li>
+              <li><strong>Proveedores:</strong> Lista de proveedores asignados a la zona.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Notificaciones relacionadas</h2>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <ul className="space-y-3 text-gray-700">
+              <li><strong>🗺️ Nuevas Zonas:</strong> Cuando se crea una zona nueva.</li>
+              <li><strong>✏️ Ediciones de Zonas:</strong> Cuando se modifica una zona existente.</li>
+              <li><strong>➕ Asignaciones de Proveedores:</strong> Cuando se asigna un proveedor a una zona.</li>
+              <li><strong>➖ Desasignaciones de Proveedores:</strong> Cuando se remueve un proveedor de una zona.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Consejos útiles</h2>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                <strong>Permisos de administrador:</strong> Solo usuarios con rol de administrador pueden crear, editar o eliminar zonas.
+              </p>
+            </div>
+          </div>
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                <strong>Geometrías precisas:</strong> Para mejores resultados, usa herramientas como geojson.io para crear geometrías precisas.
+              </p>
+            </div>
+          </div>
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 mt-4">
+            <div className="ml-3">
+              <p className="text-sm text-green-800">
+                <strong>Cobertura óptima:</strong> Asigna múltiples proveedores a zonas grandes para asegurar redundancia en la cobertura.
               </p>
             </div>
           </div>
