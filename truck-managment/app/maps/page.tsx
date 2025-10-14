@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import AppLayout from '../components/AppLayout';
+import ActionMenu from '../components/ActionMenu';
 import { Search, MapPin, Users, CheckCircle, XCircle, Plus, X, Edit2, Trash2 } from 'lucide-react';
 
 // Dynamically import the map component to avoid SSR issues
@@ -311,30 +312,30 @@ export default function MapsPage() {
   }
 
   return (
+
     <AppLayout>
       <div className="h-screen flex bg-gray-50">
         {/* Left Panel - Zones and Details */}
         <div className="w-96 bg-white shadow-lg flex flex-col">
           {/* Header */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">Mapa de Cobertura</h1>
+          <div className="p-4 border-b border-gray-200 sticky top-0 z-10 bg-white">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-xl font-bold text-gray-900">Mapa de Cobertura</h1>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Nueva Zona"
               >
-                <Plus className="h-4 w-4" />
-                Nueva Zona
+                <Plus className="h-5 w-5" />
               </button>
             </div>
-
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 type="text"
                 placeholder="Buscar zona por localidad, código postal o provincia..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -392,60 +393,46 @@ export default function MapsPage() {
           {/* Zone Details Panel */}
           {selectedZone && (
             <div className="border-t border-gray-200 bg-gray-50 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-base font-semibold text-gray-900 truncate">
                   {selectedZone.locality}
                 </h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openEditModal(selectedZone)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Editar zona"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteZone(selectedZone.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Eliminar zona"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                {/* ActionMenu de tres puntitos */}
+                <div>
+                  {/** Importar ActionMenu arriba: import ActionMenu from '../components/ActionMenu'; */}
+                  <ActionMenu
+                    onEdit={() => openEditModal(selectedZone)}
+                    onDelete={() => deleteZone(selectedZone.id)}
+                    editLabel="Editar"
+                    deleteLabel="Eliminar"
+                  />
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2 text-sm">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Códigos Postales</label>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {selectedZone.postalCodes.join(', ')}
-                  </p>
+                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Códigos Postales</span>
+                  <span className="text-gray-700">{selectedZone.postalCodes.join(', ')}</span>
                 </div>
-
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Ubicación</label>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {selectedZone.province}, {selectedZone.department}
-                  </p>
+                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Ubicación</span>
+                  <span className="text-gray-700">{selectedZone.province}, {selectedZone.department}</span>
                 </div>
-
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Tipo</label>
-                  <p className="text-sm text-gray-600 mt-1">{selectedZone.type}</p>
+                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Tipo</span>
+                  <span className="text-gray-700">{selectedZone.type}</span>
                 </div>
-
                 <div>
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Proveedores Asignados ({selectedZone.coverages.length})
-                  </label>
+                  <span className="block text-xs font-medium text-gray-500 flex items-center gap-2 mb-0.5">
+                    <Users className="h-4 w-4" /> Proveedores Asignados ({selectedZone.coverages.length})
+                  </span>
                   {selectedZone.coverages.length > 0 ? (
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-1 space-y-1">
                       {selectedZone.coverages.map((coverage) => (
-                        <div key={coverage.provider.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                        <div key={coverage.provider.id} className="flex items-center justify-between p-1 bg-white rounded border border-gray-100">
                           <div className="flex items-center gap-2">
                             <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-sm text-gray-900">{coverage.provider.name}</span>
+                            <span className="text-xs text-gray-900">{coverage.provider.name}</span>
                           </div>
                           <button
                             onClick={() => removeProviderAssignment(coverage.id)}
@@ -458,15 +445,14 @@ export default function MapsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500 mt-1">Sin proveedores asignados</p>
+                    <span className="text-xs text-gray-400 mt-1">Sin proveedores asignados</span>
                   )}
                 </div>
-
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Asignar Nuevo Proveedor</label>
-                  <div className="mt-2 flex gap-2">
+                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Asignar Nuevo Proveedor</span>
+                  <div className="mt-1 flex gap-2">
                     <select
-                      className="flex-1 text-sm border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={selectedProviderId}
                       onChange={(e) => setSelectedProviderId(e.target.value)}
                     >
@@ -478,7 +464,7 @@ export default function MapsPage() {
                       ))}
                     </select>
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={assignProvider}
                       disabled={!selectedProviderId || assigning}
                     >
