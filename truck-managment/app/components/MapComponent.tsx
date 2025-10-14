@@ -93,14 +93,14 @@ function MapController({ zones, onZoneSelect, selectedZone }: MapComponentProps)
   return null;
 }
 
-export default function MapComponent({ zones, onZoneSelect }: MapComponentProps) {
+export default function MapComponent({ zones, onZoneSelect, selectedZone }: MapComponentProps) {
   return (
     <MapContainer center={[-34.6037, -58.3816]} zoom={10} style={{ height: '100%', width: '100%' }}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <MapController zones={zones} onZoneSelect={onZoneSelect} />
+      <MapController zones={zones} onZoneSelect={onZoneSelect} selectedZone={selectedZone} />
     </MapContainer>
   );
 }

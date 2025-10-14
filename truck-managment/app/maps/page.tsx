@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import AppLayout from '../components/AppLayout';
-import { Search, MapPin, Users, CheckCircle, XCircle } from 'lucide-react';
+import { Search, MapPin, Users, CheckCircle, XCircle, Plus, X } from 'lucide-react';
 
 // Dynamically import the map component to avoid SSR issues
 const MapComponent = dynamic(() => import('../components/MapComponent'), {
@@ -44,6 +44,15 @@ export default function MapsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newZone, setNewZone] = useState({
+    postalCodes: '',
+    province: '',
+    department: '',
+    locality: '',
+    type: '',
+    geometry: '',
+  });
 
   useEffect(() => {
     loadData();
@@ -144,6 +153,56 @@ export default function MapsPage() {
     }
   };
 
+  const createZone = async () => {
+    try {
+      // Parse postal codes (comma separated)
+      const postalCodesArray = newZone.postalCodes.split(',').map(cp => cp.trim()).filter(cp => cp);
+      
+      // Parse geometry (expecting GeoJSON format)
+      let geometryObj;
+      try {
+        geometryObj = JSON.parse(newZone.geometry);
+      } catch (e) {
+        alert('El formato del geometry debe ser un JSON válido');
+        return;
+      }
+
+      const response = await fetch('/api/zones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postalCodes: postalCodesArray,
+          province: newZone.province,
+          department: newZone.department,
+          locality: newZone.locality,
+          type: newZone.type,
+          geometry: geometryObj,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh zones data
+        await loadData();
+        // Close modal and reset form
+        setShowCreateModal(false);
+        setNewZone({
+          postalCodes: '',
+          province: '',
+          department: '',
+          locality: '',
+          type: '',
+          geometry: '',
+        });
+      } else {
+        const error = await response.json();
+        alert(`Error al crear zona: ${error.error || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error creating zone:', error);
+      alert('Error al crear zona');
+    }
+  };
+
   const getZoneStatus = (zone: Zone) => {
     return zone.coverages.length > 0 ? 'covered' : 'uncovered';
   };
@@ -165,7 +224,16 @@ export default function MapsPage() {
         <div className="w-96 bg-white shadow-lg flex flex-col">
           {/* Header */}
           <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Mapa de Cobertura</h1>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-gray-900">Mapa de Cobertura</h1>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Nueva Zona
+              </button>
+            </div>
 
             {/* Search */}
             <div className="relative">
@@ -317,6 +385,121 @@ export default function MapsPage() {
           <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} />
         </div>
       </div>
+
+      {/* Create Zone Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Crear Nueva Zona</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Códigos Postales (separados por comas)
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="1234, 5678, 9012"
+                  value={newZone.postalCodes}
+                  onChange={(e) => setNewZone({ ...newZone, postalCodes: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Provincia
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Buenos Aires"
+                  value={newZone.province}
+                  onChange={(e) => setNewZone({ ...newZone, province: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Departamento
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="La Plata"
+                  value={newZone.department}
+                  onChange={(e) => setNewZone({ ...newZone, department: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Localidad
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="City Bell"
+                  value={newZone.locality}
+                  onChange={(e) => setNewZone({ ...newZone, locality: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="BARRIO, CIUDAD, etc."
+                  value={newZone.type}
+                  onChange={(e) => setNewZone({ ...newZone, type: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Geometry (GeoJSON)
+                </label>
+                <textarea
+                  rows={8}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                  placeholder={'{\n  "type": "Polygon",\n  "coordinates": [[[-58.123, -34.456], ...]]\n}'}
+                  value={newZone.geometry}
+                  onChange={(e) => setNewZone({ ...newZone, geometry: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formato GeoJSON válido. Puedes usar herramientas como geojson.io para crear geometrías.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={createZone}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Crear Zona
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
