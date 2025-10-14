@@ -34,12 +34,34 @@ export default function MapsPage() {
     // Fetch zones
     fetch('/api/zones')
       .then(res => res.json())
-      .then(setZones);
+      .then(data => {
+        if (Array.isArray(data)) {
+          setZones(data);
+        } else {
+          console.error('Zones data is not an array:', data);
+          setZones([]);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching zones:', error);
+        setZones([]);
+      });
 
     // Fetch providers
     fetch('/api/providers')
       .then(res => res.json())
-      .then(setProviders);
+      .then(data => {
+        if (Array.isArray(data)) {
+          setProviders(data);
+        } else {
+          console.error('Providers data is not an array:', data);
+          setProviders([]);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching providers:', error);
+        setProviders([]);
+      });
   }, []);
 
   const assignProvider = async () => {

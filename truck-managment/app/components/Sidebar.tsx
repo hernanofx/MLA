@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell, HelpCircle } from 'lucide-react'
+import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell, HelpCircle, Map } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -109,6 +109,7 @@ export default function Sidebar() {
     { name: 'Entradas/Salidas', href: '/entries', icon: ClipboardList },
     { name: 'Cargas/Descargas', href: '/loads', icon: Package },
     { name: 'Stock', href: '/stocks', icon: Warehouse },
+    { name: 'Mapas', href: '/maps', icon: Map },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
     { name: 'Ayuda', href: '/help', icon: HelpCircle },
   ]
@@ -138,7 +139,7 @@ export default function Sidebar() {
               <img src="/images/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
               <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/5 to-transparent rounded-lg" />
             </div>
-            <h1 className="text-base font-semibold text-neutral-900 tracking-tight">Truck Manager</h1>
+            <h1 className="text-base font-semibold text-neutral-900 tracking-tight">CDN Management</h1>
           </div>
           <div className="w-9"></div> {/* Spacer for centering */}
         </div>
@@ -160,7 +161,7 @@ export default function Sidebar() {
                   <img src="/images/logo.png" alt="Logo" className="h-9 w-9 object-contain" />
                   <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/5 to-transparent rounded-lg" />
                 </div>
-                <h1 className="ml-3 text-xl font-semibold text-neutral-900 tracking-tight">Truck Manager</h1>
+                <h1 className="ml-3 text-xl font-semibold text-neutral-900 tracking-tight">CDN Management</h1>
               </div>
               
               {/* <CHANGE> Premium navigation items with refined styling */}
@@ -293,7 +294,7 @@ export default function Sidebar() {
                     <img src="/images/logo.png" alt="Logo" className="h-7 w-7 object-contain" />
                     <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/5 to-transparent rounded-lg" />
                   </div>
-                  <h1 className="text-lg font-semibold text-neutral-900 tracking-tight">Truck Manager</h1>
+                  <h1 className="text-lg font-semibold text-neutral-900 tracking-tight">CDN Management</h1>
                 </div>
               )}
               {isCollapsed && (

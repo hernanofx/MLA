@@ -30,7 +30,7 @@ function MapController({ zones, onZoneSelect }: MapComponentProps) {
   const map = useMap();
 
   useEffect(() => {
-    if (zones.length > 0) {
+    if (zones && Array.isArray(zones) && zones.length > 0) {
       const group = L.featureGroup();
       zones.forEach(zone => {
         if (zone.geometry) {
