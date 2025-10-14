@@ -14,6 +14,7 @@ interface Zone {
   type: string;
   geometry: any;
   coverages: {
+    id: string;
     provider: {
       id: string;
       name: string;
@@ -24,24 +25,29 @@ interface Zone {
 interface MapComponentProps {
   zones: Zone[];
   onZoneSelect: (zone: Zone) => void;
+  selectedZone?: Zone | null;
 }
 
-function MapController({ zones, onZoneSelect }: MapComponentProps) {
+function MapController({ zones, onZoneSelect, selectedZone }: MapComponentProps) {
   const map = useMap();
 
   useEffect(() => {
     if (zones && Array.isArray(zones) && zones.length > 0) {
       const group = L.featureGroup();
+      const selectedLayers: L.Layer[] = [];
+
       zones.forEach(zone => {
         if (zone.geometry) {
+          const isSelected = selectedZone?.id === zone.id;
           const hasCoverage = zone.coverages && zone.coverages.length > 0;
+          
           const layer = L.geoJSON(zone.geometry, {
             style: {
-              color: hasCoverage ? '#10B981' : '#EF4444', // Green for covered, red for uncovered
-              weight: 2,
+              color: isSelected ? '#2563EB' : (hasCoverage ? '#10B981' : '#EF4444'), // Blue for selected, green for covered, red for uncovered
+              weight: isSelected ? 4 : 2,
               opacity: 0.8,
-              fillColor: hasCoverage ? '#10B981' : '#EF4444',
-              fillOpacity: 0.3,
+              fillColor: isSelected ? '#2563EB' : (hasCoverage ? '#10B981' : '#EF4444'),
+              fillOpacity: isSelected ? 0.6 : 0.3,
             },
             onEachFeature: (feature, layer) => {
               layer.on('click', () => {
@@ -62,7 +68,12 @@ function MapController({ zones, onZoneSelect }: MapComponentProps) {
               `);
             },
           });
+          
           group.addLayer(layer);
+          
+          if (isSelected) {
+            selectedLayers.push(layer);
+          }
         }
       });
 
@@ -70,8 +81,14 @@ function MapController({ zones, onZoneSelect }: MapComponentProps) {
       if (group.getLayers().length > 0) {
         map.fitBounds(group.getBounds(), { padding: [20, 20] });
       }
+
+      // If there's a selected zone, zoom to it
+      if (selectedLayers.length > 0) {
+        const selectedGroup = L.featureGroup(selectedLayers);
+        map.fitBounds(selectedGroup.getBounds(), { padding: [50, 50], maxZoom: 14 });
+      }
     }
-  }, [zones, map, onZoneSelect]);
+  }, [zones, map, onZoneSelect, selectedZone]);
 
   return null;
 }

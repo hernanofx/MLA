@@ -19,6 +19,7 @@ interface Zone {
   type: string;
   geometry: any;
   coverages: {
+    id: string;
     provider: {
       id: string;
       name: string;
@@ -119,6 +120,28 @@ export default function MapsPage() {
 
   const handleZoneSelect = (zone: Zone) => {
     setSelectedZone(zone);
+  };
+
+  const removeProviderAssignment = async (coverageId: string) => {
+    if (!confirm('¿Estás seguro de que quieres remover esta asignación de proveedor?')) return;
+
+    try {
+      const response = await fetch(`/api/provider-coverages/${coverageId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Refresh zones data
+        await loadData();
+        // Keep the same zone selected
+        const updatedZone = zones.find(z => z.id === selectedZone?.id);
+        if (updatedZone) {
+          setSelectedZone(updatedZone);
+        }
+      }
+    } catch (error) {
+      console.error('Error removing provider assignment:', error);
+    }
   };
 
   const getZoneStatus = (zone: Zone) => {
@@ -240,9 +263,18 @@ export default function MapsPage() {
                   {selectedZone.coverages.length > 0 ? (
                     <div className="mt-2 space-y-1">
                       {selectedZone.coverages.map((coverage) => (
-                        <div key={coverage.provider.id} className="flex items-center gap-2 p-2 bg-white rounded border">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-sm text-gray-900">{coverage.provider.name}</span>
+                        <div key={coverage.provider.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span className="text-sm text-gray-900">{coverage.provider.name}</span>
+                          </div>
+                          <button
+                            onClick={() => removeProviderAssignment(coverage.id)}
+                            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                            title="Remover asignación"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -282,7 +314,7 @@ export default function MapsPage() {
 
         {/* Map Panel */}
         <div className="flex-1">
-          <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} />
+          <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} />
         </div>
       </div>
     </AppLayout>
