@@ -130,11 +130,29 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
           return;
         }
 
+        // Convertir MultiPoint a Polygon si es necesario
+        let geometryToRender = zone.geometry;
+        if (zone.geometry.type === 'MultiPoint') {
+          console.log(`🔄 Convirtiendo MultiPoint a Polygon: ${zone.locality}`);
+          const coordinates = zone.geometry.coordinates;
+          
+          // Asegurarse de que el polígono esté cerrado (primer punto = último punto)
+          const polygonCoords = [...coordinates];
+          if (JSON.stringify(polygonCoords[0]) !== JSON.stringify(polygonCoords[polygonCoords.length - 1])) {
+            polygonCoords.push(polygonCoords[0]);
+          }
+
+          geometryToRender = {
+            type: 'Polygon',
+            coordinates: [polygonCoords]
+          };
+        }
+
         const isSelected = selectedZone?.id === zone.id;
         const hasCoverage = zone.coverages && zone.coverages.length > 0;
 
         // Crear capa GeoJSON
-        const geoJsonLayer = L.geoJSON(zone.geometry, {
+        const geoJsonLayer = L.geoJSON(geometryToRender, {
           style: {
             color: isSelected ? '#3B82F6' : (hasCoverage ? '#10B981' : '#EF4444'),
             weight: isSelected ? 3 : 2,
