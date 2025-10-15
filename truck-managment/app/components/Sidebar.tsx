@@ -112,6 +112,7 @@ export default function Sidebar() {
     { name: 'Stock', href: '/stocks', icon: Warehouse },
     { name: 'Mapas', href: '/maps', icon: Map },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
+    ...(session?.user?.role === 'vms' || session?.user?.role === 'admin' ? [{ name: 'VMS', href: '/vms', icon: Truck }] : []),
     {
       name: 'Ayuda',
       href: '/help',
