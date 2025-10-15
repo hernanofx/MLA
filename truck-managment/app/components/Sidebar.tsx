@@ -15,6 +15,7 @@ export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false)
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false)
 
   useEffect(() => {
     // Emit event when collapsed state changes
@@ -111,7 +112,16 @@ export default function Sidebar() {
     { name: 'Stock', href: '/stocks', icon: Warehouse },
     { name: 'Mapas', href: '/maps', icon: Map },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
-    { name: 'Ayuda', href: '/help', icon: HelpCircle },
+    {
+      name: 'Ayuda',
+      href: '/help',
+      icon: HelpCircle,
+      subItems: [
+        { name: 'Centro de Ayuda', href: '/help' },
+        { name: 'FAQ', href: '/help/faq' },
+        { name: 'Wiki', href: '/wiki' }
+      ]
+    },
   ]
 
   // Navigation is the same for all users - users access is in the dropdown menu
@@ -172,6 +182,55 @@ export default function Sidebar() {
               <nav className="flex-1 px-3 space-y-1">
                 {navigation.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                  const hasSubItems = item.subItems && item.subItems.length > 0
+                  const isHelpActive = hasSubItems && (pathname.startsWith('/help') || pathname.startsWith('/wiki'))
+
+                  if (hasSubItems) {
+                    return (
+                      <div key={item.name}>
+                        <button
+                          onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
+                          className={`group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 w-full ${
+                            isHelpActive
+                              ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
+                              : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                          }`}
+                        >
+                          <item.icon className={`flex-shrink-0 h-5 w-5 mr-3.5 transition-transform duration-200 ${
+                            isHelpActive ? 'scale-110' : 'group-hover:scale-105'
+                          }`} />
+                          <span className="flex-1 text-left">{item.name}</span>
+                          {isHelpMenuOpen ? (
+                            <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                          ) : (
+                            <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                          )}
+                        </button>
+                        {isHelpMenuOpen && (
+                          <div className="ml-8 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
+                            {item.subItems.map((subItem) => {
+                              const isSubActive = pathname === subItem.href
+                              return (
+                                <Link
+                                  key={subItem.name}
+                                  href={subItem.href}
+                                  onClick={closeMobileMenu}
+                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                    isSubActive
+                                      ? 'bg-neutral-800 text-white'
+                                      : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                  }`}
+                                >
+                                  {subItem.name}
+                                </Link>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  }
+
                   return (
                     <Link
                       key={item.name}
@@ -315,6 +374,68 @@ export default function Sidebar() {
             <nav className="mt-6 flex-1 px-3 space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                const hasSubItems = item.subItems && item.subItems.length > 0
+                const isHelpActive = hasSubItems && (pathname.startsWith('/help') || pathname.startsWith('/wiki'))
+
+                if (hasSubItems) {
+                  return (
+                    <div key={item.name}>
+                      <button
+                        onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
+                        className={`group flex items-center px-3 py-2.5 text-[15px] font-medium rounded-xl transition-all duration-200 relative w-full ${
+                          isHelpActive
+                            ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
+                            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                        } ${isCollapsed ? 'justify-center' : ''}`}
+                        title={isCollapsed ? item.name : undefined}
+                      >
+                        <item.icon className={`flex-shrink-0 h-5 w-5 transition-transform duration-200 ${
+                          isHelpActive ? 'scale-110' : 'group-hover:scale-105'
+                        }`} />
+                        {!isCollapsed && (
+                          <>
+                            <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200 flex-1 text-left">{item.name}</span>
+                            {isHelpMenuOpen ? (
+                              <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                            ) : (
+                              <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                            )}
+                          </>
+                        )}
+                        {isHelpActive && !isCollapsed && (
+                          <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-200" />
+                        )}
+                      </button>
+                      {!isCollapsed && isHelpMenuOpen && (
+                        <div className="ml-6 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
+                          {item.subItems.map((subItem) => {
+                            const isSubActive = pathname === subItem.href
+                            return (
+                              <Link
+                                key={subItem.name}
+                                href={subItem.href}
+                                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                  isSubActive
+                                    ? 'bg-neutral-800 text-white'
+                                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                }`}
+                                onClick={() => {
+                                  if (isHovered) {
+                                    setIsHovered(false)
+                                    setIsCollapsed(true)
+                                  }
+                                }}
+                              >
+                                {subItem.name}
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
                 return (
                   <Link
                     key={item.name}

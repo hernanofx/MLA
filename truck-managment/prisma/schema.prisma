@@ -189,3 +189,29 @@ model ProviderCoverage {
   provider   Provider @relation(fields: [providerId], references: [id])
   zone       Zone     @relation(fields: [zoneId], references: [id])
 }
+
+model WikiCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  pages       WikiPage[]
+
+  @@map("wiki_categories")
+}
+
+model WikiPage {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  categoryId  String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  category    WikiCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("wiki_pages")
+}
