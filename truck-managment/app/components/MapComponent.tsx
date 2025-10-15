@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
+import * as turf from '@turf/turf';
 
 interface Zone {
   id: string;
@@ -23,18 +24,65 @@ interface Zone {
   }[];
 }
 
+interface Provider {
+  id: string;
+  name: string;
+  responsible?: {
+    name: string;
+  };
+}
+
 interface MapComponentProps {
   zones: Zone[];
   onZoneSelect: (zone: Zone) => void;
   selectedZone?: Zone | null;
   onDrawCreated?: (geoJson: any) => void;
+  providers: Provider[];
 }
 
-export default function MapComponent({ zones, onZoneSelect, selectedZone, onDrawCreated }: MapComponentProps) {
+export default function MapComponent({ zones, onZoneSelect, selectedZone, onDrawCreated, providers }: MapComponentProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const zonesLayerRef = useRef<L.FeatureGroup | null>(null);
+
+  // Paleta de colores pasteles
+  const pastelColors = [
+    '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFBA', '#BAE1FF', '#D7BAFF', '#FFB3D9', '#FFD1B3', '#E6FFB3', '#B3FFDF',
+    '#B3D7FF', '#D7B3FF', '#FFB3E6', '#FFE6B3', '#B3FFE6', '#B3D1FF', '#E6B3FF', '#FFB3F0', '#FFF0B3', '#B3FFF0'
+  ];
+
+  // Función para obtener color de provider
+  const getProviderColor = (providerId: string) => {
+    const index = providers.findIndex(p => p.id === providerId);
+    return pastelColors[index % pastelColors.length];
+  };
+
+  // Función para dividir polígono en n partes verticales iguales
+  const splitPolygonVertically = (polygon: any, n: number) => {
+    const bbox = turf.bbox(polygon);
+    const [minX, minY, maxX, maxY] = bbox;
+    const width = maxX - minX;
+    const partWidth = width / n;
+
+    const parts = [];
+    for (let i = 0; i < n; i++) {
+      const partMinX = minX + i * partWidth;
+      const partMaxX = minX + (i + 1) * partWidth;
+
+      const rectangle = turf.bboxPolygon([partMinX, minY, partMaxX, maxY]);
+      try {
+        const intersection = turf.intersect(polygon, rectangle);
+        if (intersection) {
+          parts.push(intersection);
+        }
+      } catch (error) {
+        // Si falla, usar el rectángulo completo
+        parts.push(rectangle);
+      }
+    }
+    return parts;
+  };
 
   // Inicializar mapa
   useEffect(() => {
@@ -115,8 +163,6 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
         const isSelected = selectedZone?.id === zone.id;
         const hasCoverage = zone.coverages && zone.coverages.length > 0;
         
-        const color = isSelected ? '#3B82F6' : (hasCoverage ? '#10B981' : '#EF4444');
-
         // Popup con información
         const providersText = zone.coverages && zone.coverages.length > 0
           ? zone.coverages.map(c => c.provider.name).join(', ')
@@ -129,13 +175,21 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
             <p class="text-sm mb-1"><strong>Ubicación:</strong> ${zone.province}, ${zone.department}</p>
             <p class="text-sm mb-1"><strong>Tipo:</strong> ${zone.type}</p>
             <p class="text-sm mb-2"><strong>Proveedores:</strong> ${providersText}</p>
-            ${hasCoverage ? `<p class="text-xs text-green-600 mt-1">✓ Con cobertura</p>` : `<p class="text-xs text-red-600 mt-1">✗ Sin cobertura</p>`}
+            ${hasCoverage ? `<p class="text-xs text-green-600 mt-1">✓ Con cobertura</p>` : `<p class="text-xs text-gray-600 mt-1">Sin cobertura</p>`}
           </div>
         `;
 
         // Manejar MultiPoint con 1 o 2 puntos como marcadores circulares
         if (zone.geometry.type === 'MultiPoint' && zone.geometry.coordinates.length < 3) {
           const [lng, lat] = zone.geometry.coordinates[0];
+          let color = '#D3D3D3'; // Gris claro por defecto
+          if (hasCoverage && zone.coverages.length === 1) {
+            color = getProviderColor(zone.coverages[0].provider.id);
+          } else if (hasCoverage && zone.coverages.length > 1) {
+            color = '#D3D3D3'; // Para múltiples, gris o algo, pero como es punto, quizás no dividir
+          }
+          if (isSelected) color = '#3B82F6';
+
           const circle = L.circleMarker([lat, lng], {
             radius: isSelected ? 12 : 8,
             color: color,
@@ -169,23 +223,56 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
           };
         }
 
-        // Crear capa GeoJSON para polígonos
-        const geoJsonLayer = L.geoJSON(geometryToRender, {
-          style: {
-            color: color,
-            weight: isSelected ? 3 : 2,
-            opacity: 1,
-            fillOpacity: isSelected ? 0.4 : 0.2,
-          },
-          onEachFeature: (feature, layer) => {
-            layer.bindPopup(popupContent);
-            layer.on('click', () => {
-              onZoneSelect(zone);
-            });
-          },
-        });
+        if (hasCoverage && zone.coverages.length > 1) {
+          // Dividir el polígono en partes iguales
+          const parts = splitPolygonVertically(geometryToRender, zone.coverages.length);
+          parts.forEach((part, index) => {
+            const provider = zone.coverages[index];
+            if (provider) {
+              const color = getProviderColor(provider.provider.id);
+              const geoJsonLayer = L.geoJSON(part, {
+                style: {
+                  color: isSelected ? '#3B82F6' : color,
+                  weight: isSelected ? 3 : 2,
+                  opacity: 1,
+                  fillOpacity: isSelected ? 0.4 : 0.2,
+                },
+                onEachFeature: (feature, layer) => {
+                  layer.bindPopup(popupContent);
+                  layer.on('click', () => {
+                    onZoneSelect(zone);
+                  });
+                },
+              });
+              zonesLayer.addLayer(geoJsonLayer);
+            }
+          });
+        } else {
+          // Un solo color
+          let color = '#D3D3D3'; // Gris claro
+          if (hasCoverage && zone.coverages.length === 1) {
+            color = getProviderColor(zone.coverages[0].provider.id);
+          }
+          if (isSelected) color = '#3B82F6';
 
-        zonesLayer.addLayer(geoJsonLayer);
+          // Crear capa GeoJSON para polígonos
+          const geoJsonLayer = L.geoJSON(geometryToRender, {
+            style: {
+              color: color,
+              weight: isSelected ? 3 : 2,
+              opacity: 1,
+              fillOpacity: isSelected ? 0.4 : 0.2,
+            },
+            onEachFeature: (feature, layer) => {
+              layer.bindPopup(popupContent);
+              layer.on('click', () => {
+                onZoneSelect(zone);
+              });
+            },
+          });
+
+          zonesLayer.addLayer(geoJsonLayer);
+        }
       } catch (error) {
         // Error silencioso
       }
@@ -202,7 +289,7 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
         // Error silencioso
       }
     }
-  }, [zones, selectedZone, onZoneSelect]);
+  }, [zones, selectedZone, onZoneSelect, providers]);
 
   // Zoom a zona seleccionada
   useEffect(() => {

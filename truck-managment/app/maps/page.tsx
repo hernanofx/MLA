@@ -538,7 +538,7 @@ export default function MapsPage() {
 
         {/* Map Panel */}
         <div className="flex-1">
-          <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} onDrawCreated={handleDrawCreated} />
+          <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} onDrawCreated={handleDrawCreated} providers={providers} />
         </div>
       </div>
 

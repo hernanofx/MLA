@@ -36,7 +36,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         {isLoading ? (
           <div className="text-center">
-            <img src="/images/logo.png" alt="Cross Dock Management Network" className="mx-auto h-16 w-16 mb-6" />
+            <img src="/images/logo.png" alt="Network Management Argentina" className="mx-auto h-16 w-16 mb-6" />
             <div className="flex justify-center mb-4">
               <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
             </div>
@@ -53,9 +53,9 @@ export default function LoginPage() {
         ) : (
           <>
             <div className="text-center">
-              <img src="/images/logo.png" alt="Cross Dock Management Network" className="mx-auto h-16 w-16 mb-4" />
+              <img src="/images/logo.png" alt="Network Management Argentina" className="mx-auto h-16 w-16 mb-4" />
               <h2 className="text-3xl font-extrabold text-gray-900">
-                Cross Dock Management Network
+                Network Management Argentina
               </h2>
               <p className="mt-2 text-sm text-gray-600">
                 Sistema de Gestión de Viajes
