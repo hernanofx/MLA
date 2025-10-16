@@ -105,6 +105,36 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create packages if tracking numbers are provided
+    if (trackingNumbers) {
+      const trackingList = trackingNumbers.split(',').map((t: string) => t.trim()).filter((t: string) => t);
+      if (trackingList.length > 0) {
+        await (prisma as any).package.createMany({
+          data: trackingList.map((tracking: string) => ({
+            inventoryId: inventory.id,
+            trackingNumber: tracking,
+            currentProviderId: providerId,
+            currentLocationId: locationId,
+            status: 'ingresado',
+          })),
+        });
+
+        // Create movement records for each package
+        const packages = await (prisma as any).package.findMany({
+          where: { inventoryId: inventory.id },
+        });
+        await (prisma as any).packageMovement.createMany({
+          data: packages.map((pkg: any) => ({
+            packageId: pkg.id,
+            toProviderId: providerId,
+            toLocationId: locationId,
+            action: 'ingreso',
+            notes: 'Ingreso inicial desde devolución',
+          })),
+        });
+      }
+    }
+
     // Create notifications for subscribed users
     const subscribedUsers = await prisma.userNotificationPreferences.findMany({
       where: { newInventory: true },

@@ -45,6 +45,9 @@ model Provider {
   inventories   Inventory[]
   responsible   User?     @relation(fields: [responsibleId], references: [id])
   coverages     ProviderCoverage[]
+  packagesFrom  PackageMovement[] @relation("FromProvider")
+  packagesTo    PackageMovement[] @relation("ToProvider")
+  currentPackages Package[]
 }
 
 model Contact {
@@ -127,6 +130,9 @@ model Location {
   updatedAt   DateTime   @updatedAt
   warehouse   Warehouse  @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   inventories Inventory[]
+  movementsFrom PackageMovement[] @relation("FromLocation")
+  movementsTo   PackageMovement[] @relation("ToLocation")
+  currentPackages Package[]
 }
 
 model Inventory {
@@ -142,6 +148,54 @@ model Inventory {
   entry      Entry?    @relation(fields: [entryId], references: [id])
   provider   Provider? @relation(fields: [providerId], references: [id])
   location   Location  @relation(fields: [locationId], references: [id])
+  packages   Package[]
+}
+
+model Package {
+  id              String           @id @default(cuid())
+  inventoryId     String
+  trackingNumber  String           @unique
+  currentProviderId String?
+  currentLocationId String
+  status          PackageStatus    @default(ingresado)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  inventory       Inventory        @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  currentProvider Provider?        @relation(fields: [currentProviderId], references: [id])
+  currentLocation Location         @relation(fields: [currentLocationId], references: [id])
+  movements       PackageMovement[]
+
+  @@index([trackingNumber])
+}
+
+model PackageMovement {
+  id             String         @id @default(cuid())
+  packageId      String
+  fromProviderId String?
+  toProviderId   String?
+  fromLocationId String?
+  toLocationId   String?
+  action         MovementAction
+  timestamp      DateTime       @default(now())
+  notes          String?
+  package        Package        @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  fromProvider   Provider?      @relation("FromProvider", fields: [fromProviderId], references: [id])
+  toProvider     Provider?      @relation("ToProvider", fields: [toProviderId], references: [id])
+  fromLocation   Location?      @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocation     Location?      @relation("ToLocation", fields: [toLocationId], references: [id])
+}
+
+enum PackageStatus {
+  ingresado
+  almacenado
+  en_traspaso
+  entregado
+}
+
+enum MovementAction {
+  ingreso
+  traspaso
+  salida
 }
 
 model Notification {
