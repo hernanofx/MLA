@@ -58,7 +58,10 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit)
       }
     });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch packages' }, { status: 500 });
+  } catch (error: any) {
+    console.error('GET /api/packages error:', error);
+    try { console.error('Request URL:', request.url); } catch (e) {}
+    const message = process.env.NODE_ENV === 'development' ? String(error?.message || error) : 'Failed to fetch packages';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
