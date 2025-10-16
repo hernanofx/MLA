@@ -300,7 +300,7 @@ export default function InventoryTab() {
               >
                 <option value="">Todos los estados</option>
                 <option value="stored">Almacenado</option>
-                <option value="shipped">Enviado</option>
+                <option value="shipped">En Tránsito</option>
               </select>
             </div>
             <div>
@@ -389,7 +389,7 @@ export default function InventoryTab() {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
                     <option value="stored">Almacenado</option>
-                    <option value="shipped">Enviado</option>
+                    <option value="shipped">En Tránsito</option>
                   </select>
                 </div>
                 <div>
@@ -491,7 +491,7 @@ export default function InventoryTab() {
                           ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {inv.status === 'stored' ? 'Almacenado' : 'Enviado'}
+                        {inv.status === 'stored' ? 'Almacenado' : 'En Tránsito'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

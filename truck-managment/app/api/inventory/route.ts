@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       const trackingList = trackingNumbers.split(',').map((t: string) => t.trim()).filter((t: string) => t);
       if (trackingList.length > 0) {
         // Map inventory status to initial package status
-        const initialPackageStatus = (status === 'stored' || status === 'almacenado') ? 'almacenado' : 'ingresado';
+        const initialPackageStatus = status === 'stored' ? 'almacenado' : 'en_traspaso';
         await (prisma as any).package.createMany({
           data: trackingList.map((tracking: string) => ({
             inventoryId: inventory.id,
