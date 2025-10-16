@@ -401,6 +401,12 @@ export default function InventoryTab() {
                     id="trackingNumbers"
                     value={formData.trackingNumbers}
                     onChange={(e) => setFormData({ ...formData, trackingNumbers: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setFormData({ ...formData, trackingNumbers: formData.trackingNumbers + ' ' });
+                      }
+                    }}
                     placeholder="Ingrese tracking numbers separados por coma"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
