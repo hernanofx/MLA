@@ -29,6 +29,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
   useEffect(() => {
     if (status === 'loading') return // Still loading
     if (!session) router.push('/login')
+
+    // Role-based access control
+    if (session?.user?.role === 'vms') {
+      const allowedPaths = ['/vms', '/help', '/wiki', '/profile', '/notifications']
+      const currentPath = window.location.pathname
+      const isAllowed = allowedPaths.some(path => currentPath.startsWith(path))
+      if (!isAllowed) {
+        router.push('/vms')
+      }
+    }
   }, [session, status, router])
 
   if (status === 'loading') {

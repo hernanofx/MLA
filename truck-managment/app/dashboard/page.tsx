@@ -187,6 +187,11 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
+  // Redirect VMS users to their dedicated page
+  if (session.user?.role === 'vms') {
+    redirect("/vms")
+  }
+
   const stats = await getStats()
   const recentActivities = await getRecentActivities()
 

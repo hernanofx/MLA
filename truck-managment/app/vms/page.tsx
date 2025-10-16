@@ -22,7 +22,7 @@ export default async function VMSPage() {
         <div className="mb-10">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">VMS - Vehicle Management System</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Sistema de Gestión de Proveedores - Bienvenido, <span className="font-medium text-gray-700">{session.user?.name}</span>
+            Sistema de Gestión de Vehículos - Bienvenido, <span className="font-medium text-gray-700">{session.user?.name}</span>
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default async function VMSPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 ring-1 ring-blue-200/50">
               <Truck className="h-4 w-4 text-blue-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Gestión de Proveedores</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Gestión de Vehículos</h2>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="group relative overflow-hidden rounded-xl border border-gray-200/60 bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-300/60">

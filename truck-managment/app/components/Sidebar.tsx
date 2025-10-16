@@ -103,7 +103,19 @@ export default function Sidebar() {
     setIsMobileMenuOpen(false)
   }
 
-  const baseNavigation = [
+  const baseNavigation = session?.user?.role === 'vms' ? [
+    { name: 'VMS', href: '/vms', icon: Truck },
+    {
+      name: 'Ayuda',
+      href: '/help',
+      icon: HelpCircle,
+      subItems: [
+        { name: 'Centro de Ayuda', href: '/help' },
+        { name: 'FAQ', href: '/help/faq' },
+        { name: 'Wiki', href: '/wiki' }
+      ]
+    },
+  ] : [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Proveedores', href: '/providers', icon: Building2 },
     { name: 'Camiones', href: '/trucks', icon: Truck },
@@ -112,7 +124,6 @@ export default function Sidebar() {
     { name: 'Stock', href: '/stocks', icon: Warehouse },
     { name: 'Mapas', href: '/maps', icon: Map },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
-    ...(session?.user?.role === 'vms' || session?.user?.role === 'admin' ? [{ name: 'VMS', href: '/vms', icon: Truck }] : []),
     {
       name: 'Ayuda',
       href: '/help',
