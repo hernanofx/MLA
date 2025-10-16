@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -14,12 +14,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const { id } = await params;
     const { toProviderId, toLocationId, notes } = await request.json();
 
     // Find package by id or trackingNumber
-    let pkg = await (prisma as any).package.findUnique({ where: { id: params.id } });
+    let pkg = await (prisma as any).package.findUnique({ where: { id } });
     if (!pkg) {
-      pkg = await (prisma as any).package.findUnique({ where: { trackingNumber: params.id } });
+      pkg = await (prisma as any).package.findUnique({ where: { trackingNumber: id } });
     }
 
     if (!pkg) {
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Create movement
     await (prisma as any).packageMovement.create({
       data: {
-        packageId: params.id,
+        packageId: id,
         fromProviderId: pkg.currentProviderId,
         toProviderId,
         fromLocationId: pkg.currentLocationId,
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Update package
     const updatedPkg = await (prisma as any).package.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         currentProviderId: toProviderId,
         currentLocationId: toLocationId,

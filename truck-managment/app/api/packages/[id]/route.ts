@@ -3,16 +3,18 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params;
+
     // Try to find by id first, then by trackingNumber
     let pkg = await (prisma as any).package.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         currentProvider: true,
         currentLocation: {
@@ -48,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (!pkg) {
       // Try by trackingNumber
       pkg = await (prisma as any).package.findUnique({
-        where: { trackingNumber: params.id },
+        where: { trackingNumber: id },
         include: {
           currentProvider: true,
           currentLocation: {
@@ -86,17 +88,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Package not found' }, { status: 404 });
     }
 
-    return NextResponse.json(pkg);    if (!pkg) {
-      return NextResponse.json({ error: 'Package not found' }, { status: 404 });
-    }
-
     return NextResponse.json(pkg);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch package' }, { status: 500 });
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -107,11 +105,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await request.json();
-    const { status } = body;
+    const { id } = await params;
+    const { status } = await request.json();
 
     const pkg = await (prisma as any).package.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
       include: {
         currentProvider: true,
