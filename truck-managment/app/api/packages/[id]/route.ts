@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: any) {
     }
 
   const { id } = params;    // Try to find by id first, then by trackingNumber
-    let pkg = await (prisma as any).package.findUnique({
+    let pkg = await prisma.package.findUnique({
       where: { id },
       include: {
         currentProvider: true,
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest, { params }: any) {
 
     if (!pkg) {
       // Try by trackingNumber
-      pkg = await (prisma as any).package.findUnique({
+      pkg = await prisma.package.findUnique({
         where: { trackingNumber: id },
         include: {
           currentProvider: true,
@@ -108,7 +108,7 @@ export async function PUT(request: NextRequest, { params }: any) {
   const { id } = params;
     const { status } = await request.json();
 
-    const pkg = await (prisma as any).package.update({
+    const pkg = await prisma.package.update({
       where: { id },
       data: { status },
       include: {

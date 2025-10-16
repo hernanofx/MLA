@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [packages, total] = await Promise.all([
-      (prisma as any).package.findMany({
+      prisma.package.findMany({
         where,
         include: {
           currentProvider: true,
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit
       }),
-      (prisma as any).package.count({ where })
+      prisma.package.count({ where })
     ]);
 
     return NextResponse.json({

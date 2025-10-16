@@ -24,12 +24,12 @@ async function migratePackages() {
 
     for (const tracking of trackingList) {
       // Check if package already exists
-      const existing = await (prisma as any).package.findUnique({
+      const existing = await prisma.package.findUnique({
         where: { trackingNumber: tracking },
       });
 
       if (!existing) {
-        await (prisma as any).package.create({
+        await prisma.package.create({
           data: {
             inventoryId: inventory.id,
             trackingNumber: tracking,
@@ -40,12 +40,12 @@ async function migratePackages() {
         });
 
         // Create initial movement
-        const pkg = await (prisma as any).package.findUnique({
+        const pkg = await prisma.package.findUnique({
           where: { trackingNumber: tracking },
         });
 
         if (pkg) {
-          await (prisma as any).packageMovement.create({
+          await prisma.packageMovement.create({
             data: {
               packageId: pkg.id,
               toProviderId: inventory.providerId,

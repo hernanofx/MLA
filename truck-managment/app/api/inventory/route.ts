@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       if (trackingList.length > 0) {
         // Map inventory status to initial package status
         const initialPackageStatus = status === 'stored' ? 'almacenado' : 'en_traspaso';
-        await (prisma as any).package.createMany({
+        await prisma.package.createMany({
           data: trackingList.map((tracking: string) => ({
             inventoryId: inventory.id,
             trackingNumber: tracking,
@@ -122,10 +122,10 @@ export async function POST(request: NextRequest) {
         });
 
         // Create movement records for each package
-        const packages = await (prisma as any).package.findMany({
+        const packages = await prisma.package.findMany({
           where: { inventoryId: inventory.id },
         });
-        await (prisma as any).packageMovement.createMany({
+        await prisma.packageMovement.createMany({
           data: packages.map((pkg: any) => ({
             packageId: pkg.id,
             toProviderId: providerId,

@@ -18,9 +18,9 @@ export async function POST(request: NextRequest, { params }: any) {
   const { toProviderId, toLocationId, notes } = await request.json();
 
     // Find package by id or trackingNumber
-    let pkg = await (prisma as any).package.findUnique({ where: { id } });
+    let pkg = await prisma.package.findUnique({ where: { id } });
     if (!pkg) {
-      pkg = await (prisma as any).package.findUnique({ where: { trackingNumber: id } });
+      pkg = await prisma.package.findUnique({ where: { trackingNumber: id } });
     }
 
     if (!pkg) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: any) {
     const packageId = pkg.id;
 
     // Create movement
-    await (prisma as any).packageMovement.create({
+    await prisma.packageMovement.create({
       data: {
         packageId,
         fromProviderId: pkg.currentProviderId,
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest, { params }: any) {
     });
 
     // Update package
-    const updatedPkg = await (prisma as any).package.update({
+    const updatedPkg = await prisma.package.update({
       where: { id: packageId },
       data: {
         currentProviderId: toProviderId,
