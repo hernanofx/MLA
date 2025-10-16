@@ -182,11 +182,11 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
         // Manejar MultiPoint con 1 o 2 puntos como marcadores circulares
         if (zone.geometry.type === 'MultiPoint' && zone.geometry.coordinates.length < 3) {
           const [lng, lat] = zone.geometry.coordinates[0];
-          let color = '#D3D3D3'; // Gris claro por defecto
+          let color = '#808080'; // Gris más fuerte por defecto
           if (hasCoverage && zone.coverages.length === 1) {
             color = getProviderColor(zone.coverages[0].provider.id);
           } else if (hasCoverage && zone.coverages.length > 1) {
-            color = '#D3D3D3'; // Para múltiples, gris o algo, pero como es punto, quizás no dividir
+            color = '#808080'; // Para múltiples, gris o algo, pero como es punto, quizás no dividir
           }
           if (isSelected) color = '#3B82F6';
 
@@ -249,7 +249,7 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
           });
         } else {
           // Un solo color
-          let color = '#D3D3D3'; // Gris claro
+          let color = '#808080'; // Gris más fuerte
           if (hasCoverage && zone.coverages.length === 1) {
             color = getProviderColor(zone.coverages[0].provider.id);
           }
