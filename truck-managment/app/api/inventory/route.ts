@@ -109,13 +109,15 @@ export async function POST(request: NextRequest) {
     if (trackingNumbers) {
       const trackingList = trackingNumbers.split(',').map((t: string) => t.trim()).filter((t: string) => t);
       if (trackingList.length > 0) {
+        // Map inventory status to initial package status
+        const initialPackageStatus = (status === 'stored' || status === 'almacenado') ? 'almacenado' : 'ingresado';
         await (prisma as any).package.createMany({
           data: trackingList.map((tracking: string) => ({
             inventoryId: inventory.id,
             trackingNumber: tracking,
             currentProviderId: providerId,
             currentLocationId: locationId,
-            status: 'ingresado',
+            status: initialPackageStatus,
           })),
         });
 
@@ -153,7 +155,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(inventory, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create inventory' }, { status: 500 });
+  } catch (error: any) {
+    console.error('POST /api/inventory error:', error);
+    const message = process.env.NODE_ENV === 'development' ? String(error?.message || error) : 'Failed to create inventory';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
