@@ -3,14 +3,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = await params;
+  const { id } = params;
 
     // Try to find by id first, then by trackingNumber
     let pkg = await (prisma as any).package.findUnique({
@@ -89,12 +89,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json(pkg);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch package' }, { status: 500 });
+  } catch (error: any) {
+    console.error('GET /api/packages/[id] error:', error);
+    const message = process.env.NODE_ENV === 'development' ? String(error?.message || error) : 'Failed to fetch package';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -105,7 +107,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { id } = await params;
+  const { id } = params;
     const { status } = await request.json();
 
     const pkg = await (prisma as any).package.update({
@@ -122,7 +124,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     return NextResponse.json(pkg);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update package' }, { status: 500 });
+  } catch (error: any) {
+    console.error('PUT /api/packages/[id] error:', error);
+    const message = process.env.NODE_ENV === 'development' ? String(error?.message || error) : 'Failed to update package';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

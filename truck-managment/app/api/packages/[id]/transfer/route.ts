@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { id } = await params;
+  const { id } = params;
     const { toProviderId, toLocationId, notes } = await request.json();
 
     // Find package by id or trackingNumber
@@ -63,7 +63,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
 
     return NextResponse.json(updatedPkg);
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to transfer package' }, { status: 500 });
+  } catch (error: any) {
+    console.error('POST /api/packages/[id]/transfer error:', error);
+    const message = process.env.NODE_ENV === 'development' ? String(error?.message || error) : 'Failed to transfer package';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
