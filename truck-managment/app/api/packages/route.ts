@@ -60,7 +60,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('GET /api/packages error:', error);
-    try { console.error('Request URL:', request.url); } catch (e) {}
     const message = process.env.NODE_ENV === 'development' ? String(error?.message || error) : 'Failed to fetch packages';
     return NextResponse.json({ error: message }, { status: 500 });
   }
