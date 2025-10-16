@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Realizar la actualización masiva en una transacción
-    const result = await (prisma as any).$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Obtener los paquetes actuales
       const packages = await tx.package.findMany({
         where: {
@@ -61,23 +61,22 @@ export async function POST(request: NextRequest) {
           }
         },
         data: {
-          status: status,
+          status: status as any,
           updatedAt: new Date()
         }
       });
 
       // Crear movimientos para cada paquete si hay un cambio de estado
       const movements = packages
-        .filter((pkg: any) => pkg.status !== status)
-        .map((pkg: any) => ({
+        .filter((pkg) => pkg.status !== status)
+        .map((pkg) => ({
           packageId: pkg.id,
-          action: status === 'entregado' ? 'salida' : 'traspaso',
+          action: (status === 'entregado' ? 'salida' : 'traspaso') as any,
           fromProviderId: pkg.currentProviderId,
           fromLocationId: pkg.currentLocationId,
           toProviderId: pkg.currentProviderId,
           toLocationId: pkg.currentLocationId,
           notes: `Cambio masivo de estado a ${status}`,
-          performedBy: session.user.name || session.user.email
         }));
 
       if (movements.length > 0) {

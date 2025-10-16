@@ -42,8 +42,7 @@ export async function GET(request: NextRequest) {
       
       if (trackingNumbersList.length > 0) {
         where.trackingNumber = {
-          in: trackingNumbersList,
-          mode: 'insensitive'
+          in: trackingNumbersList
         };
       }
     }

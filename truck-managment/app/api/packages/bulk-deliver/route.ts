@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Realizar la entrega masiva en una transacción
-    const result = await (prisma as any).$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Obtener los paquetes actuales
       const packages = await tx.package.findMany({
         where: {
@@ -50,21 +50,20 @@ export async function POST(request: NextRequest) {
           }
         },
         data: {
-          status: 'entregado',
+          status: 'entregado' as any,
           updatedAt: new Date()
         }
       });
 
       // Crear movimientos de salida para cada paquete
-      const movements = packages.map((pkg: any) => ({
+      const movements = packages.map((pkg) => ({
         packageId: pkg.id,
-        action: 'salida',
+        action: 'salida' as any,
         fromProviderId: pkg.currentProviderId,
         fromLocationId: pkg.currentLocationId,
         toProviderId: null,
         toLocationId: null,
         notes: `Entrega masiva de ${packages.length} paquetes`,
-        performedBy: session.user.name || session.user.email
       }));
 
       await tx.packageMovement.createMany({

@@ -408,52 +408,56 @@ export default function PackagesTab() {
 
       {/* Bulk Actions Toolbar */}
       {selectedPackages.size > 0 && (
-        <div className="bg-indigo-600 text-white px-4 py-3 rounded-md mb-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <span className="font-medium">{selectedPackages.size} paquete{selectedPackages.size > 1 ? 's' : ''} seleccionado{selectedPackages.size > 1 ? 's' : ''}</span>
-            <button
-              onClick={() => setSelectedPackages(new Set())}
-              className="text-sm underline hover:no-underline"
-            >
-              Deseleccionar todos
-            </button>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => {
-                setBulkAction('status');
-                setShowBulkActionsModal(true);
-              }}
-              className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-50"
-            >
-              Cambiar Estado
-            </button>
-            <button
-              onClick={() => {
-                setBulkAction('transfer');
-                setShowBulkActionsModal(true);
-              }}
-              className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-50"
-            >
-              Traspasar
-            </button>
-            <button
-              onClick={() => {
-                setBulkAction('deliver');
-                setShowBulkActionsModal(true);
-              }}
-              className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-50"
-            >
-              Marcar Entregados
-            </button>
+        <div className="bg-indigo-600 text-white px-4 py-3 rounded-md mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <span className="font-medium text-sm sm:text-base">
+                {selectedPackages.size} paquete{selectedPackages.size > 1 ? 's' : ''} seleccionado{selectedPackages.size > 1 ? 's' : ''}
+              </span>
+              <button
+                onClick={() => setSelectedPackages(new Set())}
+                className="text-xs sm:text-sm underline hover:no-underline text-left"
+              >
+                Deseleccionar todos
+              </button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => {
+                  setBulkAction('status');
+                  setShowBulkActionsModal(true);
+                }}
+                className="bg-white text-indigo-600 px-3 py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-indigo-50 whitespace-nowrap"
+              >
+                Cambiar Estado
+              </button>
+              <button
+                onClick={() => {
+                  setBulkAction('transfer');
+                  setShowBulkActionsModal(true);
+                }}
+                className="bg-white text-indigo-600 px-3 py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-indigo-50 whitespace-nowrap"
+              >
+                Traspasar
+              </button>
+              <button
+                onClick={() => {
+                  setBulkAction('deliver');
+                  setShowBulkActionsModal(true);
+                }}
+                className="bg-white text-indigo-600 px-3 py-2 rounded-md text-xs sm:text-sm font-medium hover:bg-indigo-50 whitespace-nowrap"
+              >
+                Marcar Entregados
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Transfer Modal */}
       {showTransferModal && selectedPackage && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-4">
+          <div className="relative my-8 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Traspasar Paquete</h3>
               <p className="text-sm text-gray-600 mb-4">Tracking: {selectedPackage.trackingNumber}</p>
@@ -508,17 +512,17 @@ export default function PackagesTab() {
                     rows={3}
                   />
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setShowTransferModal(false)}
-                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
                   >
                     Traspasar
                   </button>
@@ -531,15 +535,15 @@ export default function PackagesTab() {
 
       {/* Bulk Actions Modal */}
       {showBulkActionsModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-4">
+          <div className="relative my-8 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">
                 {bulkAction === 'status' ? 'Cambiar Estado Masivo' : 
                  bulkAction === 'transfer' ? 'Traspaso Masivo' : 
                  'Marcar como Entregados'}
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-xs sm:text-sm text-gray-600 mb-4">
                 {selectedPackages.size} paquete{selectedPackages.size > 1 ? 's' : ''} seleccionado{selectedPackages.size > 1 ? 's' : ''}
               </p>
               
@@ -563,20 +567,20 @@ export default function PackagesTab() {
                       <option value="entregado">Entregado</option>
                     </select>
                   </div>
-                  <div className="flex justify-end space-x-3">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => {
                         setShowBulkActionsModal(false);
                         setBulkStatus('');
                       }}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
                     >
                       Actualizar
                     </button>
@@ -634,20 +638,20 @@ export default function PackagesTab() {
                       rows={3}
                     />
                   </div>
-                  <div className="flex justify-end space-x-3">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => {
                         setShowBulkActionsModal(false);
                         setTransferData({ toProviderId: '', toLocationId: '', notes: '' });
                       }}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
                     >
                       Traspasar
                     </button>
@@ -655,20 +659,20 @@ export default function PackagesTab() {
                 </form>
               ) : (
                 <div>
-                  <p className="text-sm text-gray-700 mb-4">
+                  <p className="text-xs sm:text-sm text-gray-700 mb-4">
                     ¿Está seguro que desea marcar estos {selectedPackages.size} paquetes como entregados?
                   </p>
-                  <div className="flex justify-end space-x-3">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => setShowBulkActionsModal(false)}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={handleBulkAction}
-                      className="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-sm hover:bg-green-700"
                     >
                       Confirmar
                     </button>
