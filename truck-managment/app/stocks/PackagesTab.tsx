@@ -351,6 +351,23 @@ export default function PackagesTab() {
                 id="filterTrackingNumber"
                 value={filters.trackingNumber}
                 onChange={(e) => setFilters({ ...filters, trackingNumber: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const input = e.currentTarget;
+                    const start = input.selectionStart || 0;
+                    const end = input.selectionEnd || 0;
+                    const newValue = 
+                      filters.trackingNumber.substring(0, start) + 
+                      ' ' + 
+                      filters.trackingNumber.substring(end);
+                    setFilters({ ...filters, trackingNumber: newValue });
+                    // Set cursor position after the space
+                    setTimeout(() => {
+                      input.selectionStart = input.selectionEnd = start + 1;
+                    }, 0);
+                  }
+                }}
                 placeholder="Buscar por tracking number"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
@@ -363,6 +380,23 @@ export default function PackagesTab() {
                 id="filterTrackingNumbers"
                 value={filters.trackingNumbers}
                 onChange={(e) => setFilters({ ...filters, trackingNumbers: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const textarea = e.currentTarget;
+                    const start = textarea.selectionStart || 0;
+                    const end = textarea.selectionEnd || 0;
+                    const newValue = 
+                      filters.trackingNumbers.substring(0, start) + 
+                      ' ' + 
+                      filters.trackingNumbers.substring(end);
+                    setFilters({ ...filters, trackingNumbers: newValue });
+                    // Set cursor position after the space
+                    setTimeout(() => {
+                      textarea.selectionStart = textarea.selectionEnd = start + 1;
+                    }, 0);
+                  }
+                }}
                 placeholder="Ej: TN001, TN002, TN003"
                 rows={2}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"

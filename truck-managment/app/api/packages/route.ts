@@ -15,15 +15,37 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '25')
     const skip = (page - 1) * limit
     const trackingNumber = searchParams.get('trackingNumber');
+    const trackingNumbers = searchParams.get('trackingNumbers');
     const providerId = searchParams.get('providerId');
     const locationId = searchParams.get('locationId');
     const status = searchParams.get('status');
 
+    // Build where clause
     const where: any = {
-      ...(trackingNumber && { trackingNumber: { contains: trackingNumber, mode: 'insensitive' } }),
       ...(providerId && { currentProviderId: providerId }),
       ...(locationId && { currentLocationId: locationId }),
       ...(status && { status }),
+    }
+
+    // Handle single tracking number search
+    if (trackingNumber && !trackingNumbers) {
+      where.trackingNumber = { contains: trackingNumber, mode: 'insensitive' };
+    }
+
+    // Handle multiple tracking numbers search
+    if (trackingNumbers && trackingNumbers.trim()) {
+      // Split by comma, space, or newline and clean up
+      const trackingNumbersList = trackingNumbers
+        .split(/[\s,\n]+/)
+        .map(tn => tn.trim())
+        .filter(tn => tn.length > 0);
+      
+      if (trackingNumbersList.length > 0) {
+        where.trackingNumber = {
+          in: trackingNumbersList,
+          mode: 'insensitive'
+        };
+      }
     }
 
     const [packages, total] = await Promise.all([
