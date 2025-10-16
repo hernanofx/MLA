@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Sidebar from './Sidebar'
 
@@ -12,6 +12,7 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const pathname = usePathname()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
@@ -30,16 +31,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     if (status === 'loading') return // Still loading
     if (!session) router.push('/login')
 
-    // Role-based access control
-    if (session?.user?.role === 'vms') {
-      const allowedPaths = ['/vms', '/help', '/wiki', '/profile', '/notifications']
-      const currentPath = window.location.pathname
-      const isAllowed = allowedPaths.some(path => currentPath.startsWith(path))
-      if (!isAllowed) {
-        router.push('/vms')
-      }
+    // Redirect VMS users to VMS if they're not already there
+    if (session?.user?.role === 'vms' && !pathname.startsWith('/vms') && pathname !== '/redirect') {
+      router.push('/vms')
     }
-  }, [session, status, router])
+  }, [session, status, router, pathname])
 
   if (status === 'loading') {
     return (

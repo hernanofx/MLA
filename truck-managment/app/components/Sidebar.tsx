@@ -105,16 +105,6 @@ export default function Sidebar() {
 
   const baseNavigation = session?.user?.role === 'vms' ? [
     { name: 'VMS', href: '/vms', icon: Truck },
-    {
-      name: 'Ayuda',
-      href: '/help',
-      icon: HelpCircle,
-      subItems: [
-        { name: 'Centro de Ayuda', href: '/help' },
-        { name: 'FAQ', href: '/help/faq' },
-        { name: 'Wiki', href: '/wiki' }
-      ]
-    },
   ] : [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Proveedores', href: '/providers', icon: Building2 },
@@ -284,19 +274,21 @@ export default function Sidebar() {
 
                 {isUserMenuOpen && (
                   <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
-                    <Link
-                      href="/notifications"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
-                    >
-                      <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                      Notificaciones
-                      {unreadCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
-                    </Link>
+                    {session?.user?.role !== 'vms' && (
+                      <Link
+                        href="/notifications"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                      >
+                        <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
+                        Notificaciones
+                        {unreadCount > 0 && (
+                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
+                      </Link>
+                    )}
                     <Link
                       href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
@@ -483,28 +475,30 @@ export default function Sidebar() {
           {/* <CHANGE> Premium user section with enhanced dropdown */}
           <div className="flex-shrink-0 border-t border-neutral-200/80 p-3 bg-neutral-50/50">
             {/* Notifications Bell */}
-            <div className={`mb-2 ${isCollapsed ? 'flex justify-center' : ''}`}>
-              <Link
-                href="/notifications"
-                className={`group relative flex items-center px-3 py-2 text-sm font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm transition-all duration-200 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
-                title={isCollapsed ? 'Notificaciones' : undefined}
-                onClick={() => {
-                  if (isHovered) {
-                    setIsHovered(false)
-                    setIsCollapsed(true)
-                  }
-                }}
-              >
-                <div className="relative">
-                  <Bell className="flex-shrink-0 h-5 w-5 text-neutral-600 group-hover:text-neutral-900 transition-colors duration-200" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-semibold">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            </div>
+            {session?.user?.role !== 'vms' && (
+              <div className={`mb-2 ${isCollapsed ? 'flex justify-center' : ''}`}>
+                <Link
+                  href="/notifications"
+                  className={`group relative flex items-center px-3 py-2 text-sm font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm transition-all duration-200 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
+                  title={isCollapsed ? 'Notificaciones' : undefined}
+                  onClick={() => {
+                    if (isHovered) {
+                      setIsHovered(false)
+                      setIsCollapsed(true)
+                    }
+                  }}
+                >
+                  <div className="relative">
+                    <Bell className="flex-shrink-0 h-5 w-5 text-neutral-600 group-hover:text-neutral-900 transition-colors duration-200" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-semibold">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              </div>
+            )}
 
             <div className="relative w-full">
               <button
@@ -529,25 +523,27 @@ export default function Sidebar() {
 
               {isUserMenuOpen && (
                 <div className={`absolute ${isCollapsed ? 'left-full ml-2 top-0' : 'bottom-full left-0 right-0 mb-2'} bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] min-w-[200px] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
-                  <Link
-                    href="/notifications"
-                    onClick={() => {
-                      setIsUserMenuOpen(false)
-                      if (isHovered) {
-                        setIsHovered(false)
-                        setIsCollapsed(true)
-                      }
-                    }}
-                    className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
-                  >
-                    <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                    Notificaciones
-                    {unreadCount > 0 && (
-                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
-                  </Link>
+                  {session?.user?.role !== 'vms' && (
+                    <Link
+                      href="/notifications"
+                      onClick={() => {
+                        setIsUserMenuOpen(false)
+                        if (isHovered) {
+                          setIsHovered(false)
+                          setIsCollapsed(true)
+                        }
+                      }}
+                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                    >
+                      <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
+                      Notificaciones
+                      {unreadCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
                   <Link
                     href="/profile"
                     onClick={() => {

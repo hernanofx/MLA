@@ -57,8 +57,15 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Redirect to /dashboard after successful login
-      if (url.startsWith('/')) return `${baseUrl}/dashboard`
+      // Redirect based on user role after successful login
+      if (url.startsWith('/')) {
+        // If trying to access login or root, redirect based on role
+        if (url === '/' || url === '/login') {
+          // The role is not available here, so redirect to a generic page that will handle redirection
+          return `${baseUrl}/redirect`
+        }
+        return `${baseUrl}${url}`
+      }
       // Allows callback URLs on the same origin
       else if (new URL(url).origin === baseUrl) return url
       return baseUrl
