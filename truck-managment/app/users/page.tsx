@@ -449,7 +449,8 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
         const response = await fetch('/api/providers')
         if (response.ok) {
           const data = await response.json()
-          setProviders(data)
+          // El endpoint devuelve { providers, pagination }
+          setProviders(data.providers || [])
         }
       } catch (error) {
         console.error('Error fetching providers:', error)
