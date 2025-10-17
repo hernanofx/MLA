@@ -77,7 +77,7 @@ export default function ShipmentDetailPage() {
   const [filter, setFilter] = useState<'all' | 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO' | 'FALTANTES'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20)
-  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
+  const [dateFilter, setDateFilter] = useState('')
 
   useEffect(() => {
     if (shipmentId) {
@@ -206,8 +206,14 @@ export default function ShipmentDetailPage() {
   // Apply date filter if needed
   const dateFilteredItems = dateFilter 
     ? filteredItems.filter(item => {
-        const itemDate = new Date(item.scannedAt).toISOString().split('T')[0]
-        return itemDate === dateFilter
+        if (!item.scannedAt) return false
+        try {
+          const itemDate = new Date(item.scannedAt)
+          if (isNaN(itemDate.getTime())) return false
+          return itemDate.toISOString().split('T')[0] === dateFilter
+        } catch {
+          return false
+        }
       })
     : filteredItems
 
@@ -366,12 +372,18 @@ export default function ShipmentDetailPage() {
                 onChange={(e) => setDateFilter(e.target.value)}
                 className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
+              <button
+                onClick={() => setDateFilter(new Date().toISOString().split('T')[0])}
+                className="text-sm text-indigo-600 hover:text-indigo-800"
+              >
+                Hoy
+              </button>
               {dateFilter && (
                 <button
                   onClick={() => setDateFilter('')}
-                  className="text-sm text-indigo-600 hover:text-indigo-800"
+                  className="text-sm text-gray-600 hover:text-gray-800"
                 >
-                  Limpiar filtro
+                  Limpiar
                 </button>
               )}
             </div>
@@ -487,13 +499,22 @@ export default function ShipmentDetailPage() {
                       </div>
 
                       <span className="text-xs text-gray-500 ml-4">
-                        {pkg.scannedAt ? new Date(pkg.scannedAt).toLocaleString('es-AR', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        }) : 'Sin fecha'}
+                        {(() => {
+                          if (!pkg.scannedAt) return 'Sin fecha'
+                          try {
+                            const date = new Date(pkg.scannedAt)
+                            if (isNaN(date.getTime())) return 'Fecha inválida'
+                            return date.toLocaleString('es-AR', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          } catch {
+                            return 'Error en fecha'
+                          }
+                        })()}
                       </span>
                     </div>
                   </div>
