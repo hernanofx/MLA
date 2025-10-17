@@ -282,7 +282,7 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
                           <div className="mt-2 pl-4 border-l-2 border-green-300 space-y-1">
                             {scan.details.preAlerta && (
                               <div className="text-xs text-gray-600">
-                                <span className="font-medium text-green-700">📦 Pre-Alerta:</span> {scan.details.preAlerta.buyer} • {scan.details.preAlerta.city} • {scan.details.preAlerta.weight}kg
+                                <span className="font-medium text-green-700">📦 Pre-Alerta:</span> {scan.details.preAlerta.buyer} • {scan.details.preAlerta.city} • {(scan.details.preAlerta.weight / 1000).toFixed(2)}kg
                               </div>
                             )}
                             {scan.details.preRuteo && (
