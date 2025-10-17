@@ -17,7 +17,7 @@ export async function GET(
     const { id } = await params
     const shipmentId = id
 
-    // Obtener estadísticas del shipment
+    // Obtener todos los paquetes escaneados
     const scannedPackages = await prisma.scannedPackage.findMany({
       where: { shipmentId },
       include: {
@@ -26,12 +26,43 @@ export async function GET(
       }
     })
 
+    // Obtener todas las Pre-Alertas y Pre-Ruteos del shipment
+    const preAlertas = await prisma.preAlerta.findMany({
+      where: { shipmentId },
+      select: { trackingNumber: true }
+    })
+
+    const preRuteos = await prisma.preRuteo.findMany({
+      where: { shipmentId },
+      select: { codigoPedido: true }
+    })
+
+    // Crear sets para comparación rápida
+    const preAlertaTracking = new Set(preAlertas.map(pa => pa.trackingNumber))
+    const preRuteoTracking = new Set(preRuteos.map(pr => pr.codigoPedido))
+
+    // Contar paquetes OK (escaneados que están en ambos archivos)
+    const ok = scannedPackages.filter(p => p.status === 'OK').length
+
+    // Contar paquetes SOBRANTE (escaneados que NO están en ningún archivo)
+    const sobrante = scannedPackages.filter(p => p.status === 'SOBRANTE').length
+
+    // Contar FUERA DE COBERTURA (en Pre-Alerta pero NO en Pre-Ruteo)
+    const fueraCobertura = preAlertas.filter(pa => 
+      !preRuteoTracking.has(pa.trackingNumber)
+    ).length
+
+    // Contar PREVIO (en Pre-Ruteo pero NO en Pre-Alerta)
+    const previo = preRuteos.filter(pr => 
+      !preAlertaTracking.has(pr.codigoPedido)
+    ).length
+
     const stats = {
       totalScanned: scannedPackages.length,
-      ok: scannedPackages.filter(p => p.status === 'OK').length,
-      sobrante: scannedPackages.filter(p => p.status === 'SOBRANTE').length,
-      fueraCobertura: scannedPackages.filter(p => p.status === 'FUERA_COBERTURA').length,
-      previo: scannedPackages.filter(p => p.status === 'PREVIO').length,
+      ok,
+      sobrante,
+      fueraCobertura,
+      previo,
       details: scannedPackages,
     }
 

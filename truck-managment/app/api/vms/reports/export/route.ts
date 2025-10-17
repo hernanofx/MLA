@@ -37,6 +37,21 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Obtener todas las Pre-Alertas y Pre-Ruteos del shipment para estadísticas
+    const preAlertas = await prisma.preAlerta.findMany({
+      where: { shipmentId },
+      select: { trackingNumber: true }
+    })
+
+    const preRuteos = await prisma.preRuteo.findMany({
+      where: { shipmentId },
+      select: { codigoPedido: true }
+    })
+
+    // Crear sets para comparación rápida
+    const preAlertaTracking = new Set(preAlertas.map(pa => pa.trackingNumber))
+    const preRuteoTracking = new Set(preRuteos.map(pr => pr.codigoPedido))
+
     // Preparar datos para el Excel
     const excelData = scannedPackages.map(pkg => ({
       'Tracking Number': pkg.trackingNumber,
@@ -65,20 +80,27 @@ export async function GET(request: NextRequest) {
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Verificación')
 
+    // Calcular estadísticas correctas
+    const ok = scannedPackages.filter(p => p.status === 'OK').length
+    const sobrante = scannedPackages.filter(p => p.status === 'SOBRANTE').length
+    const fueraCobertura = preAlertas.filter(pa => !preRuteoTracking.has(pa.trackingNumber)).length
+    const previo = preRuteos.filter(pr => !preAlertaTracking.has(pr.codigoPedido)).length
+    const totalPaquetes = preAlertas.length + preRuteos.length + sobrante
+
     // Agregar hoja de resumen
     const stats = {
       'Total Escaneados': scannedPackages.length,
-      'OK': scannedPackages.filter(p => p.status === 'OK').length,
-      'Sobrantes': scannedPackages.filter(p => p.status === 'SOBRANTE').length,
-      'Fuera de Cobertura': scannedPackages.filter(p => p.status === 'FUERA_COBERTURA').length,
-      'Previos': scannedPackages.filter(p => p.status === 'PREVIO').length,
+      'OK': ok,
+      'Sobrantes': sobrante,
+      'Fuera de Cobertura': fueraCobertura,
+      'Previos': previo,
     }
 
     const statsData = Object.entries(stats).map(([key, value]) => ({
       'Métrica': key,
       'Cantidad': value,
-      'Porcentaje': scannedPackages.length > 0 
-        ? `${((value / scannedPackages.length) * 100).toFixed(2)}%` 
+      'Porcentaje': totalPaquetes > 0 
+        ? `${((value / totalPaquetes) * 100).toFixed(2)}%` 
         : '0%'
     }))
 

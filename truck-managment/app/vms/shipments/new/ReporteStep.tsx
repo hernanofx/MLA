@@ -86,8 +86,10 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
   }
 
   const getPercentage = (value: number) => {
-    if (report.totalScanned === 0) return 0
-    return ((value / report.totalScanned) * 100).toFixed(1)
+    // Calcular el total de paquetes únicos (OK + Sobrante + Fuera Cobertura + Previo)
+    const totalPackages = report.ok + report.sobrante + report.fueraCobertura + report.previo
+    if (totalPackages === 0) return 0
+    return ((value / totalPackages) * 100).toFixed(1)
   }
 
   return (
