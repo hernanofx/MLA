@@ -15,16 +15,37 @@ interface DashboardStats {
   issuesPackages: number
 }
 
+interface ProviderInfo {
+  id: string
+  name: string
+}
+
 export default function VMSDashboard() {
   const { data: session } = useSession()
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [recentShipments, setRecentShipments] = useState<any[]>([])
+  const [providerInfo, setProviderInfo] = useState<ProviderInfo | null>(null)
 
   useEffect(() => {
     fetchDashboardData()
+    fetchProviderInfo()
   }, [])
+
+  const fetchProviderInfo = async () => {
+    if (session?.user?.providerId) {
+      try {
+        const response = await fetch(`/api/providers/${session.user.providerId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setProviderInfo(data)
+        }
+      } catch (error) {
+        console.error('Error fetching provider info:', error)
+      }
+    }
+  }
 
   const fetchDashboardData = async () => {
     try {
@@ -79,8 +100,18 @@ export default function VMSDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-semibold text-gray-900">
-                Sistema VMS
+                Dashboard VMS
               </h1>
+              {providerInfo && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Proveedor: <span className="font-medium text-gray-900">{providerInfo.name}</span>
+                </p>
+              )}
+              {session?.user?.role === 'admin' && (
+                <p className="mt-1 text-xs text-indigo-600 font-medium">
+                  Vista de administrador - Todos los proveedores
+                </p>
+              )}
               <p className="mt-2 text-sm text-gray-600">
                 Bienvenido, {session?.user?.name || 'Usuario'}
               </p>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVMSProviderId } from '@/lib/vms-auth'
 import * as XLSX from 'xlsx'
 
 export async function POST(request: NextRequest) {
@@ -12,9 +13,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Solo VMS y Admin pueden subir pre-alertas
-    if (session.user.role !== 'vms' && session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'No tienes permisos' }, { status: 403 })
+    // Obtener providerId del usuario (lanza error si no tiene permisos)
+    const providerId = await getVMSProviderId(session)
+
+    if (!providerId) {
+      return NextResponse.json({ error: 'No hay proveedor asignado' }, { status: 400 })
     }
 
     const formData = await request.formData()
@@ -34,20 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El archivo está vacío' }, { status: 400 })
     }
 
-    // Obtener el providerId del usuario (asumiendo que está en el session)
-    // Si no tiene providerId, usar el primer proveedor o crear uno por defecto
-    let providerId = session.user.providerId
-
-    if (!providerId) {
-      // Buscar un proveedor existente o crear uno por defecto
-      const provider = await prisma.provider.findFirst()
-      if (!provider) {
-        return NextResponse.json({ error: 'No hay proveedor asignado' }, { status: 400 })
-      }
-      providerId = provider.id
-    }
-
-    // Crear el Shipment
+    // Crear el Shipment vinculado al proveedor del usuario
     const shipment = await prisma.shipment.create({
       data: {
         providerId: providerId,

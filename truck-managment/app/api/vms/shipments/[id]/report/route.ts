@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVMSProviderId, verifyProviderAccess } from '@/lib/vms-auth'
 
 export async function GET(
   request: NextRequest,
@@ -14,8 +15,24 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
+    // Obtener providerId del usuario
+    const providerId = await getVMSProviderId(session)
+
     const { id } = await params
     const shipmentId = id
+
+    // Verificar que el shipment pertenece al proveedor
+    const shipment = await prisma.shipment.findUnique({
+      where: { id: shipmentId },
+      select: { providerId: true }
+    })
+
+    if (!shipment) {
+      return NextResponse.json({ error: 'Shipment no encontrado' }, { status: 404 })
+    }
+
+    // Verificar acceso al shipment
+    verifyProviderAccess(shipment.providerId, providerId)
 
     // Obtener todos los paquetes escaneados
     const scannedPackages = await prisma.scannedPackage.findMany({

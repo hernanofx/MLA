@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVMSProviderId } from '@/lib/vms-auth'
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,10 +12,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Obtener shipments del proveedor (o todos si es admin)
-    const where = session.user.role === 'admin' 
-      ? {}
-      : { createdById: session.user.id }
+    // Obtener providerId del usuario (null = admin, ve todo)
+    const providerId = await getVMSProviderId(session)
+
+    // Filtrar shipments por proveedor
+    const where = providerId ? { providerId } : {}
 
     const shipments = await prisma.shipment.findMany({
       where,
@@ -38,13 +40,21 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Calcular estadísticas
-    const totalPackages = await prisma.scannedPackage.count()
+    // Calcular estadísticas solo del proveedor
+    const statsWhere = providerId ? { shipment: { providerId } } : {}
+    
+    const totalPackages = await prisma.scannedPackage.count({
+      where: statsWhere
+    })
     const okPackages = await prisma.scannedPackage.count({
-      where: { status: 'OK' }
+      where: { 
+        ...statsWhere,
+        status: 'OK' 
+      }
     })
     const issuesPackages = await prisma.scannedPackage.count({
       where: {
+        ...statsWhere,
         status: {
           in: ['SOBRANTE', 'FUERA_COBERTURA', 'PREVIO']
         }

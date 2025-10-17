@@ -44,6 +44,7 @@ model User {
   name      String?
   role      String     @default("user")
   providerId String?
+  vmsProvider Provider? @relation("VMSUsers", fields: [providerId], references: [id])
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   providers Provider[]
@@ -64,6 +65,7 @@ model Provider {
   contacts      Contact[]
   inventories   Inventory[]
   responsible   User?     @relation(fields: [responsibleId], references: [id])
+  vmsUsers      User[]    @relation("VMSUsers")
   coverages     ProviderCoverage[]
   packagesFrom  PackageMovement[] @relation("FromProvider")
   packagesTo    PackageMovement[] @relation("ToProvider")

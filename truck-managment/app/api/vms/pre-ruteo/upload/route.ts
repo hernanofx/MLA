@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVMSProviderId, verifyProviderAccess } from '@/lib/vms-auth'
 import * as XLSX from 'xlsx'
 
 export async function POST(request: NextRequest) {
@@ -12,9 +13,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    if (session.user.role !== 'vms' && session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'No tienes permisos' }, { status: 403 })
-    }
+    // Obtener providerId del usuario
+    const providerId = await getVMSProviderId(session)
 
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Faltan datos requeridos' }, { status: 400 })
     }
 
-    // Verificar que el shipment existe
+    // Verificar que el shipment existe y pertenece al proveedor
     const shipment = await prisma.shipment.findUnique({
       where: { id: shipmentId }
     })
@@ -32,6 +32,9 @@ export async function POST(request: NextRequest) {
     if (!shipment) {
       return NextResponse.json({ error: 'Shipment no encontrado' }, { status: 404 })
     }
+
+    // Verificar acceso al shipment
+    verifyProviderAccess(shipment.providerId, providerId)
 
     // Leer el archivo Excel
     const buffer = await file.arrayBuffer()
