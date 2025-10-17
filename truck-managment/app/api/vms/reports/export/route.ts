@@ -52,6 +52,14 @@ export async function GET(request: NextRequest) {
     const preAlertaTracking = new Set(preAlertas.map(pa => pa.trackingNumber))
     const preRuteoTracking = new Set(preRuteos.map(pr => pr.codigoPedido))
 
+    // Identificar trackings que están en AMBOS archivos
+    const trackingsEnAmbos = preAlertas
+      .filter(pa => preRuteoTracking.has(pa.trackingNumber))
+      .map(pa => pa.trackingNumber)
+
+    // Crear set de trackings ya escaneados
+    const scannedTrackings = new Set(scannedPackages.map(p => p.trackingNumber))
+
     // Preparar datos para el Excel
     const excelData = scannedPackages.map(pkg => ({
       'Tracking Number': pkg.trackingNumber,
@@ -82,15 +90,17 @@ export async function GET(request: NextRequest) {
 
     // Calcular estadísticas correctas
     const ok = scannedPackages.filter(p => p.status === 'OK').length
+    const faltantes = trackingsEnAmbos.filter(tracking => !scannedTrackings.has(tracking)).length
     const sobrante = scannedPackages.filter(p => p.status === 'SOBRANTE').length
     const fueraCobertura = preAlertas.filter(pa => !preRuteoTracking.has(pa.trackingNumber)).length
     const previo = preRuteos.filter(pr => !preAlertaTracking.has(pr.codigoPedido)).length
-    const totalPaquetes = preAlertas.length + preRuteos.length + sobrante
+    const totalPaquetes = ok + faltantes + sobrante + fueraCobertura + previo
 
     // Agregar hoja de resumen
     const stats = {
       'Total Escaneados': scannedPackages.length,
       'OK': ok,
+      'Faltantes': faltantes,
       'Sobrantes': sobrante,
       'Fuera de Cobertura': fueraCobertura,
       'Previos': previo,

@@ -41,8 +41,21 @@ export async function GET(
     const preAlertaTracking = new Set(preAlertas.map(pa => pa.trackingNumber))
     const preRuteoTracking = new Set(preRuteos.map(pr => pr.codigoPedido))
 
+    // Identificar trackings que están en AMBOS archivos
+    const trackingsEnAmbos = preAlertas
+      .filter(pa => preRuteoTracking.has(pa.trackingNumber))
+      .map(pa => pa.trackingNumber)
+
+    // Crear set de trackings ya escaneados
+    const scannedTrackings = new Set(scannedPackages.map(p => p.trackingNumber))
+
     // Contar paquetes OK (escaneados que están en ambos archivos)
     const ok = scannedPackages.filter(p => p.status === 'OK').length
+
+    // Contar FALTANTES (en ambos archivos pero NO escaneados)
+    const faltantes = trackingsEnAmbos.filter(tracking => 
+      !scannedTrackings.has(tracking)
+    ).length
 
     // Contar paquetes SOBRANTE (escaneados que NO están en ningún archivo)
     const sobrante = scannedPackages.filter(p => p.status === 'SOBRANTE').length
@@ -61,8 +74,10 @@ export async function GET(
     console.log('📊 Report Stats Debug:', {
       totalPreAlertas: preAlertas.length,
       totalPreRuteos: preRuteos.length,
+      trackingsEnAmbos: trackingsEnAmbos.length,
       totalScanned: scannedPackages.length,
       ok,
+      faltantes,
       sobrante,
       fueraCobertura,
       previo,
@@ -77,6 +92,7 @@ export async function GET(
     const stats = {
       totalScanned: scannedPackages.length,
       ok,
+      faltantes,
       sobrante,
       fueraCobertura,
       previo,

@@ -11,6 +11,7 @@ interface ReporteStepProps {
 interface ReportData {
   totalScanned: number
   ok: number
+  faltantes: number
   sobrante: number
   fueraCobertura: number
   previo: number
@@ -86,8 +87,8 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
   }
 
   const getPercentage = (value: number) => {
-    // Calcular el total de paquetes únicos (OK + Sobrante + Fuera Cobertura + Previo)
-    const totalPackages = report.ok + report.sobrante + report.fueraCobertura + report.previo
+    // Calcular el total de paquetes únicos (OK + Faltantes + Sobrante + Fuera Cobertura + Previo)
+    const totalPackages = report.ok + report.faltantes + report.sobrante + report.fueraCobertura + report.previo
     if (totalPackages === 0) return 0
     return ((value / totalPackages) * 100).toFixed(1)
   }
@@ -108,7 +109,7 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white border-2 border-green-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -119,11 +120,30 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
             </span>
           </div>
           <p className="text-2xl font-bold text-gray-900">{report.ok}</p>
-          <p className="text-sm text-gray-600">OK - En ambos archivos</p>
+          <p className="text-sm text-gray-600">OK - Escaneados</p>
           <div className="mt-2 w-full bg-green-100 rounded-full h-2">
             <div
               className="bg-green-600 h-2 rounded-full transition-all"
               style={{ width: `${getPercentage(report.ok)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="bg-white border-2 border-orange-200 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <Clock className="h-6 w-6 text-orange-600" />
+            </div>
+            <span className="text-sm font-medium text-orange-600">
+              {getPercentage(report.faltantes)}%
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{report.faltantes}</p>
+          <p className="text-sm text-gray-600">Faltantes</p>
+          <div className="mt-2 w-full bg-orange-100 rounded-full h-2">
+            <div
+              className="bg-orange-600 h-2 rounded-full transition-all"
+              style={{ width: `${getPercentage(report.faltantes)}%` }}
             />
           </div>
         </div>
@@ -223,7 +243,23 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
                   {getPercentage(report.ok)}%
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  Paquetes que están en ambos archivos
+                  Paquetes escaneados que están en ambos archivos
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                    Faltantes
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {report.faltantes}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {getPercentage(report.faltantes)}%
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  Paquetes en ambos archivos que NO fueron escaneados
                 </td>
               </tr>
               <tr>
@@ -239,7 +275,7 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
                   {getPercentage(report.sobrante)}%
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  No están en ninguno de los archivos
+                  Escaneados que NO están en ninguno de los archivos
                 </td>
               </tr>
               <tr>
