@@ -5,6 +5,7 @@ import WarehousesTab from './WarehousesTab';
 import InventoryTab from './InventoryTab';
 import LocationsTab from './LocationsTab';
 import PackagesTab from './PackagesTab';
+import LabelsTab from './LabelsTab';
 
 export default function StocksClient() {
   const [activeTab, setActiveTab] = useState('inventory');
@@ -14,6 +15,7 @@ export default function StocksClient() {
     { id: 'packages', label: 'Paquetes' },
     { id: 'locations', label: 'Ubicaciones' },
     { id: 'warehouses', label: 'Almacenes' },
+    { id: 'labels', label: 'Etiquetas' },
   ];
 
   return (
@@ -48,6 +50,7 @@ export default function StocksClient() {
         {activeTab === 'locations' && <LocationsTab />}
         {activeTab === 'inventory' && <InventoryTab />}
         {activeTab === 'packages' && <PackagesTab />}
+        {activeTab === 'labels' && <LabelsTab />}
       </div>
     </div>
   );
