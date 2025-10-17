@@ -11,7 +11,8 @@ import {
   AlertTriangle, 
   Clock,
   Download,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react'
 
 interface ReportStats {
@@ -22,6 +23,8 @@ interface ReportStats {
   fueraCobertura: number
   previo: number
   details: ScannedPackage[]
+  allPreAlertas?: PreAlertaInfo[]
+  allPreRuteos?: PreRuteoInfo[]
 }
 
 interface ScannedPackage {
@@ -38,6 +41,21 @@ interface ScannedPackage {
     chofer: string
     razonSocial: string
   }
+}
+
+interface PreAlertaInfo {
+  trackingNumber: string
+  buyer: string
+  city: string
+  weight: number
+  inPreRuteo: boolean
+}
+
+interface PreRuteoInfo {
+  codigoPedido: string
+  chofer: string
+  razonSocial: string
+  inPreAlerta: boolean
 }
 
 interface ShipmentInfo {
@@ -57,12 +75,19 @@ export default function ShipmentDetailPage() {
   const [shipmentInfo, setShipmentInfo] = useState<ShipmentInfo | null>(null)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<'all' | 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO' | 'FALTANTES'>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(20)
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
     if (shipmentId) {
       fetchShipmentData()
     }
-  }, [shipmentId])
+  }, [shipmentId, dateFilter])
+
+  useEffect(() => {
+    setCurrentPage(1) // Reset to first page when filter changes
+  }, [filter])
 
   const fetchShipmentData = async () => {
     try {
@@ -148,9 +173,51 @@ export default function ShipmentDetailPage() {
     }
   }
 
-  const filteredPackages = stats?.details.filter(pkg => 
-    filter === 'all' ? true : pkg.status === filter
-  ) || []
+  // Get filtered items based on selected tab
+  const getFilteredItems = () => {
+    if (!stats) return []
+
+    switch (filter) {
+      case 'OK':
+        return stats.details.filter(pkg => pkg.status === 'OK')
+      
+      case 'SOBRANTE':
+        return stats.details.filter(pkg => pkg.status === 'SOBRANTE')
+      
+      case 'FUERA_COBERTURA':
+        return stats.details.filter(pkg => pkg.status === 'FUERA_COBERTURA')
+      
+      case 'PREVIO':
+        return stats.details.filter(pkg => pkg.status === 'PREVIO')
+      
+      case 'FALTANTES':
+        // FALTANTES son los que están en ambos archivos pero NO fueron escaneados
+        // Esta información debería venir del backend, por ahora retornamos vacío
+        return []
+      
+      case 'all':
+      default:
+        return stats.details
+    }
+  }
+
+  const filteredItems = getFilteredItems()
+  
+  // Apply date filter if needed
+  const dateFilteredItems = dateFilter 
+    ? filteredItems.filter(item => {
+        const itemDate = new Date(item.scannedAt).toISOString().split('T')[0]
+        return itemDate === dateFilter
+      })
+    : filteredItems
+
+  // Pagination
+  const totalPages = Math.ceil(dateFilteredItems.length / itemsPerPage)
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentItems = dateFilteredItems.slice(indexOfFirstItem, indexOfLastItem)
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
 
   if (loading) {
     return (
@@ -285,6 +352,31 @@ export default function ShipmentDetailPage() {
 
         {/* Filter Tabs */}
         <div className="bg-white rounded-lg shadow mb-6">
+          {/* Date Filter */}
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center space-x-4">
+              <Calendar className="h-5 w-5 text-gray-400" />
+              <label htmlFor="dateFilter" className="text-sm font-medium text-gray-700">
+                Filtrar por fecha de escaneo:
+              </label>
+              <input
+                type="date"
+                id="dateFilter"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+              {dateFilter && (
+                <button
+                  onClick={() => setDateFilter('')}
+                  className="text-sm text-indigo-600 hover:text-indigo-800"
+                >
+                  Limpiar filtro
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
               {[
@@ -313,7 +405,7 @@ export default function ShipmentDetailPage() {
 
           {/* Packages List */}
           <div className="p-6">
-            {filteredPackages.length === 0 ? (
+            {currentItems.length === 0 ? (
               <div className="text-center py-12">
                 <Package className="mx-auto h-12 w-12 text-gray-400" />
                 <p className="mt-2 text-sm text-gray-500">
@@ -322,7 +414,7 @@ export default function ShipmentDetailPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredPackages.map((pkg) => (
+                {currentItems.map((pkg) => (
                   <div
                     key={pkg.id}
                     className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
@@ -356,11 +448,52 @@ export default function ShipmentDetailPage() {
                               )}
                             </div>
                           )}
+
+                          {/* Details for FUERA_COBERTURA - only preAlerta */}
+                          {pkg.status === 'FUERA_COBERTURA' && pkg.preAlerta && (
+                            <div className="mt-3 pl-4 border-l-2 border-yellow-300 space-y-1">
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium text-yellow-700">📦 Pre-Alerta:</span>{' '}
+                                {pkg.preAlerta.buyer} • {pkg.preAlerta.city} • {(pkg.preAlerta.weight / 1000).toFixed(2)}kg
+                              </div>
+                              <div className="text-xs text-yellow-700">
+                                ⚠️ No está en Pre-Ruteo
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Details for PREVIO - only preRuteo */}
+                          {pkg.status === 'PREVIO' && pkg.preRuteo && (
+                            <div className="mt-3 pl-4 border-l-2 border-blue-300 space-y-1">
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium text-blue-700">🚚 Pre-Ruteo:</span>{' '}
+                                {pkg.preRuteo.chofer} • {pkg.preRuteo.razonSocial}
+                              </div>
+                              <div className="text-xs text-blue-700">
+                                ℹ️ No está en Pre-Alerta (paquete de envío anterior)
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Details for SOBRANTE - no data from files */}
+                          {pkg.status === 'SOBRANTE' && (
+                            <div className="mt-3 pl-4 border-l-2 border-red-300">
+                              <div className="text-xs text-red-700">
+                                ❌ No se encontró en ninguno de los archivos
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       <span className="text-xs text-gray-500 ml-4">
-                        {new Date(pkg.scannedAt).toLocaleString('es-AR')}
+                        {pkg.scannedAt ? new Date(pkg.scannedAt).toLocaleString('es-AR', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) : 'Sin fecha'}
                       </span>
                     </div>
                   </div>
@@ -369,6 +502,56 @@ export default function ShipmentDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, dateFilteredItems.length)} de {dateFilteredItems.length} resultados
+            </div>
+            <div className="flex space-x-1">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNumber
+                if (totalPages <= 5) {
+                  pageNumber = i + 1
+                } else if (currentPage <= 3) {
+                  pageNumber = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNumber = totalPages - 4 + i
+                } else {
+                  pageNumber = currentPage - 2 + i
+                }
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => paginate(pageNumber)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      pageNumber === currentPage
+                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                )
+              })}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </AppLayout>
   )
