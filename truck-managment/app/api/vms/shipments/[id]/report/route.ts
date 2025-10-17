@@ -57,6 +57,23 @@ export async function GET(
       !preAlertaTracking.has(pr.codigoPedido)
     ).length
 
+    // Debug logs
+    console.log('📊 Report Stats Debug:', {
+      totalPreAlertas: preAlertas.length,
+      totalPreRuteos: preRuteos.length,
+      totalScanned: scannedPackages.length,
+      ok,
+      sobrante,
+      fueraCobertura,
+      previo,
+      scannedDetails: scannedPackages.map(p => ({
+        tracking: p.trackingNumber,
+        status: p.status,
+        hasPreAlerta: !!p.preAlertaId,
+        hasPreRuteo: !!p.preRuteoId
+      }))
+    })
+
     const stats = {
       totalScanned: scannedPackages.length,
       ok,
