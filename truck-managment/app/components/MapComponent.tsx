@@ -227,12 +227,13 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
           // Dividir el polígono en partes iguales
           const parts = splitPolygonVertically(geometryToRender, zone.coverages.length);
           parts.forEach((part, index) => {
-            const provider = zone.coverages[index];
-            if (provider) {
-              const color = getProviderColor(provider.provider.id);
+            const coverage = zone.coverages[index];
+            if (coverage) {
+              // Obtener el color basado en el ID del proveedor para consistencia
+              const partColor = getProviderColor(coverage.provider.id);
               const geoJsonLayer = L.geoJSON(part, {
                 style: {
-                  color: isSelected ? '#3B82F6' : color,
+                  color: isSelected ? '#3B82F6' : partColor,
                   weight: isSelected ? 3 : 2,
                   opacity: 1,
                   fillOpacity: isSelected ? 0.4 : 0.2,

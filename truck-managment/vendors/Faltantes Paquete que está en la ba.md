@@ -8,5 +8,10 @@
 
 **Paquetes pendientes**: Paquete que está en Prerruteo QUAD pero no está en la base PREALERTA MLA.
 
+-------------
+
+Genera etiquetas, codigo barra, transportes, Urbano y Ocasa , que guarde datos, y haya un contador de etiquetas, por proveedor y por fechas, con compaginacion.
+
+
 
 
