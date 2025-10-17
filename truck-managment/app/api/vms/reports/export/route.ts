@@ -37,51 +37,135 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Obtener todas las Pre-Alertas y Pre-Ruteos del shipment para estadísticas
+    // Obtener todas las Pre-Alertas y Pre-Ruteos del shipment con TODOS sus datos
     const preAlertas = await prisma.preAlerta.findMany({
-      where: { shipmentId },
-      select: { trackingNumber: true }
+      where: { shipmentId }
     })
 
     const preRuteos = await prisma.preRuteo.findMany({
-      where: { shipmentId },
-      select: { codigoPedido: true }
+      where: { shipmentId }
     })
 
-    // Crear sets para comparación rápida
+    // Crear maps para acceso rápido
+    const preAlertaMap = new Map(preAlertas.map(pa => [pa.trackingNumber, pa]))
+    const preRuteoMap = new Map(preRuteos.map(pr => [pr.codigoPedido, pr]))
+
+    // Crear sets para comparación
     const preAlertaTracking = new Set(preAlertas.map(pa => pa.trackingNumber))
     const preRuteoTracking = new Set(preRuteos.map(pr => pr.codigoPedido))
-
-    // Identificar trackings que están en AMBOS archivos
-    const trackingsEnAmbos = preAlertas
-      .filter(pa => preRuteoTracking.has(pa.trackingNumber))
-      .map(pa => pa.trackingNumber)
 
     // Crear set de trackings ya escaneados
     const scannedTrackings = new Set(scannedPackages.map(p => p.trackingNumber))
 
-    // Preparar datos para el Excel
-    const excelData = scannedPackages.map(pkg => ({
-      'Tracking Number': pkg.trackingNumber,
-      'Estado': pkg.status,
-      'Fecha Escaneo': new Date(pkg.scanTimestamp).toLocaleString('es-AR'),
-      'Escaneado Por': pkg.scannedByUser.name || pkg.scannedByUser.email,
-      
-      // Datos Pre-Alerta
-      'PA - Cliente': pkg.preAlerta?.buyer || '',
-      'PA - Ciudad': pkg.preAlerta?.buyerCity || '',
-      'PA - Dirección': pkg.preAlerta?.buyerAddress1 || '',
-      'PA - CP': pkg.preAlerta?.buyerZip || '',
-      'PA - Peso': pkg.preAlerta?.weight || '',
-      'PA - Valor': pkg.preAlerta?.value || '',
-      
-      // Datos Pre-Ruteo
-      'PR - Razón Social': pkg.preRuteo?.razonSocial || '',
-      'PR - Domicilio': pkg.preRuteo?.domicilio || '',
-      'PR - Chofer': pkg.preRuteo?.chofer || '',
-      'PR - Fecha Reparto': pkg.preRuteo?.fechaReparto ? new Date(pkg.preRuteo.fechaReparto).toLocaleDateString('es-AR') : '',
-      'PR - Peso (kg)': pkg.preRuteo?.pesoKg || '',
-    }))
+    // Preparar datos para el Excel - TODOS los paquetes
+    const excelData: any[] = []
+
+    // 1. Agregar paquetes ESCANEADOS
+    scannedPackages.forEach(pkg => {
+      excelData.push({
+        'Tracking Number': pkg.trackingNumber,
+        'Estado': pkg.status,
+        'Fecha Escaneo': new Date(pkg.scanTimestamp).toLocaleString('es-AR'),
+        'Escaneado Por': pkg.scannedByUser.name || pkg.scannedByUser.email,
+        
+        // Datos Pre-Alerta
+        'PA - Cliente': pkg.preAlerta?.buyer || '',
+        'PA - Ciudad': pkg.preAlerta?.buyerCity || '',
+        'PA - Dirección': pkg.preAlerta?.buyerAddress1 || '',
+        'PA - CP': pkg.preAlerta?.buyerZip || '',
+        'PA - Peso': pkg.preAlerta?.weight || '',
+        'PA - Valor': pkg.preAlerta?.value || '',
+        
+        // Datos Pre-Ruteo
+        'PR - Razón Social': pkg.preRuteo?.razonSocial || '',
+        'PR - Domicilio': pkg.preRuteo?.domicilio || '',
+        'PR - Chofer': pkg.preRuteo?.chofer || '',
+        'PR - Fecha Reparto': pkg.preRuteo?.fechaReparto ? new Date(pkg.preRuteo.fechaReparto).toLocaleDateString('es-AR') : '',
+        'PR - Peso (kg)': pkg.preRuteo?.pesoKg || '',
+      })
+    })
+
+    // 2. Agregar paquetes FALTANTES (en ambos pero no escaneados)
+    preAlertas.forEach(pa => {
+      if (preRuteoTracking.has(pa.trackingNumber) && !scannedTrackings.has(pa.trackingNumber)) {
+        const pr = preRuteoMap.get(pa.trackingNumber)
+        excelData.push({
+          'Tracking Number': pa.trackingNumber,
+          'Estado': 'FALTANTE',
+          'Fecha Escaneo': '',
+          'Escaneado Por': '',
+          
+          // Datos Pre-Alerta
+          'PA - Cliente': pa.buyer || '',
+          'PA - Ciudad': pa.buyerCity || '',
+          'PA - Dirección': pa.buyerAddress1 || '',
+          'PA - CP': pa.buyerZip || '',
+          'PA - Peso': pa.weight || '',
+          'PA - Valor': pa.value || '',
+          
+          // Datos Pre-Ruteo
+          'PR - Razón Social': pr?.razonSocial || '',
+          'PR - Domicilio': pr?.domicilio || '',
+          'PR - Chofer': pr?.chofer || '',
+          'PR - Fecha Reparto': pr?.fechaReparto ? new Date(pr.fechaReparto).toLocaleDateString('es-AR') : '',
+          'PR - Peso (kg)': pr?.pesoKg || '',
+        })
+      }
+    })
+
+    // 3. Agregar paquetes FUERA DE COBERTURA (solo en Pre-Alerta)
+    preAlertas.forEach(pa => {
+      if (!preRuteoTracking.has(pa.trackingNumber)) {
+        excelData.push({
+          'Tracking Number': pa.trackingNumber,
+          'Estado': 'FUERA_COBERTURA',
+          'Fecha Escaneo': '',
+          'Escaneado Por': '',
+          
+          // Datos Pre-Alerta
+          'PA - Cliente': pa.buyer || '',
+          'PA - Ciudad': pa.buyerCity || '',
+          'PA - Dirección': pa.buyerAddress1 || '',
+          'PA - CP': pa.buyerZip || '',
+          'PA - Peso': pa.weight || '',
+          'PA - Valor': pa.value || '',
+          
+          // Datos Pre-Ruteo
+          'PR - Razón Social': '',
+          'PR - Domicilio': '',
+          'PR - Chofer': '',
+          'PR - Fecha Reparto': '',
+          'PR - Peso (kg)': '',
+        })
+      }
+    })
+
+    // 4. Agregar paquetes PREVIO (solo en Pre-Ruteo)
+    preRuteos.forEach(pr => {
+      if (!preAlertaTracking.has(pr.codigoPedido)) {
+        excelData.push({
+          'Tracking Number': pr.codigoPedido,
+          'Estado': 'PREVIO',
+          'Fecha Escaneo': '',
+          'Escaneado Por': '',
+          
+          // Datos Pre-Alerta
+          'PA - Cliente': '',
+          'PA - Ciudad': '',
+          'PA - Dirección': '',
+          'PA - CP': '',
+          'PA - Peso': '',
+          'PA - Valor': '',
+          
+          // Datos Pre-Ruteo
+          'PR - Razón Social': pr.razonSocial || '',
+          'PR - Domicilio': pr.domicilio || '',
+          'PR - Chofer': pr.chofer || '',
+          'PR - Fecha Reparto': pr.fechaReparto ? new Date(pr.fechaReparto).toLocaleDateString('es-AR') : '',
+          'PR - Peso (kg)': pr.pesoKg || '',
+        })
+      }
+    })
 
     // Crear workbook
     const worksheet = XLSX.utils.json_to_sheet(excelData)
@@ -90,6 +174,7 @@ export async function GET(request: NextRequest) {
 
     // Calcular estadísticas correctas
     const ok = scannedPackages.filter(p => p.status === 'OK').length
+    const trackingsEnAmbos = preAlertas.filter(pa => preRuteoTracking.has(pa.trackingNumber)).map(pa => pa.trackingNumber)
     const faltantes = trackingsEnAmbos.filter(tracking => !scannedTrackings.has(tracking)).length
     const sobrante = scannedPackages.filter(p => p.status === 'SOBRANTE').length
     const fueraCobertura = preAlertas.filter(pa => !preRuteoTracking.has(pa.trackingNumber)).length
