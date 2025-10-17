@@ -18,6 +18,23 @@ enum NotificationType {
   EDIT_ZONE
   ASSIGN_PROVIDER
   UNASSIGN_PROVIDER
+  NEW_PRE_ALERTA
+  NEW_PRE_RUTEO
+  VERIFICATION_COMPLETED
+}
+
+enum ShipmentStatus {
+  PRE_ALERTA
+  PRE_RUTEO
+  VERIFICACION
+  FINALIZADO
+}
+
+enum VerificationStatus {
+  OK
+  SOBRANTE
+  FUERA_COBERTURA
+  PREVIO
 }
 
 model User {
@@ -26,11 +43,14 @@ model User {
   password  String
   name      String?
   role      String     @default("user")
+  providerId String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   providers Provider[]
   notifications Notification[]
   preferences UserNotificationPreferences?
+  shipments Shipment[]
+  scannedPackages ScannedPackage[]
 }
 
 model Provider {
@@ -48,6 +68,7 @@ model Provider {
   packagesFrom  PackageMovement[] @relation("FromProvider")
   packagesTo    PackageMovement[] @relation("ToProvider")
   currentPackages Package[]
+  shipments     Shipment[]
 }
 
 model Contact {
@@ -268,4 +289,118 @@ model WikiPage {
   category    WikiCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@map("wiki_pages")
+}
+
+// VMS Models
+model Shipment {
+  id                String   @id @default(cuid())
+  providerId        String
+  provider          Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  shipmentDate      DateTime @default(now())
+  status            ShipmentStatus @default(PRE_ALERTA)
+  createdById       String
+  createdBy         User     @relation(fields: [createdById], references: [id])
+  
+  preAlertas        PreAlerta[]
+  preRuteos         PreRuteo[]
+  scannedPackages   ScannedPackage[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  finalizedAt       DateTime?
+  
+  @@index([providerId])
+  @@index([status])
+  @@index([shipmentDate])
+}
+
+model PreAlerta {
+  id                      String   @id @default(cuid())
+  shipmentId              String
+  shipment                Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  
+  client                  String
+  country                 String
+  trackingNumber          String
+  weight                  Float
+  value                   Float
+  buyerNormalizedId       String?
+  buyer                   String
+  buyerAddress1           String
+  buyerAddress1Number     String?
+  buyerAddress2           String?
+  buyerCity               String
+  buyerState              String
+  buyerLocation           String?
+  buyerZip                String
+  buyerPhone              String?
+  buyerEmail              String?
+  
+  verified                Boolean  @default(false)
+  verificationStatus      VerificationStatus?
+  scannedPackage          ScannedPackage?
+  
+  createdAt               DateTime @default(now())
+  
+  @@index([shipmentId])
+  @@index([trackingNumber])
+  @@unique([shipmentId, trackingNumber])
+}
+
+model PreRuteo {
+  id                String   @id @default(cuid())
+  shipmentId        String
+  shipment          Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  
+  codigoCliente     String
+  razonSocial       String
+  domicilio         String
+  tipoCliente       String
+  fechaReparto      DateTime
+  codigoReparto     String
+  maquina           String?
+  chofer            String?
+  fechaPedido       DateTime
+  codigoPedido      String
+  ventanaHoraria    String?
+  arribo            DateTime?
+  partida           DateTime?
+  pesoKg            Float?
+  volumenM3         Float?
+  dinero            Float?
+  
+  verified          Boolean  @default(false)
+  verificationStatus VerificationStatus?
+  scannedPackage    ScannedPackage?
+  
+  createdAt         DateTime @default(now())
+  
+  @@index([shipmentId])
+  @@index([codigoPedido])
+  @@unique([shipmentId, codigoPedido])
+}
+
+model ScannedPackage {
+  id                String   @id @default(cuid())
+  shipmentId        String
+  shipment          Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  
+  trackingNumber    String
+  scanTimestamp     DateTime @default(now())
+  scannedBy         String
+  scannedByUser     User     @relation(fields: [scannedBy], references: [id])
+  
+  preAlertaId       String?  @unique
+  preAlerta         PreAlerta? @relation(fields: [preAlertaId], references: [id])
+  preRuteoId        String?  @unique
+  preRuteo          PreRuteo? @relation(fields: [preRuteoId], references: [id])
+  
+  status            VerificationStatus
+  
+  createdAt         DateTime @default(now())
+  
+  @@index([shipmentId])
+  @@index([trackingNumber])
+  @@index([status])
 }
