@@ -40,10 +40,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, email, password, role } = await request.json()
+    const { name, email, password, role, providerId } = await request.json()
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Validate providerId for VMS users
+    if (role === 'vms') {
+      if (!providerId) {
+        return NextResponse.json({ error: 'Provider is required for VMS users' }, { status: 400 })
+      }
+      
+      // Verify provider exists
+      const providerExists = await prisma.provider.findUnique({
+        where: { id: providerId }
+      })
+      
+      if (!providerExists) {
+        return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
+      }
+      
+      console.log(`✅ Usuario VMS será vinculado al proveedor: ${providerExists.name}`)
     }
 
     // Check if user already exists
@@ -58,36 +76,13 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Si es usuario VMS, crear proveedor automáticamente
-    let providerId: string | undefined = undefined
-    
-    if (role === 'vms') {
-      // Crear nombre del proveedor basado en el nombre del usuario
-      const providerName = `Proveedor - ${name}`
-      
-      // Buscar o crear el proveedor
-      let provider = await prisma.provider.findFirst({
-        where: { name: providerName }
-      })
-      
-      if (!provider) {
-        console.log(`📦 Creando proveedor automáticamente: ${providerName}`)
-        provider = await prisma.provider.create({
-          data: { name: providerName }
-        })
-      }
-      
-      providerId = provider.id
-      console.log(`✅ Usuario VMS será vinculado al proveedor: ${providerName}`)
-    }
-
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         role: role || 'user',
-        providerId,
+        providerId: role === 'vms' ? providerId : undefined,
       },
       select: {
         id: true,

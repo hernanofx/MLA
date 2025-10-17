@@ -423,15 +423,42 @@ interface UserFormProps {
   onSuccess: () => void
 }
 
+interface Provider {
+  id: string
+  name: string
+}
+
 function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     password: '',
-    role: user?.role || 'user'
+    role: user?.role || 'user',
+    providerId: ''
   })
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [loadingProviders, setLoadingProviders] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Fetch providers when form loads
+  useEffect(() => {
+    const fetchProviders = async () => {
+      setLoadingProviders(true)
+      try {
+        const response = await fetch('/api/providers')
+        if (response.ok) {
+          const data = await response.json()
+          setProviders(data)
+        }
+      } catch (error) {
+        console.error('Error fetching providers:', error)
+      } finally {
+        setLoadingProviders(false)
+      }
+    }
+    fetchProviders()
+  }, [])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -448,6 +475,11 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
       newErrors.email = 'El email es obligatorio'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Ingresa un email válido'
+    }
+
+    // Provider validation for VMS users
+    if (formData.role === 'vms' && !formData.providerId) {
+      newErrors.providerId = 'Debes seleccionar un proveedor para usuarios VMS'
     }
 
     // Password validation (only for new users or when changing password)
@@ -618,6 +650,46 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                 Los administradores tienen acceso completo. Los usuarios VMS tienen acceso limitado al sistema VMS.
               </p>
             </div>
+
+            {/* Provider selector - only show for VMS users */}
+            {formData.role === 'vms' && (
+              <div>
+                <label htmlFor="providerId" className="block text-sm font-medium text-gray-700">
+                  Proveedor *
+                </label>
+                {loadingProviders ? (
+                  <div className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500">
+                    Cargando proveedores...
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      id="providerId"
+                      value={formData.providerId}
+                      onChange={(e) => setFormData({ ...formData, providerId: e.target.value })}
+                      className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                        errors.providerId
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+                      } text-gray-900`}
+                    >
+                      <option value="">Selecciona un proveedor</option>
+                      {providers.map((provider) => (
+                        <option key={provider.id} value={provider.id}>
+                          {provider.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.providerId && (
+                      <p className="mt-1 text-sm text-red-600">{errors.providerId}</p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">
+                      Selecciona el proveedor al que pertenece este usuario VMS
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0 pt-4 border-t border-gray-200">
               <button
