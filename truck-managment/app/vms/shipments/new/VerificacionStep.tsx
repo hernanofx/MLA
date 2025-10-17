@@ -265,17 +265,33 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
               {scannedPackages.map((scan, index) => (
                 <li key={index} className="px-4 py-3 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 flex-1">
                       <div className={`p-2 rounded-full ${getStatusColor(scan.status)}`}>
                         {getStatusIcon(scan.status)}
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">
                           {scan.trackingNumber}
                         </p>
                         <p className={`text-xs ${getStatusColor(scan.status).split(' ')[1]}`}>
                           {getStatusLabel(scan.status)}
                         </p>
+                        
+                        {/* Mostrar datos de ruta si es OK */}
+                        {scan.status === 'OK' && scan.details && (
+                          <div className="mt-2 pl-4 border-l-2 border-green-300 space-y-1">
+                            {scan.details.preAlerta && (
+                              <div className="text-xs text-gray-600">
+                                <span className="font-medium text-green-700">📦 Pre-Alerta:</span> {scan.details.preAlerta.buyer} • {scan.details.preAlerta.city} • {scan.details.preAlerta.weight}kg
+                              </div>
+                            )}
+                            {scan.details.preRuteo && (
+                              <div className="text-xs text-gray-600">
+                                <span className="font-medium text-blue-700">🚚 Pre-Ruteo:</span> {scan.details.preRuteo.chofer} • {scan.details.preRuteo.razonSocial}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <span className="text-xs text-gray-500">

@@ -58,18 +58,43 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    // Si es usuario VMS, crear proveedor automáticamente
+    let providerId: string | undefined = undefined
+    
+    if (role === 'vms') {
+      // Crear nombre del proveedor basado en el nombre del usuario
+      const providerName = `Proveedor - ${name}`
+      
+      // Buscar o crear el proveedor
+      let provider = await prisma.provider.findFirst({
+        where: { name: providerName }
+      })
+      
+      if (!provider) {
+        console.log(`📦 Creando proveedor automáticamente: ${providerName}`)
+        provider = await prisma.provider.create({
+          data: { name: providerName }
+        })
+      }
+      
+      providerId = provider.id
+      console.log(`✅ Usuario VMS será vinculado al proveedor: ${providerName}`)
+    }
+
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         role: role || 'user',
+        providerId,
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        providerId: true,
         createdAt: true,
       },
     })
