@@ -114,19 +114,11 @@ export async function GET(
       .filter(tracking => !scannedTrackings.has(tracking))
       .map(tracking => {
         const preAlerta = preAlertasWithData.find(pa => pa.trackingNumber === tracking)
-        const preRuteo = preRuteosWithData.find(pr => pr.codigoPedido === tracking)
         return {
           trackingNumber: tracking,
-          status: 'FALTANTES',
-          preAlerta: preAlerta ? {
-            buyer: preAlerta.buyer,
-            city: preAlerta.buyerCity,
-            weight: preAlerta.weight
-          } : null,
-          preRuteo: preRuteo ? {
-            chofer: preRuteo.chofer,
-            razonSocial: preRuteo.razonSocial
-          } : null
+          buyer: preAlerta?.buyer || '',
+          city: preAlerta?.buyerCity || '',
+          weight: preAlerta?.weight || 0
         }
       })
 
@@ -136,13 +128,9 @@ export async function GET(
         const preAlerta = preAlertasWithData.find(p => p.trackingNumber === pa.trackingNumber)
         return {
           trackingNumber: pa.trackingNumber,
-          status: 'FUERA_COBERTURA',
-          preAlerta: preAlerta ? {
-            buyer: preAlerta.buyer,
-            city: preAlerta.buyerCity,
-            weight: preAlerta.weight
-          } : null,
-          preRuteo: null
+          buyer: preAlerta?.buyer || '',
+          city: preAlerta?.buyerCity || '',
+          weight: preAlerta?.weight || 0
         }
       })
 
@@ -152,23 +140,15 @@ export async function GET(
         const preRuteo = preRuteosWithData.find(p => p.codigoPedido === pr.codigoPedido)
         return {
           trackingNumber: pr.codigoPedido,
-          status: 'PREVIO',
-          preAlerta: null,
-          preRuteo: preRuteo ? {
-            chofer: preRuteo.chofer,
-            razonSocial: preRuteo.razonSocial
-          } : null
+          chofer: preRuteo?.chofer || '',
+          razonSocial: preRuteo?.razonSocial || ''
         }
       })
 
     const sobranteData = scannedPackages
       .filter(p => p.status === 'SOBRANTE')
       .map(p => ({
-        trackingNumber: p.trackingNumber,
-        status: 'SOBRANTE',
-        scannedAt: p.scanTimestamp,
-        preAlerta: null,
-        preRuteo: null
+        trackingNumber: p.trackingNumber
       }))
 
     const stats = {

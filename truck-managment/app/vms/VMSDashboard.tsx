@@ -95,31 +95,34 @@ export default function VMSDashboard() {
   return (
     <AppLayout>
       <div className="px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Header mejorado con branding */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg shadow-lg mb-8">
+        {/* Header profesional y limpio */}
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-8">
           <div className="px-6 py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold">
-                  🏢 Panel de Control VMS
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Panel de Control VMS
                 </h1>
                 {providerInfo && (
-                  <p className="mt-1 text-blue-100">
-                    Proveedor: <span className="font-semibold">{providerInfo.name}</span>
+                  <p className="mt-1 text-gray-600">
+                    Proveedor: <span className="font-medium text-gray-900">{providerInfo.name}</span>
                   </p>
                 )}
                 {session?.user?.role === 'admin' && (
-                  <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-400 text-yellow-900">
-                    👑 Vista de Administrador
+                  <div className="mt-2 inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-900 border border-amber-200">
+                    Vista de Administrador
                   </div>
                 )}
-                <p className="mt-2 text-sm text-blue-100">
+                <p className="mt-2 text-sm text-gray-600">
                   Bienvenido, {session?.user?.name || 'Usuario'}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-blue-100">Estado del sistema</p>
-                <p className="text-xl font-semibold">✅ Operativo</p>
+                <p className="text-sm text-gray-600">Estado del sistema</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <p className="text-lg font-semibold text-gray-900">Operativo</p>
+                </div>
               </div>
             </div>
           </div>
@@ -140,16 +143,16 @@ export default function VMSDashboard() {
         ) : stats ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             {/* Total Envíos */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200 shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <Package className="h-8 w-8 text-blue-600" />
+                  <Package className="h-8 w-8 text-gray-700" />
                 </div>
                 <div className="ml-4">
-                  <dt className="text-sm font-medium text-blue-600 truncate">
+                  <dt className="text-sm font-medium text-gray-600">
                     Total Envíos
                   </dt>
-                  <dd className="text-2xl font-semibold text-blue-900">
+                  <dd className="text-2xl font-bold text-gray-900">
                     {stats.totalShipments}
                   </dd>
                 </div>
@@ -157,16 +160,16 @@ export default function VMSDashboard() {
             </div>
 
             {/* En Proceso */}
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-6 border border-yellow-200 shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-amber-200 shadow-sm">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <TrendingUp className="h-8 w-8 text-yellow-600" />
+                  <TrendingUp className="h-8 w-8 text-amber-600" />
                 </div>
                 <div className="ml-4">
-                  <dt className="text-sm font-medium text-yellow-600 truncate">
+                  <dt className="text-sm font-medium text-amber-700">
                     En Proceso
                   </dt>
-                  <dd className="text-2xl font-semibold text-yellow-900">
+                  <dd className="text-2xl font-bold text-amber-900">
                     {stats.activeShipments}
                   </dd>
                 </div>
@@ -174,16 +177,16 @@ export default function VMSDashboard() {
             </div>
 
             {/* Completados */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200 shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-green-200 shadow-sm">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <CheckCircle2 className="h-8 w-8 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <dt className="text-sm font-medium text-green-600 truncate">
+                  <dt className="text-sm font-medium text-green-700">
                     Completados
                   </dt>
-                  <dd className="text-2xl font-semibold text-green-900">
+                  <dd className="text-2xl font-bold text-green-900">
                     {stats.completedShipments}
                   </dd>
                 </div>
@@ -191,16 +194,16 @@ export default function VMSDashboard() {
             </div>
 
             {/* Eficiencia */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200 shadow-sm">
+            <div className="bg-white rounded-lg p-6 border border-blue-200 shadow-sm">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <AlertTriangle className="h-8 w-8 text-purple-600" />
+                  <AlertTriangle className="h-8 w-8 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <dt className="text-sm font-medium text-purple-600 truncate">
+                  <dt className="text-sm font-medium text-blue-700">
                     Eficiencia
                   </dt>
-                  <dd className="text-2xl font-semibold text-purple-900">
+                  <dd className="text-2xl font-bold text-blue-900">
                     {stats.totalShipments > 0 ? Math.round((stats.completedShipments / stats.totalShipments) * 100) : 0}%
                   </dd>
                 </div>
@@ -209,16 +212,15 @@ export default function VMSDashboard() {
           </div>
         ) : null}
 
-        {/* Recent Shipments mejorados */}
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white shadow-sm border border-gray-200 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-medium text-gray-900">
-                📋 Envíos Recientes
+              <h2 className="text-lg font-semibold text-gray-900">
+                Envíos Recientes
               </h2>
               <button
                 onClick={() => router.push('/vms/shipments')}
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
               >
                 Ver todos →
               </button>
@@ -258,37 +260,37 @@ export default function VMSDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentShipments.slice(0, 5).map((shipment) => (
-                  <div key={shipment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div key={shipment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        shipment.status === 'FINALIZADO' ? 'bg-green-400' :
-                        shipment.status === 'VERIFICACION' ? 'bg-yellow-400' : 'bg-blue-400'
+                      <div className={`w-2.5 h-2.5 rounded-full ${
+                        shipment.status === 'FINALIZADO' ? 'bg-green-500' :
+                        shipment.status === 'VERIFICACION' ? 'bg-amber-500' : 'bg-blue-500'
                       }`} />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
                           Envío del {new Date(shipment.shipmentDate).toLocaleDateString('es-AR')}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {shipment.status === 'PRE_ALERTA' && '⏳ Esperando Pre-Ruteo'}
-                          {shipment.status === 'PRE_RUTEO' && '📋 Listo para verificación'}
-                          {shipment.status === 'VERIFICACION' && '🔍 En proceso de verificación'}
-                          {shipment.status === 'FINALIZADO' && '✅ Verificación completada'}
+                        <p className="text-sm text-gray-600">
+                          {shipment.status === 'PRE_ALERTA' && 'Esperando Pre-Ruteo'}
+                          {shipment.status === 'PRE_RUTEO' && 'Listo para verificación'}
+                          {shipment.status === 'VERIFICACION' && 'En verificación'}
+                          {shipment.status === 'FINALIZADO' && 'Completado'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        shipment.status === 'FINALIZADO' ? 'bg-green-100 text-green-800' :
-                        shipment.status === 'VERIFICACION' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
+                    <div className="flex items-center space-x-3">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${
+                        shipment.status === 'FINALIZADO' ? 'bg-green-100 text-green-800 border border-green-200' :
+                        shipment.status === 'VERIFICACION' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                        'bg-blue-100 text-blue-800 border border-blue-200'
                       }`}>
                         {getStatusLabel(shipment.status)}
                       </span>
                       <button
                         onClick={() => router.push(`/vms/shipments/${shipment.id}`)}
-                        className="text-indigo-600 hover:text-indigo-900 text-sm font-medium transition-colors"
+                        className="text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-colors"
                       >
-                        Ver detalles →
+                        Ver →
                       </button>
                     </div>
                   </div>

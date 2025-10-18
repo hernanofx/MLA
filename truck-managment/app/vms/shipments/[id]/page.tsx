@@ -48,18 +48,21 @@ interface ScannedPackage {
 }
 
 interface FaltanteItem {
+  trackingNumber: string
   buyer: string
   city: string
   weight: number
 }
 
 interface FueraCoberturaItem {
+  trackingNumber: string
   buyer: string
   city: string
   weight: number
 }
 
 interface PrevioItem {
+  trackingNumber: string
   chofer: string
   razonSocial: string
 }
@@ -213,13 +216,13 @@ export default function ShipmentDetailPage() {
           id: `sobrante-${item.trackingNumber}`,
           trackingNumber: item.trackingNumber,
           status: 'SOBRANTE' as const,
-          scannedAt: new Date().toISOString() // No tiene fecha específica
+          scannedAt: new Date().toISOString()
         })) : []
       
       case 'FUERA_COBERTURA':
-        return stats.fueraCoberturaData ? stats.fueraCoberturaData.map((item, index) => ({
-          id: `fuera-${index}`,
-          trackingNumber: `Fuera-${index + 1}`,
+        return stats.fueraCoberturaData ? stats.fueraCoberturaData.map(item => ({
+          id: `fuera-${item.trackingNumber}`,
+          trackingNumber: item.trackingNumber,
           status: 'FUERA_COBERTURA' as const,
           scannedAt: new Date().toISOString(),
           preAlerta: {
@@ -230,9 +233,9 @@ export default function ShipmentDetailPage() {
         })) : []
       
       case 'PREVIO':
-        return stats.previoData ? stats.previoData.map((item, index) => ({
-          id: `previo-${index}`,
-          trackingNumber: `Previo-${index + 1}`,
+        return stats.previoData ? stats.previoData.map(item => ({
+          id: `previo-${item.trackingNumber}`,
+          trackingNumber: item.trackingNumber,
           status: 'PREVIO' as const,
           scannedAt: new Date().toISOString(),
           preRuteo: {
@@ -242,9 +245,9 @@ export default function ShipmentDetailPage() {
         })) : []
       
       case 'FALTANTES':
-        return stats.faltantesData ? stats.faltantesData.map((item, index) => ({
-          id: `faltante-${index}`,
-          trackingNumber: `Faltante-${index + 1}`,
+        return stats.faltantesData ? stats.faltantesData.map(item => ({
+          id: `faltante-${item.trackingNumber}`,
+          trackingNumber: item.trackingNumber,
           status: 'FALTANTES' as const,
           scannedAt: new Date().toISOString(),
           preAlerta: {
@@ -571,27 +574,27 @@ export default function ShipmentDetailPage() {
                             {/* Compact info based on status */}
                             {pkg.status === 'OK' && (
                               <span className="text-xs text-gray-600 truncate">
-                                {pkg.preAlerta && `${pkg.preAlerta.buyer} • ${pkg.preAlerta.city}`}
-                                {pkg.preAlerta && pkg.preRuteo && ' | '}
-                                {pkg.preRuteo && `${pkg.preRuteo.chofer}`}
+                                {pkg.preAlerta && pkg.preAlerta.buyer && pkg.preAlerta.city && `${pkg.preAlerta.buyer} • ${pkg.preAlerta.city}`}
+                                {pkg.preAlerta && pkg.preAlerta.buyer && pkg.preRuteo && pkg.preRuteo.chofer && ' | '}
+                                {pkg.preRuteo && pkg.preRuteo.chofer && `${pkg.preRuteo.chofer}`}
                               </span>
                             )}
                             
                             {pkg.status === 'FALTANTES' && pkg.preAlerta && (
                               <span className="text-xs text-gray-600 truncate">
-                                {pkg.preAlerta.buyer} • {pkg.preAlerta.city} • {(pkg.preAlerta.weight / 1000).toFixed(1)}kg
+                                {pkg.preAlerta.buyer || 'Sin datos'} • {pkg.preAlerta.city || 'Sin ciudad'} • {pkg.preAlerta.weight ? (pkg.preAlerta.weight / 1000).toFixed(1) : '0'}kg
                               </span>
                             )}
                             
                             {pkg.status === 'FUERA_COBERTURA' && pkg.preAlerta && (
                               <span className="text-xs text-gray-600 truncate">
-                                {pkg.preAlerta.buyer} • {pkg.preAlerta.city} • {(pkg.preAlerta.weight / 1000).toFixed(1)}kg
+                                {pkg.preAlerta.buyer || 'Sin datos'} • {pkg.preAlerta.city || 'Sin ciudad'} • {pkg.preAlerta.weight ? (pkg.preAlerta.weight / 1000).toFixed(1) : '0'}kg
                               </span>
                             )}
                             
                             {pkg.status === 'PREVIO' && pkg.preRuteo && (
                               <span className="text-xs text-gray-600 truncate">
-                                {pkg.preRuteo.chofer} • {pkg.preRuteo.razonSocial}
+                                {pkg.preRuteo.chofer || 'Sin chofer'} • {pkg.preRuteo.razonSocial || 'Sin razón social'}
                               </span>
                             )}
                             
