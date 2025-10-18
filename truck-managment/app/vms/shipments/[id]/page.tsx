@@ -318,23 +318,22 @@ export default function ShipmentDetailPage() {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header mejorado con breadcrumbs */}
         <div className="bg-white shadow-sm border-b border-gray-200 mb-6">
           <div className="px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <nav className="flex" aria-label="Breadcrumb">
-                  <ol className="flex items-center space-x-2">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+              <div className="flex-1 min-w-0">
+                <nav className="flex mb-2" aria-label="Breadcrumb">
+                  <ol className="flex items-center space-x-2 text-sm">
                     <li>
                       <button
                         onClick={() => router.push('/vms')}
                         className="text-gray-400 hover:text-gray-500 transition-colors"
                       >
-                        🏠 Dashboard
+                        Dashboard
                       </button>
                     </li>
                     <li>
-                      <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="flex-shrink-0 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                       </svg>
                     </li>
@@ -343,23 +342,23 @@ export default function ShipmentDetailPage() {
                         onClick={() => router.push('/vms/shipments')}
                         className="text-gray-400 hover:text-gray-500 transition-colors"
                       >
-                        📦 Todos los Envíos
+                        Envíos
                       </button>
                     </li>
                     <li>
-                      <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="flex-shrink-0 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                       </svg>
                     </li>
                     <li>
-                      <span className="text-gray-500">Detalle del Envío</span>
+                      <span className="text-gray-500">Detalle</span>
                     </li>
                   </ol>
                 </nav>
-                <h1 className="mt-2 text-2xl font-bold text-gray-900">📋 Reporte de Envío</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Reporte de Envío</h1>
                 {shipmentInfo && (
                   <p className="mt-1 text-sm text-gray-600">
-                    📅 Fecha: <span className="font-medium">{new Date(shipmentInfo.shipmentDate).toLocaleDateString('es-AR', {
+                    Fecha: <span className="font-medium">{new Date(shipmentInfo.shipmentDate).toLocaleDateString('es-AR', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -369,26 +368,29 @@ export default function ShipmentDetailPage() {
                 )}
                 {shipmentInfo && (
                   <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                    🔄 Estado: {shipmentInfo.status === 'PRE_ALERTA' ? 'Pre-Alerta' :
-                               shipmentInfo.status === 'PRE_RUTEO' ? 'Pre-Ruteo' :
-                               shipmentInfo.status === 'VERIFICACION' ? 'Verificación' :
-                               shipmentInfo.status === 'FINALIZADO' ? 'Finalizado' : shipmentInfo.status}
+                    Estado: {shipmentInfo.status === 'PRE_ALERTA' ? 'Pre-Alerta' :
+                             shipmentInfo.status === 'PRE_RUTEO' ? 'Pre-Ruteo' :
+                             shipmentInfo.status === 'VERIFICACION' ? 'Verificación' :
+                             shipmentInfo.status === 'FINALIZADO' ? 'Finalizado' : shipmentInfo.status}
                   </div>
                 )}
               </div>
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => router.push('/vms/shipments')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
-                  ← Volver a Envíos
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Volver a Envíos</span>
+                  <span className="sm:hidden">Volver</span>
                 </button>
                 <button
                   onClick={handleExport}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 transition-all duration-200 transform hover:scale-105"
+                  className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 transition-all duration-200 transform hover:scale-105"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Exportar Excel
+                  <span className="hidden sm:inline">Exportar Excel</span>
+                  <span className="sm:hidden">Exportar</span>
                 </button>
               </div>
             </div>
@@ -397,64 +399,64 @@ export default function ShipmentDetailPage() {
 
         {/* Stats Cards mejoradas */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg shadow-lg p-4 text-white">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg shadow-lg p-3 sm:p-4 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium opacity-90">Total Escaneados</p>
-                  <p className="text-2xl font-bold">{stats.totalScanned}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium opacity-90 truncate">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold">{stats.totalScanned}</p>
                 </div>
-                <Package className="h-8 w-8 opacity-90" />
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-3 sm:p-4 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium opacity-90">OK</p>
-                  <p className="text-2xl font-bold">{stats.ok}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium opacity-90 truncate">OK</p>
+                  <p className="text-lg sm:text-2xl font-bold">{stats.ok}</p>
                 </div>
-                <CheckCircle2 className="h-8 w-8 opacity-90" />
+                <CheckCircle2 className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 sm:p-4 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium opacity-90">Faltantes</p>
-                  <p className="text-2xl font-bold">{stats.faltantes}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium opacity-90 truncate">Faltantes</p>
+                  <p className="text-lg sm:text-2xl font-bold">{stats.faltantes}</p>
                 </div>
-                <FileText className="h-8 w-8 opacity-90" />
+                <FileText className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-lg p-3 sm:p-4 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium opacity-90">Sobrantes</p>
-                  <p className="text-2xl font-bold">{stats.sobrante}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium opacity-90 truncate">Sobrantes</p>
+                  <p className="text-lg sm:text-2xl font-bold">{stats.sobrante}</p>
                 </div>
-                <XCircle className="h-8 w-8 opacity-90" />
+                <XCircle className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow-lg p-4 text-white">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow-lg p-3 sm:p-4 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium opacity-90">Fuera Cobertura</p>
-                  <p className="text-2xl font-bold">{stats.fueraCobertura}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium opacity-90 truncate">Fuera Cob.</p>
+                  <p className="text-lg sm:text-2xl font-bold">{stats.fueraCobertura}</p>
                 </div>
-                <AlertTriangle className="h-8 w-8 opacity-90" />
+                <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-4 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium opacity-90">Previos</p>
-                  <p className="text-2xl font-bold">{stats.previo}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium opacity-90 truncate">Previos</p>
+                  <p className="text-lg sm:text-2xl font-bold">{stats.previo}</p>
                 </div>
-                <Clock className="h-8 w-8 opacity-90" />
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />
               </div>
             </div>
           </div>
@@ -463,51 +465,53 @@ export default function ShipmentDetailPage() {
         {/* Filter Tabs mejoradas */}
         <div className="bg-white rounded-lg shadow mb-6">
           {/* Date Filter mejorado */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex items-center space-x-4">
-              <Calendar className="h-5 w-5 text-gray-400" />
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <Calendar className="h-5 w-5 text-gray-400 hidden sm:block" />
               <label htmlFor="dateFilter" className="text-sm font-medium text-gray-700">
-                📅 Filtrar por fecha de escaneo:
+                Filtrar por fecha de escaneo:
               </label>
-              <input
-                type="date"
-                id="dateFilter"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              />
-              <button
-                onClick={() => setDateFilter(new Date().toISOString().split('T')[0])}
-                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-              >
-                Hoy
-              </button>
-              {dateFilter && (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="date"
+                  id="dateFilter"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                />
                 <button
-                  onClick={() => setDateFilter('')}
-                  className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+                  onClick={() => setDateFilter(new Date().toISOString().split('T')[0])}
+                  className="text-sm text-indigo-600 hover:text-indigo-800 font-medium whitespace-nowrap"
                 >
-                  Limpiar
+                  Hoy
                 </button>
-              )}
+                {dateFilter && (
+                  <button
+                    onClick={() => setDateFilter('')}
+                    className="text-sm text-gray-600 hover:text-gray-800 font-medium whitespace-nowrap"
+                  >
+                    Limpiar
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
+            <nav className="-mb-px flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto scrollbar-hide" aria-label="Tabs">
               {[
-                { key: 'all', label: '📊 Todos', count: stats?.totalScanned || 0 },
-                { key: 'OK', label: '✅ OK', count: stats?.ok || 0 },
-                { key: 'FALTANTES', label: '❌ Faltantes', count: stats?.faltantes || 0 },
-                { key: 'SOBRANTE', label: '🔴 Sobrantes', count: stats?.sobrante || 0 },
-                { key: 'FUERA_COBERTURA', label: '⚠️ Fuera Cobertura', count: stats?.fueraCobertura || 0 },
-                { key: 'PREVIO', label: '🔵 Previos', count: stats?.previo || 0 },
+                { key: 'all', label: 'Todos', count: stats?.totalScanned || 0 },
+                { key: 'OK', label: 'OK', count: stats?.ok || 0 },
+                { key: 'FALTANTES', label: 'Faltantes', count: stats?.faltantes || 0 },
+                { key: 'SOBRANTE', label: 'Sobrantes', count: stats?.sobrante || 0 },
+                { key: 'FUERA_COBERTURA', label: 'Fuera Cobertura', count: stats?.fueraCobertura || 0 },
+                { key: 'PREVIO', label: 'Previos', count: stats?.previo || 0 },
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setFilter(tab.key as any)}
                   className={`
-                    py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
+                    py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0
                     ${filter === tab.key
                       ? 'border-indigo-500 text-indigo-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -545,103 +549,61 @@ export default function ShipmentDetailPage() {
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {currentItems.map((pkg) => (
                   <div
                     key={pkg.id}
-                    className="border border-gray-200 rounded-lg p-6 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 transform hover:scale-[1.01] hover:shadow-md"
+                    className="border border-gray-200 rounded-md p-3 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 flex-1">
-                        <div className={`p-3 rounded-full ${getStatusColor(pkg.status)}`}>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      {/* Tracking Number - Always visible and prominent */}
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className={`p-2 rounded-full ${getStatusColor(pkg.status)} flex-shrink-0`}>
                           {getStatusIcon(pkg.status)}
                         </div>
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <p className="font-semibold text-gray-900 text-lg">{pkg.trackingNumber}</p>
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(pkg.status)}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm truncate">{pkg.trackingNumber}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(pkg.status)}`}>
                               {pkg.status === 'FALTANTES' ? 'Faltante' : pkg.status}
                             </span>
+                            
+                            {/* Compact info based on status */}
+                            {pkg.status === 'OK' && (
+                              <span className="text-xs text-gray-600 truncate">
+                                {pkg.preAlerta && `${pkg.preAlerta.buyer} • ${pkg.preAlerta.city}`}
+                                {pkg.preAlerta && pkg.preRuteo && ' | '}
+                                {pkg.preRuteo && `${pkg.preRuteo.chofer}`}
+                              </span>
+                            )}
+                            
+                            {pkg.status === 'FALTANTES' && pkg.preAlerta && (
+                              <span className="text-xs text-gray-600 truncate">
+                                {pkg.preAlerta.buyer} • {pkg.preAlerta.city} • {(pkg.preAlerta.weight / 1000).toFixed(1)}kg
+                              </span>
+                            )}
+                            
+                            {pkg.status === 'FUERA_COBERTURA' && pkg.preAlerta && (
+                              <span className="text-xs text-gray-600 truncate">
+                                {pkg.preAlerta.buyer} • {pkg.preAlerta.city} • {(pkg.preAlerta.weight / 1000).toFixed(1)}kg
+                              </span>
+                            )}
+                            
+                            {pkg.status === 'PREVIO' && pkg.preRuteo && (
+                              <span className="text-xs text-gray-600 truncate">
+                                {pkg.preRuteo.chofer} • {pkg.preRuteo.razonSocial}
+                              </span>
+                            )}
+                            
+                            {pkg.status === 'SOBRANTE' && (
+                              <span className="text-xs text-gray-600">No encontrado en referencias</span>
+                            )}
                           </div>
-
-                          {/* Details for FALTANTES */}
-                          {pkg.status === 'FALTANTES' && pkg.preAlerta && (
-                            <div className="mt-4 pl-4 border-l-2 border-purple-300 space-y-2 bg-purple-50 p-3 rounded-md">
-                              <div className="text-sm text-gray-700">
-                                <span className="font-semibold text-purple-700">📦 Pre-Alerta:</span>{' '}
-                                <span className="font-medium">{pkg.preAlerta.buyer}</span> • 
-                                <span className="font-medium">{pkg.preAlerta.city}</span> • 
-                                <span className="font-medium">{(pkg.preAlerta.weight / 1000).toFixed(2)}kg</span>
-                              </div>
-                              <div className="text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded">
-                                ❌ Este paquete estaba en Pre-Alerta pero no fue escaneado en el envío
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Details for OK packages */}
-                          {pkg.status === 'OK' && (
-                            <div className="mt-4 pl-4 border-l-2 border-green-300 space-y-2 bg-green-50 p-3 rounded-md">
-                              {pkg.preAlerta && (
-                                <div className="text-sm text-gray-700">
-                                  <span className="font-semibold text-green-700">📦 Pre-Alerta:</span>{' '}
-                                  <span className="font-medium">{pkg.preAlerta.buyer}</span> • 
-                                  <span className="font-medium">{pkg.preAlerta.city}</span> • 
-                                  <span className="font-medium">{(pkg.preAlerta.weight / 1000).toFixed(2)}kg</span>
-                                </div>
-                              )}
-                              {pkg.preRuteo && (
-                                <div className="text-sm text-gray-700">
-                                  <span className="font-semibold text-blue-700">🚚 Pre-Ruteo:</span>{' '}
-                                  <span className="font-medium">{pkg.preRuteo.chofer}</span> • 
-                                  <span className="font-medium">{pkg.preRuteo.razonSocial}</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Details for FUERA_COBERTURA - only preAlerta */}
-                          {pkg.status === 'FUERA_COBERTURA' && pkg.preAlerta && (
-                            <div className="mt-4 pl-4 border-l-2 border-yellow-300 space-y-2 bg-yellow-50 p-3 rounded-md">
-                              <div className="text-sm text-gray-700">
-                                <span className="font-semibold text-yellow-700">📦 Pre-Alerta:</span>{' '}
-                                <span className="font-medium">{pkg.preAlerta.buyer}</span> • 
-                                <span className="font-medium">{pkg.preAlerta.city}</span> • 
-                                <span className="font-medium">{(pkg.preAlerta.weight / 1000).toFixed(2)}kg</span>
-                              </div>
-                              <div className="text-xs text-yellow-700 bg-yellow-100 px-2 py-1 rounded">
-                                ⚠️ Está en Pre-Alerta pero no en Pre-Ruteo
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Details for PREVIO - only preRuteo */}
-                          {pkg.status === 'PREVIO' && pkg.preRuteo && (
-                            <div className="mt-4 pl-4 border-l-2 border-blue-300 space-y-2 bg-blue-50 p-3 rounded-md">
-                              <div className="text-sm text-gray-700">
-                                <span className="font-semibold text-blue-700">🚚 Pre-Ruteo:</span>{' '}
-                                <span className="font-medium">{pkg.preRuteo.chofer}</span> • 
-                                <span className="font-medium">{pkg.preRuteo.razonSocial}</span>
-                              </div>
-                              <div className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded">
-                                ℹ️ Está en Pre-Ruteo pero no en Pre-Alerta (paquete de envío anterior)
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Details for SOBRANTE - tracking number only */}
-                          {pkg.status === 'SOBRANTE' && (
-                            <div className="mt-4 pl-4 border-l-2 border-red-300 space-y-2 bg-red-50 p-3 rounded-md">
-                              <div className="text-xs text-red-700 bg-red-100 px-2 py-1 rounded">
-                                ❌ Este paquete fue escaneado pero no se encuentra en ninguno de los archivos de referencia
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
-
-                      <div className="text-right ml-4">
+                      
+                      {/* Date - Right side */}
+                      <div className="text-right flex-shrink-0">
                         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                           {(() => {
                             if (!pkg.scannedAt) return 'Sin fecha'
@@ -649,14 +611,13 @@ export default function ShipmentDetailPage() {
                               const date = new Date(pkg.scannedAt)
                               if (isNaN(date.getTime())) return 'Fecha inválida'
                               return date.toLocaleString('es-AR', {
-                                year: 'numeric',
                                 month: '2-digit',
                                 day: '2-digit',
                                 hour: '2-digit',
                                 minute: '2-digit'
                               })
                             } catch {
-                              return 'Error en fecha'
+                              return 'Error'
                             }
                           })()}
                         </span>
