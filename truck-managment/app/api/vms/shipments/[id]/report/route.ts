@@ -90,14 +90,21 @@ export async function GET(
     // Obtener datos detallados de Pre-Alertas y Pre-Ruteos
     const preAlertasWithData = await prisma.preAlerta.findMany({
       where: { shipmentId },
-      include: {
+      select: {
+        trackingNumber: true,
+        buyer: true,
+        buyerCity: true,
+        weight: true,
         scannedPackage: true
       }
     })
 
     const preRuteosWithData = await prisma.preRuteo.findMany({
       where: { shipmentId },
-      include: {
+      select: {
+        codigoPedido: true,
+        chofer: true,
+        razonSocial: true,
         scannedPackage: true
       }
     })
@@ -113,7 +120,7 @@ export async function GET(
           status: 'FALTANTES',
           preAlerta: preAlerta ? {
             buyer: preAlerta.buyer,
-            city: preAlerta.city,
+            city: preAlerta.buyerCity,
             weight: preAlerta.weight
           } : null,
           preRuteo: preRuteo ? {
@@ -132,7 +139,7 @@ export async function GET(
           status: 'FUERA_COBERTURA',
           preAlerta: preAlerta ? {
             buyer: preAlerta.buyer,
-            city: preAlerta.city,
+            city: preAlerta.buyerCity,
             weight: preAlerta.weight
           } : null,
           preRuteo: null
@@ -159,7 +166,7 @@ export async function GET(
       .map(p => ({
         trackingNumber: p.trackingNumber,
         status: 'SOBRANTE',
-        scannedAt: p.scannedAt,
+        scannedAt: p.scanTimestamp,
         preAlerta: null,
         preRuteo: null
       }))

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell, HelpCircle, Map } from 'lucide-react'
+import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell, HelpCircle, Map, BookOpen } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -18,10 +18,8 @@ export default function Sidebar() {
   const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false)
 
   useEffect(() => {
-    // Emit event when collapsed state changes
     window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { isCollapsed } }))
 
-    // Fetch unread notifications count
     const fetchUnreadCount = async () => {
       try {
         const response = await fetch('/api/notifications')
@@ -36,12 +34,10 @@ export default function Sidebar() {
 
     if (session) {
       fetchUnreadCount()
-      // Poll every 30 seconds
       const interval = setInterval(fetchUnreadCount, 30000)
       return () => clearInterval(interval)
     }
 
-    // Cleanup timeout on unmount
     return () => {
       if (hoverTimeout) {
         clearTimeout(hoverTimeout)
@@ -50,47 +46,40 @@ export default function Sidebar() {
   }, [isCollapsed, hoverTimeout, session])
 
   const toggleSidebar = () => {
-    // Cancelar cualquier timeout pendiente
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
-
-    // Resetear estado de hover cuando se hace toggle manual
     setIsHovered(false)
     setIsCollapsed(!isCollapsed)
   }
 
   const handleMouseEnter = () => {
-    // Cancelar cualquier timeout pendiente
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
 
-    // Solo expandir si está colapsada y no es mobile
     if (isCollapsed && window.innerWidth >= 768) {
       const timeout = setTimeout(() => {
         setIsHovered(true)
         setIsCollapsed(false)
-      }, 300) // 300ms delay para abrir
+      }, 300)
       setHoverTimeout(timeout)
     }
   }
 
   const handleMouseLeave = () => {
-    // Cancelar cualquier timeout pendiente
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
 
-    // Solo colapsar si fue expandida por hover
     if (isHovered && window.innerWidth >= 768) {
       const timeout = setTimeout(() => {
         setIsHovered(false)
         setIsCollapsed(true)
-      }, 500) // 500ms delay para cerrar (más tiempo para dar oportunidad de mover el mouse)
+      }, 500)
       setHoverTimeout(timeout)
     }
   }
@@ -114,102 +103,105 @@ export default function Sidebar() {
     { name: 'Stock', href: '/stocks', icon: Warehouse },
     { name: 'Mapas', href: '/maps', icon: Map },
     { name: 'Reportes', href: '/reports', icon: BarChart3 },
+    { name: 'Procesos', href: '/wiki', icon: BookOpen },
     {
       name: 'Ayuda',
       href: '/help',
       icon: HelpCircle,
       subItems: [
         { name: 'Centro de Ayuda', href: '/help' },
-        { name: 'FAQ', href: '/help/faq' },
-        { name: 'Wiki', href: '/wiki' }
+        { name: 'FAQ', href: '/help/faq' }
       ]
     },
   ]
 
-  // Navigation is the same for all users - users access is in the dropdown menu
   const navigation = baseNavigation
 
   return (
     <>
-      {/* <CHANGE> Enhanced mobile header with premium styling */}
-      {/* Mobile menu button */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3.5">
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-neutral-200/60">
+        <div className="flex items-center justify-between px-5 py-4">
           <button
             onClick={toggleMobileMenu}
-            className="p-2 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 transition-all duration-200"
+            className="p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/80 focus:outline-none focus:ring-2 focus:ring-neutral-900/20 focus:ring-offset-2 transition-all duration-300 active:scale-95"
           >
             <span className="sr-only">Abrir menú principal</span>
             {isMobileMenuOpen ? (
-              <X className="block h-5 w-5" />
+              <X className="h-5 w-5 transition-transform duration-300" />
             ) : (
-              <Menu className="block h-5 w-5" />
+              <Menu className="h-5 w-5 transition-transform duration-300" />
             )}
           </button>
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
-              <img src="/images/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
-              <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/5 to-transparent rounded-lg" />
+          <div className="flex items-center gap-3">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/10 to-transparent rounded-xl blur-sm group-hover:blur-md transition-all duration-300" />
+              <img src="/images/logo.png" alt="Logo" className="relative h-9 w-9 object-contain" />
             </div>
-            <h1 className="text-xs font-semibold text-neutral-900 tracking-tight leading-tight">
-              Network<br />Management<br />Argentina
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-[11px] font-bold text-neutral-900 tracking-tight leading-[1.3] uppercase">
+                Network Management
+              </h1>
+              <span className="text-[9px] font-medium text-neutral-500 tracking-wider">Argentina</span>
+            </div>
           </div>
-          <div className="w-9"></div> {/* Spacer for centering */}
+          <div className="w-9" />
         </div>
       </div>
 
-      {/* <CHANGE> Premium mobile menu with enhanced animations and styling */}
-      {/* Mobile menu overlay */}
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
           <div 
-            className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm transition-opacity duration-300" 
+            className="fixed inset-0 bg-neutral-900/60 backdrop-blur-md transition-all duration-300" 
             onClick={closeMobileMenu} 
           />
-          <div className="relative flex w-full max-w-xs flex-col bg-white shadow-2xl animate-in slide-in-from-left duration-300">
-            <div className="flex flex-col flex-grow pt-6 pb-4 overflow-y-auto">
-              {/* <CHANGE> Enhanced mobile header */}
-              <div className="flex items-center flex-shrink-0 px-5 mb-8">
-                <div className="relative">
-                  <img src="/images/logo.png" alt="Logo" className="h-9 w-9 object-contain" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/5 to-transparent rounded-lg" />
+          <div className="relative flex w-full max-w-sm flex-col bg-white shadow-2xl animate-in slide-in-from-left duration-300">
+            <div className="flex flex-col flex-grow pt-8 pb-6 overflow-y-auto">
+              {/* Mobile Header */}
+              <div className="flex items-center flex-shrink-0 px-6 mb-10">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/10 to-transparent rounded-xl blur-sm group-hover:blur-md transition-all duration-300" />
+                  <img src="/images/logo.png" alt="Logo" className="relative h-10 w-10 object-contain" />
                 </div>
-                <h1 className="ml-3 text-sm font-semibold text-neutral-900 tracking-tight leading-tight">
-                  Network<br />Management<br />Argentina
-                </h1>
+                <div className="ml-4 flex flex-col">
+                  <h1 className="text-sm font-bold text-neutral-900 tracking-tight leading-[1.3] uppercase">
+                    Network Management
+                  </h1>
+                  <span className="text-xs font-medium text-neutral-500 tracking-wider">Argentina</span>
+                </div>
               </div>
               
-              {/* <CHANGE> Premium navigation items with refined styling */}
-              <nav className="flex-1 px-3 space-y-1">
+              {/* Navigation */}
+              <nav className="flex-1 px-4 space-y-1.5">
                 {navigation.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                   const hasSubItems = item.subItems && item.subItems.length > 0
-                  const isHelpActive = hasSubItems && (pathname.startsWith('/help') || pathname.startsWith('/wiki'))
+                  const isHelpActive = hasSubItems && pathname.startsWith('/help')
 
                   if (hasSubItems) {
                     return (
                       <div key={item.name}>
                         <button
                           onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
-                          className={`group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 w-full ${
+                          className={`group flex items-center w-full px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 ${
                             isHelpActive
-                              ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
-                              : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                              ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/25'
+                              : 'text-neutral-700 hover:bg-neutral-100/80 hover:text-neutral-900 active:scale-[0.98]'
                           }`}
                         >
-                          <item.icon className={`flex-shrink-0 h-5 w-5 mr-3.5 transition-transform duration-200 ${
-                            isHelpActive ? 'scale-110' : 'group-hover:scale-105'
-                          }`} />
-                          <span className="flex-1 text-left">{item.name}</span>
+                          <item.icon className={`flex-shrink-0 h-5 w-5 mr-4 transition-all duration-300 ${
+                            isHelpActive ? 'scale-110' : 'group-hover:scale-110'
+                          }`} strokeWidth={2.5} />
+                          <span className="flex-1 text-left tracking-tight">{item.name}</span>
                           {isHelpMenuOpen ? (
-                            <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                            <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                           ) : (
-                            <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                            <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                           )}
                         </button>
                         {isHelpMenuOpen && (
-                          <div className="ml-8 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
+                          <div className="ml-10 mt-2 space-y-1 animate-in fade-in slide-in-from-left-2 duration-300">
                             {item.subItems.map((subItem) => {
                               const isSubActive = pathname === subItem.href
                               return (
@@ -217,13 +209,13 @@ export default function Sidebar() {
                                   key={subItem.name}
                                   href={subItem.href}
                                   onClick={closeMobileMenu}
-                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                  className={`group flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ${
                                     isSubActive
                                       ? 'bg-neutral-800 text-white'
-                                      : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                      : 'text-neutral-600 hover:bg-neutral-100/80 hover:text-neutral-900'
                                   }`}
                                 >
-                                  {subItem.name}
+                                  <span className="tracking-tight">{subItem.name}</span>
                                 </Link>
                               )
                             })}
@@ -238,52 +230,52 @@ export default function Sidebar() {
                       key={item.name}
                       href={item.href}
                       onClick={closeMobileMenu}
-                      className={`group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 ${
+                      className={`group flex items-center px-4 py-3.5 text-sm font-semibold rounded-2xl transition-all duration-300 ${
                         isActive
-                          ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
-                          : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                          ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/25'
+                          : 'text-neutral-700 hover:bg-neutral-100/80 hover:text-neutral-900 active:scale-[0.98]'
                       }`}
                     >
-                      <item.icon className={`flex-shrink-0 h-5 w-5 mr-3.5 transition-transform duration-200 ${
-                        isActive ? 'scale-110' : 'group-hover:scale-105'
-                      }`} />
-                      {item.name}
+                      <item.icon className={`flex-shrink-0 h-5 w-5 mr-4 transition-all duration-300 ${
+                        isActive ? 'scale-110' : 'group-hover:scale-110'
+                      }`} strokeWidth={2.5} />
+                      <span className="tracking-tight">{item.name}</span>
                     </Link>
                   )
                 })}
               </nav>
             </div>
             
-            {/* <CHANGE> Enhanced user menu section */}
-            <div className="flex-shrink-0 border-t border-neutral-200/80 p-3 bg-neutral-50/50">
+            {/* User Menu Section */}
+            <div className="flex-shrink-0 border-t border-neutral-200/60 p-4 bg-gradient-to-b from-transparent to-neutral-50/50">
               <div className="relative w-full">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm w-full transition-all duration-200"
+                  className="group flex items-center w-full px-4 py-3.5 text-sm font-medium rounded-2xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-md transition-all duration-300 active:scale-[0.98]"
                 >
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-900 flex items-center justify-center mr-3 shadow-sm">
-                    <User className="h-4 w-4 text-white" />
+                  <div className="flex-shrink-0 h-9 w-9 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center mr-3.5 shadow-md group-hover:shadow-lg transition-all duration-300">
+                    <User className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
                   </div>
-                  <span className="flex-1 text-left truncate text-sm">{session?.user?.name || session?.user?.email}</span>
+                  <span className="flex-1 text-left truncate font-semibold tracking-tight">{session?.user?.name || session?.user?.email}</span>
                   {isUserMenuOpen ? (
-                    <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                    <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                   ) : (
-                    <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                    <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                   )}
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
+                  <div className="absolute bottom-full left-0 right-0 mb-3 bg-white border border-neutral-200/60 rounded-2xl shadow-2xl z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                     {session?.user?.role !== 'vms' && (
                       <Link
                         href="/notifications"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                        className="flex items-center px-5 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100/80 transition-all duration-200 group"
                       >
-                        <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                        Notificaciones
+                        <Bell className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200" strokeWidth={2.5} />
+                        <span className="tracking-tight">Notificaciones</span>
                         {unreadCount > 0 && (
-                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-md">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         )}
@@ -292,10 +284,10 @@ export default function Sidebar() {
                     <Link
                       href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                      className="flex items-center px-5 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100/80 transition-all duration-200 group"
                     >
-                      <User className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                      Perfil
+                      <User className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200" strokeWidth={2.5} />
+                      <span className="tracking-tight">Perfil</span>
                     </Link>
                     {session?.user?.role === 'admin' && (
                       <Link
@@ -307,10 +299,10 @@ export default function Sidebar() {
                             setIsCollapsed(true)
                           }
                         }}
-                        className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                        className="flex items-center px-5 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100/80 transition-all duration-200 group"
                       >
-                        <Shield className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                        Usuarios
+                        <Shield className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200" strokeWidth={2.5} />
+                        <span className="tracking-tight">Usuarios</span>
                       </Link>
                     )}
                     <button
@@ -322,10 +314,10 @@ export default function Sidebar() {
                           setIsCollapsed(true)
                         }
                       }}
-                      className="flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-colors duration-150"
+                      className="flex items-center px-5 py-3.5 text-sm font-semibold text-red-600 hover:bg-red-50 w-full text-left transition-all duration-200 group"
                     >
-                      <LogOut className="flex-shrink-0 h-4 w-4 mr-3" />
-                      Cerrar Sesión
+                      <LogOut className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 group-hover:text-red-700 transition-colors duration-200" strokeWidth={2.5} />
+                      <span className="tracking-tight">Cerrar Sesión</span>
                     </button>
                   </div>
                 )}
@@ -335,93 +327,95 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* <CHANGE> Premium desktop sidebar with refined styling and animations */}
-      {/* Desktop sidebar */}
+      {/* Desktop Sidebar */}
       <div
-        className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'md:w-[72px]' : 'md:w-64'}`}
+        className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-500 ease-in-out ${isCollapsed ? 'md:w-20' : 'md:w-72'}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-neutral-200/80 shadow-sm">
-          <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
-            {/* <CHANGE> Enhanced header with premium toggle button */}
-            <div className="flex items-center flex-shrink-0 px-4 mb-2">
+        <div className="flex-1 flex flex-col min-h-0 bg-white/80 backdrop-blur-xl border-r border-neutral-200/60 shadow-xl shadow-neutral-900/5">
+          <div className="flex-1 flex flex-col pt-8 pb-6 overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center flex-shrink-0 px-5 mb-8">
               <button
                 onClick={toggleSidebar}
-                className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 transition-all duration-200 group"
+                className="p-2 rounded-xl text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 focus:outline-none focus:ring-2 focus:ring-neutral-900/20 focus:ring-offset-2 transition-all duration-300 group active:scale-95"
               >
                 <span className="sr-only">Toggle sidebar</span>
-                <div className="text-base font-medium group-hover:scale-110 transition-transform duration-200">
+                <div className="text-base font-bold group-hover:scale-110 transition-transform duration-300">
                   {isCollapsed ? '→' : '←'}
                 </div>
               </button>
               {!isCollapsed && (
-                <div className="ml-3 flex items-center gap-2.5 animate-in fade-in slide-in-from-left-2 duration-200">
-                  <div className="relative">
-                    <img src="/images/logo.png" alt="Logo" className="h-7 w-7 object-contain" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/5 to-transparent rounded-lg" />
+                <div className="ml-4 flex items-center gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/10 to-transparent rounded-xl blur-sm group-hover:blur-md transition-all duration-300" />
+                    <img src="/images/logo.png" alt="Logo" className="relative h-8 w-8 object-contain" />
                   </div>
-                  <h1 className="text-sm font-semibold text-neutral-900 tracking-tight leading-tight">
-                    Network<br />Management<br />Argentina
-                  </h1>
+                  <div className="flex flex-col">
+                    <h1 className="text-[11px] font-bold text-neutral-900 tracking-tight leading-[1.3] uppercase">
+                      Network Management
+                    </h1>
+                    <span className="text-[9px] font-medium text-neutral-500 tracking-wider">Argentina</span>
+                  </div>
                 </div>
               )}
               {isCollapsed && (
-                <div className="ml-2 relative">
-                  <img src="/images/logo.png" alt="Logo" className="h-7 w-7 object-contain" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/5 to-transparent rounded-lg" />
+                <div className="ml-3 relative group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/10 to-transparent rounded-xl blur-sm group-hover:blur-md transition-all duration-300" />
+                  <img src="/images/logo.png" alt="Logo" className="relative h-8 w-8 object-contain" />
                 </div>
               )}
             </div>
             
-            {/* <CHANGE> Premium navigation with refined active states and hover effects */}
-            <nav className="mt-6 flex-1 px-3 space-y-1">
+            {/* Navigation */}
+            <nav className="mt-2 flex-1 px-3 space-y-1.5">
               {navigation.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                 const hasSubItems = item.subItems && item.subItems.length > 0
-                const isHelpActive = hasSubItems && (pathname.startsWith('/help') || pathname.startsWith('/wiki'))
+                const isHelpActive = hasSubItems && pathname.startsWith('/help')
 
                 if (hasSubItems) {
                   return (
                     <div key={item.name}>
                       <button
                         onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
-                        className={`group flex items-center px-3 py-2.5 text-[15px] font-medium rounded-xl transition-all duration-200 relative w-full ${
+                        className={`group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-all duration-300 relative ${
                           isHelpActive
-                            ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
-                            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                            ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/25'
+                            : 'text-neutral-700 hover:bg-neutral-100/80 hover:text-neutral-900 active:scale-[0.98]'
                         } ${isCollapsed ? 'justify-center' : ''}`}
                         title={isCollapsed ? item.name : undefined}
                       >
-                        <item.icon className={`flex-shrink-0 h-5 w-5 transition-transform duration-200 ${
-                          isHelpActive ? 'scale-110' : 'group-hover:scale-105'
-                        }`} />
+                        <item.icon className={`flex-shrink-0 h-5 w-5 transition-all duration-300 ${
+                          isHelpActive ? 'scale-110' : 'group-hover:scale-110'
+                        }`} strokeWidth={2.5} />
                         {!isCollapsed && (
                           <>
-                            <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200 flex-1 text-left">{item.name}</span>
+                            <span className="ml-4 animate-in fade-in slide-in-from-left-1 duration-200 flex-1 text-left tracking-tight">{item.name}</span>
                             {isHelpMenuOpen ? (
-                              <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                              <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                             ) : (
-                              <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                              <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                             )}
                           </>
                         )}
-                        {isHelpActive && !isCollapsed && (
-                          <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-200" />
+                        {isHelpActive && (
+                          <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-white shadow-lg animate-in zoom-in duration-200" />
                         )}
                       </button>
                       {!isCollapsed && isHelpMenuOpen && (
-                        <div className="ml-6 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
+                        <div className="ml-8 mt-1.5 space-y-1 animate-in fade-in slide-in-from-left-1 duration-300">
                           {item.subItems.map((subItem) => {
                             const isSubActive = pathname === subItem.href
                             return (
                               <Link
                                 key={subItem.name}
                                 href={subItem.href}
-                                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                className={`group flex items-center px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 ${
                                   isSubActive
                                     ? 'bg-neutral-800 text-white'
-                                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                    : 'text-neutral-600 hover:bg-neutral-100/80 hover:text-neutral-900'
                                 }`}
                                 onClick={() => {
                                   if (isHovered) {
@@ -430,7 +424,7 @@ export default function Sidebar() {
                                   }
                                 }}
                               >
-                                {subItem.name}
+                                <span className="tracking-tight">{subItem.name}</span>
                               </Link>
                             )
                           })}
@@ -444,10 +438,10 @@ export default function Sidebar() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group flex items-center px-3 py-2.5 text-[15px] font-medium rounded-xl transition-all duration-200 relative ${
+                    className={`group flex items-center px-4 py-3 text-sm font-semibold rounded-2xl transition-all duration-300 relative ${
                       isActive
-                        ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
-                        : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                        ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/25'
+                        : 'text-neutral-700 hover:bg-neutral-100/80 hover:text-neutral-900 active:scale-[0.98]'
                     } ${isCollapsed ? 'justify-center' : ''}`}
                     title={isCollapsed ? item.name : undefined}
                     onClick={() => {
@@ -457,14 +451,14 @@ export default function Sidebar() {
                       }
                     }}
                   >
-                    <item.icon className={`flex-shrink-0 h-5 w-5 transition-transform duration-200 ${
-                      isActive ? 'scale-110' : 'group-hover:scale-105'
-                    }`} />
+                    <item.icon className={`flex-shrink-0 h-5 w-5 transition-all duration-300 ${
+                      isActive ? 'scale-110' : 'group-hover:scale-110'
+                    }`} strokeWidth={2.5} />
                     {!isCollapsed && (
-                      <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200">{item.name}</span>
+                      <span className="ml-4 animate-in fade-in slide-in-from-left-1 duration-200 tracking-tight">{item.name}</span>
                     )}
-                    {isActive && !isCollapsed && (
-                      <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-200" />
+                    {isActive && (
+                      <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-white shadow-lg animate-in zoom-in duration-200" />
                     )}
                   </Link>
                 )
@@ -472,14 +466,14 @@ export default function Sidebar() {
             </nav>
           </div>
           
-          {/* <CHANGE> Premium user section with enhanced dropdown */}
-          <div className="flex-shrink-0 border-t border-neutral-200/80 p-3 bg-neutral-50/50">
+          {/* User Section */}
+          <div className="flex-shrink-0 border-t border-neutral-200/60 p-3 bg-gradient-to-b from-transparent to-neutral-50/50">
             {/* Notifications Bell */}
             {session?.user?.role !== 'vms' && (
               <div className={`mb-2 ${isCollapsed ? 'flex justify-center' : ''}`}>
                 <Link
                   href="/notifications"
-                  className={`group relative flex items-center px-3 py-2 text-sm font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm transition-all duration-200 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
+                  className={`group relative flex items-center px-4 py-3 text-sm font-medium rounded-2xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-md transition-all duration-300 active:scale-95 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
                   title={isCollapsed ? 'Notificaciones' : undefined}
                   onClick={() => {
                     if (isHovered) {
@@ -489,13 +483,16 @@ export default function Sidebar() {
                   }}
                 >
                   <div className="relative">
-                    <Bell className="flex-shrink-0 h-5 w-5 text-neutral-600 group-hover:text-neutral-900 transition-colors duration-200" />
+                    <Bell className="flex-shrink-0 h-5 w-5 text-neutral-600 group-hover:text-neutral-900 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-semibold">
+                      <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4.5 w-4.5 flex items-center justify-center shadow-lg">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </div>
+                  {!isCollapsed && (
+                    <span className="ml-4 tracking-tight font-semibold">Notificaciones</span>
+                  )}
                 </Link>
               </div>
             )}
@@ -503,26 +500,26 @@ export default function Sidebar() {
             <div className="relative w-full">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm transition-all duration-200 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
+                className={`group flex items-center px-4 py-3 text-sm font-medium rounded-2xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-md transition-all duration-300 active:scale-95 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
                 title={isCollapsed ? 'Menú de usuario' : undefined}
               >
-                <div className="flex-shrink-0 h-5 w-5 rounded-full bg-gradient-to-br from-neutral-700 to-neutral-900 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200">
-                  <User className="h-3 w-3 text-white" />
+                <div className="flex-shrink-0 h-9 w-9 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                  <User className="h-4 w-4 text-white" strokeWidth={2.5} />
                 </div>
                 {!isCollapsed && (
                   <>
-                    <span className="ml-3 flex-1 text-left truncate text-[13px]">{session?.user?.name || session?.user?.email}</span>
+                    <span className="ml-3.5 flex-1 text-left truncate text-[13px] font-semibold tracking-tight">{session?.user?.name || session?.user?.email}</span>
                     {isUserMenuOpen ? (
-                      <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                      <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                     ) : (
-                      <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                      <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 transition-transform duration-300" strokeWidth={2.5} />
                     )}
                   </>
                 )}
               </button>
 
               {isUserMenuOpen && (
-                <div className={`absolute ${isCollapsed ? 'left-full ml-2 top-0' : 'bottom-full left-0 right-0 mb-2'} bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] min-w-[200px] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
+                <div className={`absolute ${isCollapsed ? 'left-full ml-3 top-0' : 'bottom-full left-0 right-0 mb-3'} bg-white border border-neutral-200/60 rounded-2xl shadow-2xl z-[9999] min-w-[220px] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
                   {session?.user?.role !== 'vms' && (
                     <Link
                       href="/notifications"
@@ -533,12 +530,12 @@ export default function Sidebar() {
                           setIsCollapsed(true)
                         }
                       }}
-                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                      className="flex items-center px-5 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100/80 transition-all duration-200 group"
                     >
-                      <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                      Notificaciones
+                      <Bell className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200" strokeWidth={2.5} />
+                      <span className="tracking-tight">Notificaciones</span>
                       {unreadCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-md">
                           {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                       )}
@@ -553,19 +550,19 @@ export default function Sidebar() {
                         setIsCollapsed(true)
                       }
                     }}
-                    className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                    className="flex items-center px-5 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100/80 transition-all duration-200 group"
                   >
-                    <User className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                    Perfil
+                    <User className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200" strokeWidth={2.5} />
+                    <span className="tracking-tight">Perfil</span>
                   </Link>
                   {session?.user?.role === 'admin' && (
                     <Link
                       href="/users"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
+                      className="flex items-center px-5 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100/80 transition-all duration-200 group"
                     >
-                      <Shield className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                      Usuarios
+                      <Shield className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 text-neutral-500 group-hover:text-neutral-900 transition-colors duration-200" strokeWidth={2.5} />
+                      <span className="tracking-tight">Usuarios</span>
                     </Link>
                   )}
                   <button
@@ -577,10 +574,10 @@ export default function Sidebar() {
                         setIsCollapsed(true)
                       }
                     }}
-                    className="flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-colors duration-150"
+                    className="flex items-center px-5 py-3.5 text-sm font-semibold text-red-600 hover:bg-red-50 w-full text-left transition-all duration-200 group"
                   >
-                    <LogOut className="flex-shrink-0 h-4 w-4 mr-3" />
-                    Cerrar Sesión
+                    <LogOut className="flex-shrink-0 h-4.5 w-4.5 mr-3.5 group-hover:text-red-700 transition-colors duration-200" strokeWidth={2.5} />
+                    <span className="tracking-tight">Cerrar Sesión</span>
                   </button>
                 </div>
               )}
