@@ -87,24 +87,82 @@ export async function GET(
       !preAlertaTracking.has(pr.codigoPedido)
     ).length
 
-    // Debug logs
-    console.log('📊 Report Stats Debug:', {
-      totalPreAlertas: preAlertas.length,
-      totalPreRuteos: preRuteos.length,
-      trackingsEnAmbos: trackingsEnAmbos.length,
-      totalScanned: scannedPackages.length,
-      ok,
-      faltantes,
-      sobrante,
-      fueraCobertura,
-      previo,
-      scannedDetails: scannedPackages.map(p => ({
-        tracking: p.trackingNumber,
-        status: p.status,
-        hasPreAlerta: !!p.preAlertaId,
-        hasPreRuteo: !!p.preRuteoId
-      }))
+    // Obtener datos detallados de Pre-Alertas y Pre-Ruteos
+    const preAlertasWithData = await prisma.preAlerta.findMany({
+      where: { shipmentId },
+      include: {
+        scannedPackage: true
+      }
     })
+
+    const preRuteosWithData = await prisma.preRuteo.findMany({
+      where: { shipmentId },
+      include: {
+        scannedPackage: true
+      }
+    })
+
+    // Crear estructuras de datos para las diferentes categorías
+    const faltantesData = trackingsEnAmbos
+      .filter(tracking => !scannedTrackings.has(tracking))
+      .map(tracking => {
+        const preAlerta = preAlertasWithData.find(pa => pa.trackingNumber === tracking)
+        const preRuteo = preRuteosWithData.find(pr => pr.codigoPedido === tracking)
+        return {
+          trackingNumber: tracking,
+          status: 'FALTANTES',
+          preAlerta: preAlerta ? {
+            buyer: preAlerta.buyer,
+            city: preAlerta.city,
+            weight: preAlerta.weight
+          } : null,
+          preRuteo: preRuteo ? {
+            chofer: preRuteo.chofer,
+            razonSocial: preRuteo.razonSocial
+          } : null
+        }
+      })
+
+    const fueraCoberturaData = preAlertas
+      .filter(pa => !preRuteoTracking.has(pa.trackingNumber))
+      .map(pa => {
+        const preAlerta = preAlertasWithData.find(p => p.trackingNumber === pa.trackingNumber)
+        return {
+          trackingNumber: pa.trackingNumber,
+          status: 'FUERA_COBERTURA',
+          preAlerta: preAlerta ? {
+            buyer: preAlerta.buyer,
+            city: preAlerta.city,
+            weight: preAlerta.weight
+          } : null,
+          preRuteo: null
+        }
+      })
+
+    const previoData = preRuteos
+      .filter(pr => !preAlertaTracking.has(pr.codigoPedido))
+      .map(pr => {
+        const preRuteo = preRuteosWithData.find(p => p.codigoPedido === pr.codigoPedido)
+        return {
+          trackingNumber: pr.codigoPedido,
+          status: 'PREVIO',
+          preAlerta: null,
+          preRuteo: preRuteo ? {
+            chofer: preRuteo.chofer,
+            razonSocial: preRuteo.razonSocial
+          } : null
+        }
+      })
+
+    const sobranteData = scannedPackages
+      .filter(p => p.status === 'SOBRANTE')
+      .map(p => ({
+        trackingNumber: p.trackingNumber,
+        status: 'SOBRANTE',
+        scannedAt: p.scannedAt,
+        preAlerta: null,
+        preRuteo: null
+      }))
 
     const stats = {
       totalScanned: scannedPackages.length,
@@ -114,6 +172,10 @@ export async function GET(
       fueraCobertura,
       previo,
       details: scannedPackages,
+      faltantesData,
+      fueraCoberturaData,
+      previoData,
+      sobranteData
     }
 
     return NextResponse.json(stats)

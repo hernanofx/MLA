@@ -40,6 +40,7 @@ export default function ShipmentsListPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | Shipment['status']>('all')
+  const [dateFilter, setDateFilter] = useState('')
   const [providerInfo, setProviderInfo] = useState<ProviderInfo | null>(null)
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function ShipmentsListPage() {
 
   useEffect(() => {
     filterShipments()
-  }, [shipments, searchTerm, statusFilter])
+  }, [shipments, searchTerm, statusFilter, dateFilter])
 
   const fetchProviderInfo = async () => {
     if (session?.user?.providerId) {
@@ -87,6 +88,13 @@ export default function ShipmentsListPage() {
     if (searchTerm) {
       filtered = filtered.filter(shipment =>
         new Date(shipment.shipmentDate).toLocaleDateString('es-AR').includes(searchTerm)
+      )
+    }
+
+    // Filter by specific date
+    if (dateFilter) {
+      filtered = filtered.filter(shipment =>
+        new Date(shipment.shipmentDate).toISOString().split('T')[0] === dateFilter
       )
     }
 
@@ -131,101 +139,150 @@ export default function ShipmentsListPage() {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => router.push('/vms')}
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Volver al Dashboard
-          </button>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Todos los Envíos
-              </h1>
-              {providerInfo && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Proveedor: <span className="font-medium text-gray-900">{providerInfo.name}</span>
-                </p>
-              )}
-              {session?.user?.role === 'admin' && (
-                <p className="mt-1 text-xs text-indigo-600 font-medium">
-                  Vista de administrador - Todos los proveedores
-                </p>
-              )}
-            </div>
-            
-            <button
-              onClick={() => router.push('/vms/shipments/new')}
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Envío
-            </button>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 gap-4">
-            {/* Search */}
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Buscar por fecha..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
+        {/* Header mejorado con breadcrumbs */}
+        <div className="bg-white shadow-sm border-b border-gray-200 mb-6">
+          <div className="px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <nav className="flex" aria-label="Breadcrumb">
+                  <ol className="flex items-center space-x-2">
+                    <li>
+                      <button
+                        onClick={() => router.push('/vms')}
+                        className="text-gray-400 hover:text-gray-500 transition-colors"
+                      >
+                        🏠 Dashboard
+                      </button>
+                    </li>
+                    <li>
+                      <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </li>
+                    <li>
+                      <span className="text-gray-500">Todos los Envíos</span>
+                    </li>
+                  </ol>
+                </nav>
+                <h1 className="mt-2 text-2xl font-bold text-gray-900">📦 Gestión de Envíos</h1>
+                {providerInfo && (
+                  <p className="mt-1 text-sm text-gray-600">
+                    Proveedor: <span className="font-medium">{providerInfo.name}</span>
+                  </p>
+                )}
+                {session?.user?.role === 'admin' && (
+                  <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    👑 Vista de Administrador
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => router.push('/vms')}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  ← Volver al Dashboard
+                </button>
+                <button
+                  onClick={() => router.push('/vms/shipments/new')}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                >
+                  ➕ Nuevo Envío
+                </button>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Status Filter */}
-            <div className="flex items-center space-x-3">
-              <Filter className="h-5 w-5 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        {/* Filters mejorados */}
+        <div className="bg-gray-50 border-b border-gray-200 px-4 py-4 sm:px-6 lg:px-8 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+            <div className="flex items-center space-x-4">
+              <div>
+                <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700">
+                  📅 Filtrar por fecha específica
+                </label>
+                <input
+                  type="date"
+                  id="date-filter"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700">
+                  🔍 Estado del envío
+                </label>
+                <select
+                  id="status-filter"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  <option value="all">Todos los estados</option>
+                  <option value="PRE_ALERTA">⏳ Pre-Alerta</option>
+                  <option value="PRE_RUTEO">📋 Pre-Ruteo</option>
+                  <option value="VERIFICACION">🔍 Verificación</option>
+                  <option value="FINALIZADO">✅ Finalizado</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  setDateFilter('')
+                  setStatusFilter('all')
+                }}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
-                <option value="all">Todos los estados</option>
-                <option value="PRE_ALERTA">Pre-Alerta</option>
-                <option value="PRE_RUTEO">Pre-Ruteo</option>
-                <option value="VERIFICACION">Verificación</option>
-                <option value="FINALIZADO">Finalizado</option>
-              </select>
+                🔄 Limpiar filtros
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Stats Summary */}
+        {/* Stats Summary mejorado */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm font-medium text-gray-600">Total Envíos</p>
-            <p className="text-2xl font-bold text-gray-900">{shipments.length}</p>
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="flex items-center">
+              <Package className="h-8 w-8 mr-3 opacity-90" />
+              <div>
+                <p className="text-sm font-medium opacity-90">Total Envíos</p>
+                <p className="text-2xl font-bold">{shipments.length}</p>
+              </div>
+            </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm font-medium text-gray-600">En Proceso</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {shipments.filter(s => s.status !== 'FINALIZADO').length}
-            </p>
+          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow-lg p-4 text-white">
+            <div className="flex items-center">
+              <div className="h-8 w-8 mr-3 opacity-90">⏳</div>
+              <div>
+                <p className="text-sm font-medium opacity-90">En Proceso</p>
+                <p className="text-2xl font-bold">
+                  {shipments.filter(s => s.status !== 'FINALIZADO').length}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm font-medium text-gray-600">Finalizados</p>
-            <p className="text-2xl font-bold text-green-600">
-              {shipments.filter(s => s.status === 'FINALIZADO').length}
-            </p>
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="flex items-center">
+              <div className="h-8 w-8 mr-3 opacity-90">✅</div>
+              <div>
+                <p className="text-sm font-medium opacity-90">Finalizados</p>
+                <p className="text-2xl font-bold">
+                  {shipments.filter(s => s.status === 'FINALIZADO').length}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <p className="text-sm font-medium text-gray-600">Resultados</p>
-            <p className="text-2xl font-bold text-gray-900">{filteredShipments.length}</p>
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="flex items-center">
+              <div className="h-8 w-8 mr-3 opacity-90">📊</div>
+              <div>
+                <p className="text-sm font-medium opacity-90">Resultados</p>
+                <p className="text-2xl font-bold">{filteredShipments.length}</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -238,103 +295,138 @@ export default function ShipmentsListPage() {
             </div>
           ) : filteredShipments.length === 0 ? (
             <div className="p-12 text-center">
-              <FileText className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {shipments.length === 0 ? 'No hay envíos' : 'No se encontraron envíos'}
+              <div className="mx-auto h-24 w-24 text-gray-400 mb-4">
+                📦
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {shipments.length === 0 ? 'No hay envíos registrados' : 'No se encontraron envíos con los filtros aplicados'}
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
                 {shipments.length === 0 
-                  ? 'Comienza creando un nuevo envío'
-                  : 'Intenta cambiar los filtros de búsqueda'}
+                  ? 'Comienza creando tu primer envío para gestionar tus paquetes de manera eficiente.'
+                  : 'Intenta cambiar los filtros de búsqueda o limpiar todos los filtros para ver todos los envíos.'}
               </p>
               {shipments.length === 0 && (
-                <div className="mt-6">
-                  <button
-                    onClick={() => router.push('/vms/shipments/new')}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Nuevo Envío
-                  </button>
-                </div>
+                <button
+                  onClick={() => router.push('/vms/shipments/new')}
+                  className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 transform hover:scale-105"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Crear Primer Envío
+                </button>
+              )}
+              {shipments.length > 0 && (
+                <button
+                  onClick={() => {
+                    setDateFilter('')
+                    setStatusFilter('all')
+                  }}
+                  className="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  🔄 Limpiar Filtros
+                </button>
               )}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha de Envío
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      📅 Fecha de Envío
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      🔄 Estado
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Progreso
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      📊 Progreso
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Paquetes
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      📦 Paquetes
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Escaneados
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      📱 Escaneados
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha Creación
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      🕒 Creado
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Acciones
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      ⚡ Acciones
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredShipments.map((shipment) => (
-                    <tr key={shipment.id} className="hover:bg-gray-50">
+                    <tr key={shipment.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Calendar className="h-5 w-5 text-gray-400 mr-2" />
-                          <span className="text-sm font-medium text-gray-900">
-                            {new Date(shipment.shipmentDate).toLocaleDateString('es-AR')}
-                          </span>
+                          <Calendar className="h-5 w-5 text-indigo-500 mr-3" />
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">
+                              {new Date(shipment.shipmentDate).toLocaleDateString('es-AR', { 
+                                weekday: 'long',
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(shipment.shipmentDate).toLocaleTimeString('es-AR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(shipment.status)}`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(shipment.status)}`}>
                           {getStatusLabel(shipment.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2 max-w-[100px]">
+                          <div className="w-full bg-gray-200 rounded-full h-3 max-w-[120px] mr-3">
                             <div
-                              className="bg-indigo-600 h-2 rounded-full"
+                              className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-500"
                               style={{ width: `${getStatusProgress(shipment.status)}%` }}
                             ></div>
                           </div>
-                          <span className="ml-2 text-xs text-gray-500">
+                          <span className="text-sm font-semibold text-gray-700">
                             {getStatusProgress(shipment.status)}%
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Package className="h-4 w-4 text-gray-400 mr-1" />
-                          {shipment._count?.preAlertas || 0}
+                          <Package className="h-5 w-5 text-blue-500 mr-2" />
+                          <span className="text-sm font-semibold text-gray-900">
+                            {shipment._count?.preAlertas || 0}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {shipment._count?.scannedPackages || 0}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-5 w-5 text-green-500 mr-2">📱</div>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {shipment._count?.scannedPackages || 0}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(shipment.createdAt).toLocaleDateString('es-AR')}
+                        {new Date(shipment.createdAt).toLocaleDateString('es-AR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => router.push(`/vms/shipments/${shipment.id}`)}
-                          className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 transition-all duration-200 transform hover:scale-105"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
-                          Ver detalle
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Detalle
                         </button>
                       </td>
                     </tr>
