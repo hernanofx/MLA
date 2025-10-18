@@ -14,6 +14,12 @@ import {
   FileText,
   Calendar
 } from 'lucide-react'
+import { 
+  formatArgentinaDateLong, 
+  formatArgentinaDateTime,
+  getArgentinaDateForInput,
+  toDateString
+} from '@/lib/date-utils'
 
 interface ReportStats {
   totalScanned: number
@@ -165,7 +171,7 @@ export default function ShipmentDetailPage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `reporte-${shipmentId}-${new Date().toISOString().split('T')[0]}.xlsx`
+      a.download = `reporte-${shipmentId}-${getArgentinaDateForInput()}.xlsx`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -270,9 +276,7 @@ export default function ShipmentDetailPage() {
     ? filteredItems.filter(item => {
         if (!item.scannedAt) return false
         try {
-          const itemDate = new Date(item.scannedAt)
-          if (isNaN(itemDate.getTime())) return false
-          return itemDate.toISOString().split('T')[0] === dateFilter
+          return toDateString(item.scannedAt) === dateFilter
         } catch {
           return false
         }
@@ -361,12 +365,7 @@ export default function ShipmentDetailPage() {
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Reporte de Envío</h1>
                 {shipmentInfo && (
                   <p className="mt-1 text-sm text-gray-600">
-                    Fecha: <span className="font-medium">{new Date(shipmentInfo.shipmentDate).toLocaleDateString('es-AR', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</span>
+                    Fecha: <span className="font-medium">{formatArgentinaDateLong(shipmentInfo.shipmentDate)}</span>
                   </p>
                 )}
                 {shipmentInfo && (
@@ -483,7 +482,7 @@ export default function ShipmentDetailPage() {
                   className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
                 <button
-                  onClick={() => setDateFilter(new Date().toISOString().split('T')[0])}
+                  onClick={() => setDateFilter(getArgentinaDateForInput())}
                   className="text-sm text-indigo-600 hover:text-indigo-800 font-medium whitespace-nowrap"
                 >
                   Hoy
@@ -611,14 +610,7 @@ export default function ShipmentDetailPage() {
                           {(() => {
                             if (!pkg.scannedAt) return 'Sin fecha'
                             try {
-                              const date = new Date(pkg.scannedAt)
-                              if (isNaN(date.getTime())) return 'Fecha inválida'
-                              return date.toLocaleString('es-AR', {
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })
+                              return formatArgentinaDateTime(pkg.scannedAt)
                             } catch {
                               return 'Error'
                             }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import AppLayout from '@/app/components/AppLayout'
 import { Package, TrendingUp, CheckCircle2, AlertTriangle, Plus, FileText } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { formatArgentinaDate } from '@/lib/date-utils'
 
 interface DashboardStats {
   totalShipments: number
@@ -268,7 +269,7 @@ export default function VMSDashboard() {
                       }`} />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          Envío del {new Date(shipment.shipmentDate).toLocaleDateString('es-AR')}
+                          Envío del {formatArgentinaDate(shipment.shipmentDate)}
                         </p>
                         <p className="text-sm text-gray-600">
                           {shipment.status === 'PRE_ALERTA' && 'Esperando Pre-Ruteo'}

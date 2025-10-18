@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { ScanLine, CheckCircle2, AlertTriangle, XCircle, Clock, ArrowRight } from 'lucide-react'
+import { formatArgentinaTime, getArgentinaDate } from '@/lib/date-utils'
 
 interface VerificacionStepProps {
   shipmentId: string
@@ -61,7 +62,7 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
       const scanResult: ScanResult = {
         trackingNumber: trackingNumber.trim(),
         status: result.status,
-        timestamp: new Date().toISOString(),
+        timestamp: getArgentinaDate().toISOString(),
         details: result.details,
       }
       
@@ -295,7 +296,7 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
                       </div>
                     </div>
                     <span className="text-xs text-gray-500">
-                      {new Date(scan.timestamp).toLocaleTimeString('es-AR')}
+                      {formatArgentinaTime(scan.timestamp)}
                     </span>
                   </div>
                 </li>

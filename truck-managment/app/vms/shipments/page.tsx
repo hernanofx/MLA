@@ -14,6 +14,12 @@ import {
   FileText,
   Calendar
 } from 'lucide-react'
+import { 
+  formatArgentinaDate, 
+  formatArgentinaTime, 
+  formatArgentinaDateLong,
+  toDateString
+} from '@/lib/date-utils'
 
 interface Shipment {
   id: string
@@ -87,14 +93,14 @@ export default function ShipmentsListPage() {
     // Filter by search term (by date)
     if (searchTerm) {
       filtered = filtered.filter(shipment =>
-        new Date(shipment.shipmentDate).toLocaleDateString('es-AR').includes(searchTerm)
+        formatArgentinaDate(shipment.shipmentDate).includes(searchTerm)
       )
     }
 
     // Filter by specific date
     if (dateFilter) {
       filtered = filtered.filter(shipment =>
-        new Date(shipment.shipmentDate).toISOString().split('T')[0] === dateFilter
+        toDateString(shipment.shipmentDate) === dateFilter
       )
     }
 
@@ -151,7 +157,7 @@ export default function ShipmentsListPage() {
                         onClick={() => router.push('/vms')}
                         className="text-gray-400 hover:text-gray-500 transition-colors"
                       >
-                        🏠 Dashboard
+                        Dashboard
                       </button>
                     </li>
                     <li>
@@ -164,7 +170,7 @@ export default function ShipmentsListPage() {
                     </li>
                   </ol>
                 </nav>
-                <h1 className="mt-2 text-2xl font-bold text-gray-900">📦 Gestión de Envíos</h1>
+                <h1 className="mt-2 text-2xl font-bold text-gray-900">Gestión de Envíos</h1>
                 {providerInfo && (
                   <p className="mt-1 text-sm text-gray-600">
                     Proveedor: <span className="font-medium">{providerInfo.name}</span>
@@ -172,7 +178,7 @@ export default function ShipmentsListPage() {
                 )}
                 {session?.user?.role === 'admin' && (
                   <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                    👑 Vista de Administrador
+                    Vista de Administrador
                   </div>
                 )}
               </div>
@@ -187,7 +193,8 @@ export default function ShipmentsListPage() {
                   onClick={() => router.push('/vms/shipments/new')}
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                 >
-                  ➕ Nuevo Envío
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Envío
                 </button>
               </div>
             </div>
@@ -200,7 +207,8 @@ export default function ShipmentsListPage() {
             <div className="flex items-center space-x-4">
               <div>
                 <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700">
-                  📅 Filtrar por fecha específica
+                  <Calendar className="h-4 w-4 inline mr-1" />
+                  Filtrar por fecha específica
                 </label>
                 <input
                   type="date"
@@ -212,7 +220,8 @@ export default function ShipmentsListPage() {
               </div>
               <div>
                 <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700">
-                  🔍 Estado del envío
+                  <Filter className="h-4 w-4 inline mr-1" />
+                  Estado del envío
                 </label>
                 <select
                   id="status-filter"
@@ -221,10 +230,10 @@ export default function ShipmentsListPage() {
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
                   <option value="all">Todos los estados</option>
-                  <option value="PRE_ALERTA">⏳ Pre-Alerta</option>
-                  <option value="PRE_RUTEO">📋 Pre-Ruteo</option>
-                  <option value="VERIFICACION">🔍 Verificación</option>
-                  <option value="FINALIZADO">✅ Finalizado</option>
+                  <option value="PRE_ALERTA">Pre-Alerta</option>
+                  <option value="PRE_RUTEO">Pre-Ruteo</option>
+                  <option value="VERIFICACION">Verificación</option>
+                  <option value="FINALIZADO">Finalizado</option>
                 </select>
               </div>
             </div>
@@ -236,7 +245,7 @@ export default function ShipmentsListPage() {
                 }}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
-                🔄 Limpiar filtros
+                Limpiar filtros
               </button>
             </div>
           </div>
@@ -323,7 +332,7 @@ export default function ShipmentsListPage() {
                   }}
                   className="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
-                  🔄 Limpiar Filtros
+                  Limpiar Filtros
                 </button>
               )}
             </div>
@@ -333,25 +342,25 @@ export default function ShipmentsListPage() {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      📅 Fecha de Envío
+                      Fecha de Envío
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      🔄 Estado
+                      Estado
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      📊 Progreso
+                      Progreso
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      📦 Paquetes
+                      Paquetes
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      📱 Escaneados
+                      Escaneados
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      🕒 Creado
+                      Creado
                     </th>
                     <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      ⚡ Acciones
+                      Acciones
                     </th>
                   </tr>
                 </thead>
@@ -363,18 +372,10 @@ export default function ShipmentsListPage() {
                           <Calendar className="h-5 w-5 text-indigo-500 mr-3" />
                           <div>
                             <div className="text-sm font-semibold text-gray-900">
-                              {new Date(shipment.shipmentDate).toLocaleDateString('es-AR', { 
-                                weekday: 'long',
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                              })}
+                              {formatArgentinaDateLong(shipment.shipmentDate)}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {new Date(shipment.shipmentDate).toLocaleTimeString('es-AR', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
+                              {formatArgentinaTime(shipment.shipmentDate)}
                             </div>
                           </div>
                         </div>
@@ -414,11 +415,7 @@ export default function ShipmentsListPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(shipment.createdAt).toLocaleDateString('es-AR', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })}
+                        {formatArgentinaDate(shipment.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
