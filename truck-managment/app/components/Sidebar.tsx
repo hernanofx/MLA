@@ -106,14 +106,28 @@ export default function Sidebar() {
   const baseNavigation = session?.user?.role === 'vms' ? [
     { name: 'VMS', href: '/vms', icon: Truck },
   ] : [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+      subItems: [
+        { name: 'Vista General', href: '/dashboard' },
+        { name: 'Reportes', href: '/reports', icon: BarChart3 }
+      ]
+    },
     { name: 'Proveedores', href: '/providers', icon: Building2 },
-    { name: 'Camiones', href: '/trucks', icon: Truck },
-    { name: 'Entradas/Salidas', href: '/entries', icon: ClipboardList },
-    { name: 'Cargas/Descargas', href: '/loads', icon: Package },
+    {
+      name: 'Logística',
+      href: '#',
+      icon: Truck,
+      subItems: [
+        { name: 'Camiones', href: '/trucks', icon: Truck },
+        { name: 'Entradas/Salidas', href: '/entries', icon: ClipboardList },
+        { name: 'Cargas/Descargas', href: '/loads', icon: Package }
+      ]
+    },
     { name: 'Stock', href: '/stocks', icon: Warehouse },
     { name: 'Mapas', href: '/maps', icon: Map },
-    { name: 'Reportes', href: '/reports', icon: BarChart3 },
     { name: 'Procesos', href: '/wiki', icon: BookOpen },
     {
       name: 'Ayuda',
