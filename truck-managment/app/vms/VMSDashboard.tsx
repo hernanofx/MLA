@@ -316,15 +316,13 @@ export default function VMSDashboard() {
                       >
                         Ver →
                       </button>
-                      {shipment.status !== 'FINALIZADO' && (
-                        <button
-                          onClick={() => handleDeleteShipment(shipment.id)}
-                          className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
-                          title="Eliminar lote"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleDeleteShipment(shipment.id)}
+                        className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+                        title="Eliminar lote"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
                 ))}

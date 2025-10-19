@@ -28,11 +28,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Lote no encontrado' }, { status: 404 })
     }
 
-    // Solo permitir eliminar lotes que no estén finalizados
-    if (shipment.status === 'FINALIZADO') {
-      return NextResponse.json({ error: 'No se puede eliminar un lote finalizado' }, { status: 400 })
-    }
-
     // Obtener providerId del usuario
     const providerId = await getVMSProviderId(session)
 
