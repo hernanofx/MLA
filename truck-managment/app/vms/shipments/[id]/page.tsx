@@ -112,7 +112,7 @@ export default function ShipmentDetailPage() {
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<'all' | 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO' | 'FALTANTES'>('all')
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(20)
+  const [itemsPerPage] = useState(10)
   const [dateFilter, setDateFilter] = useState('')
 
   useEffect(() => {
@@ -209,6 +209,11 @@ export default function ShipmentDetailPage() {
       default:
         return <Package className="h-5 w-5" />
     }
+  }
+
+  const getTotalPackages = () => {
+    if (!stats) return 0
+    return stats.totalScanned + stats.faltantes + stats.fueraCobertura + stats.previo + stats.sobrante
   }
 
   // Get filtered items based on selected tab
@@ -460,7 +465,7 @@ export default function ShipmentDetailPage() {
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs sm:text-sm font-medium opacity-90 truncate">Total</p>
-                  <p className="text-lg sm:text-2xl font-bold">{stats.totalScanned}</p>
+                  <p className="text-lg sm:text-2xl font-bold">{getTotalPackages()}</p>
                 </div>
                 <Package className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />
               </div>
@@ -556,7 +561,7 @@ export default function ShipmentDetailPage() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-4 sm:space-x-8 px-4 sm:px-6 overflow-x-auto scrollbar-hide" aria-label="Tabs">
               {[
-                { key: 'all', label: 'Todos', count: stats?.totalScanned || 0 },
+                { key: 'all', label: 'Todos', count: getTotalPackages() },
                 { key: 'OK', label: 'OK', count: stats?.ok || 0 },
                 { key: 'FALTANTES', label: 'Faltantes', count: stats?.faltantes || 0 },
                 { key: 'SOBRANTE', label: 'Sobrantes', count: stats?.sobrante || 0 },
@@ -692,7 +697,7 @@ export default function ShipmentDetailPage() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {dateFilteredItems.length > 10 && (
           <div className="mt-6 flex items-center justify-between">
             <div className="text-sm text-gray-700">
               Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, dateFilteredItems.length)} de {dateFilteredItems.length} resultados
