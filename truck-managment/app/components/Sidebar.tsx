@@ -112,7 +112,8 @@ export default function Sidebar() {
       icon: LayoutDashboard,
       subItems: [
         { name: 'Vista General', href: '/dashboard' },
-        { name: 'Reportes', href: '/reports', icon: BarChart3 }
+        { name: 'Reportes', href: '/reports', icon: BarChart3 },
+        ...(session?.user?.role === 'admin' ? [{ name: 'Monitoreo VMS', href: '/vms-monitoring' }] : [])
       ]
     },
     { name: 'Proveedores', href: '/providers', icon: Building2 },
