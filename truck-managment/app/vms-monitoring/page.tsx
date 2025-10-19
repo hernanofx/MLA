@@ -63,11 +63,11 @@ export default function VMSMonitoringPage() {
     }
   }
 
-  if (!session || session.user.role !== 'admin') {
+  if (!session || (session.user.role !== 'admin' && session.user.role !== 'user')) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-12">
-          <div className="text-red-600">Acceso denegado. Solo administradores pueden ver esta página.</div>
+          <div className="text-red-600">Acceso denegado. Solo administradores y usuarios regulares pueden ver esta página.</div>
         </div>
       </AppLayout>
     )

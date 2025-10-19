@@ -112,11 +112,18 @@ export default function Sidebar() {
       icon: LayoutDashboard,
       subItems: [
         { name: 'Vista General', href: '/dashboard' },
-        { name: 'Reportes', href: '/reports', icon: BarChart3 },
-        ...(session?.user?.role === 'admin' ? [{ name: 'Monitoreo VMS', href: '/vms-monitoring' }] : [])
+        { name: 'Reportes', href: '/reports', icon: BarChart3 }
       ]
     },
-    { name: 'Proveedores', href: '/providers', icon: Building2 },
+    {
+      name: 'VMS',
+      href: '#',
+      icon: Truck,
+      subItems: [
+        { name: 'Proveedores', href: '/providers', icon: Building2 },
+        { name: 'Monitoreo VMS', href: '/vms-monitoring', icon: BarChart3 }
+      ]
+    },
     {
       name: 'Logística',
       href: '#',
