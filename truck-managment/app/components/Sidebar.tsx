@@ -1,28 +1,10 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { signOut, useSession } from "next-auth/react"
-import { useState, useEffect } from "react"
-import {
-  Truck,
-  ClipboardList,
-  BarChart3,
-  LogOut,
-  Shield,
-  Menu,
-  X,
-  Package,
-  User,
-  ChevronRight,
-  Building2,
-  Warehouse,
-  LayoutDashboard,
-  Bell,
-  HelpCircle,
-  MapPin,
-  BookOpen,
-} from "lucide-react"
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { signOut, useSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import { Home, Users, Truck, ClipboardList, BarChart3, LogOut, Shield, Menu, X, Package, User, ChevronUp, ChevronDown, Building2, Warehouse, LayoutDashboard, Bell, HelpCircle, MapPin, BookOpen } from 'lucide-react'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -33,29 +15,33 @@ export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false)
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({})
+  const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false)
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent("sidebarToggle", { detail: { isCollapsed } }))
+    // Emit event when collapsed state changes
+    window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { isCollapsed } }))
 
+    // Fetch unread notifications count
     const fetchUnreadCount = async () => {
       try {
-        const response = await fetch("/api/notifications")
+        const response = await fetch('/api/notifications')
         if (response.ok) {
           const data = await response.json()
           setUnreadCount(data.unreadCount || 0)
         }
       } catch (error) {
-        console.error("Error fetching notifications:", error)
+        console.error('Error fetching notifications:', error)
       }
     }
 
     if (session) {
       fetchUnreadCount()
+      // Poll every 30 seconds
       const interval = setInterval(fetchUnreadCount, 30000)
       return () => clearInterval(interval)
     }
 
+    // Cleanup timeout on unmount
     return () => {
       if (hoverTimeout) {
         clearTimeout(hoverTimeout)
@@ -64,41 +50,47 @@ export default function Sidebar() {
   }, [isCollapsed, hoverTimeout, session])
 
   const toggleSidebar = () => {
+    // Cancelar cualquier timeout pendiente
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
+
+    // Resetear estado de hover cuando se hace toggle manual
     setIsHovered(false)
     setIsCollapsed(!isCollapsed)
   }
 
   const handleMouseEnter = () => {
+    // Cancelar cualquier timeout pendiente
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
 
+    // Solo expandir si está colapsada y no es mobile
     if (isCollapsed && window.innerWidth >= 768) {
       const timeout = setTimeout(() => {
         setIsHovered(true)
         setIsCollapsed(false)
-      }, 300)
+      }, 300) // 300ms delay para abrir
       setHoverTimeout(timeout)
     }
   }
 
   const handleMouseLeave = () => {
+    // Cancelar cualquier timeout pendiente
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
 
+    // Solo colapsar si fue expandida por hover
     if (isHovered && window.innerWidth >= 768) {
       const timeout = setTimeout(() => {
         setIsHovered(false)
         setIsCollapsed(true)
-        setExpandedMenus({})
-      }, 500)
+      }, 500) // 500ms delay para cerrar (más tiempo para dar oportunidad de mover el mouse)
       setHoverTimeout(timeout)
     }
   }
@@ -109,131 +101,124 @@ export default function Sidebar() {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false)
-    setExpandedMenus({})
   }
 
-  const toggleSubMenu = (menuName: string) => {
-    setExpandedMenus((prev) => ({
-      ...prev,
-      [menuName]: !prev[menuName],
-    }))
-  }
+  const baseNavigation = session?.user?.role === 'vms' ? [
+    { name: 'VMS', href: '/vms', icon: Truck },
+  ] : [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+      subItems: [
+        { name: 'Vista General', href: '/dashboard' },
+        { name: 'Reportes', href: '/reports', icon: BarChart3 }
+      ]
+    },
+    { name: 'Proveedores', href: '/providers', icon: Building2 },
+    {
+      name: 'Logística',
+      href: '#',
+      icon: Truck,
+      subItems: [
+        { name: 'Camiones', href: '/trucks', icon: Truck },
+        { name: 'Entradas/Salidas', href: '/entries', icon: ClipboardList },
+        { name: 'Cargas/Descargas', href: '/loads', icon: Package }
+      ]
+    },
+    { name: 'Stock', href: '/stocks', icon: Warehouse },
+    { name: 'Mapas', href: '/maps', icon: MapPin },
+    { name: 'Notificaciones', href: '/notifications', icon: Bell },
+    { name: 'Procesos', href: '/wiki', icon: BookOpen },
+    {
+      name: 'Ayuda',
+      href: '/help',
+      icon: HelpCircle,
+      subItems: [
+        { name: 'Centro de Ayuda', href: '/help' },
+        { name: 'FAQ', href: '/help/faq' }
+      ]
+    },
+  ]
 
-  const baseNavigation =
-    session?.user?.role === "vms"
-      ? [{ name: "VMS", href: "/vms", icon: Truck }]
-      : [
-          {
-            name: "Dashboard",
-            href: "/dashboard",
-            icon: LayoutDashboard,
-            subItems: [
-              { name: "Vista General", href: "/dashboard" },
-              { name: "Reportes", href: "/reports", icon: BarChart3 },
-            ],
-          },
-          { name: "Proveedores", href: "/providers", icon: Building2 },
-          {
-            name: "Logística",
-            href: "#",
-            icon: Truck,
-            subItems: [
-              { name: "Camiones", href: "/trucks", icon: Truck },
-              { name: "Entradas/Salidas", href: "/entries", icon: ClipboardList },
-              { name: "Cargas/Descargas", href: "/loads", icon: Package },
-            ],
-          },
-          { name: "Stock", href: "/stocks", icon: Warehouse },
-          { name: "Mapas", href: "/maps", icon: MapPin },
-          { name: "Procesos", href: "/wiki", icon: BookOpen },
-          {
-            name: "Ayuda",
-            href: "/help",
-            icon: HelpCircle,
-            subItems: [
-              { name: "Centro de Ayuda", href: "/help" },
-              { name: "FAQ", href: "/help/faq" },
-            ],
-          },
-        ]
-
+  // Navigation is the same for all users - users access is in the dropdown menu
   const navigation = baseNavigation
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-neutral-200/60">
-        <div className="flex items-center justify-between px-4 h-16">
+      {/* <CHANGE> Enhanced mobile header with premium styling */}
+      {/* Mobile menu button */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3.5">
           <button
             onClick={toggleMobileMenu}
-            className="p-2 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/80 active:scale-95 transition-all duration-200"
-            aria-label="Toggle menu"
+            className="p-2 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 transition-all duration-200"
           >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <span className="sr-only">Abrir menú principal</span>
+            {isMobileMenuOpen ? (
+              <X className="block h-5 w-5" />
+            ) : (
+              <Menu className="block h-5 w-5" />
+            )}
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/images/logo.png" alt="Logo" className="h-7 w-7 object-contain" />
-            <div className="text-[10px] font-semibold text-neutral-900 leading-tight tracking-tight">
-              Network
-              <br />
-              Management
-              <br />
-              Argentina
-            </div>
+          <div className="flex items-center gap-2.5">
+            <img src="/images/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
+            <h1 className="text-xs font-semibold text-neutral-900 tracking-tight leading-tight">
+              Network<br />Management<br />Argentina
+            </h1>
           </div>
-          <div className="w-9" />
+          <div className="w-9"></div> {/* Spacer for centering */}
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* <CHANGE> Premium mobile menu with enhanced animations and styling */}
+      {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex">
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={closeMobileMenu} aria-hidden="true" />
-          <div className="relative flex w-full max-w-xs flex-col bg-white shadow-2xl">
-            <div className="flex flex-col flex-grow overflow-y-auto">
-              <div className="flex items-center px-5 h-16 border-b border-neutral-100">
-                <img src="/images/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
-                <div className="ml-3 text-xs font-semibold text-neutral-900 leading-tight tracking-tight">
-                  Network
-                  <br />
-                  Management
-                  <br />
-                  Argentina
-                </div>
+          <div 
+            className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm transition-opacity duration-300" 
+            onClick={closeMobileMenu} 
+          />
+          <div className="relative flex w-full max-w-xs flex-col bg-white shadow-2xl animate-in slide-in-from-left duration-300">
+            <div className="flex flex-col flex-grow pt-6 pb-4 overflow-y-auto">
+              {/* <CHANGE> Enhanced mobile header */}
+              <div className="flex items-center flex-shrink-0 px-5 mb-8">
+                <img src="/images/logo.png" alt="Logo" className="h-9 w-9 object-contain" />
+                <h1 className="ml-3 text-sm font-semibold text-neutral-900 tracking-tight leading-tight">
+                  Network<br />Management<br />Argentina
+                </h1>
               </div>
-
-              <nav className="flex-1 px-3 py-4 space-y-0.5">
+              
+              {/* <CHANGE> Premium navigation items with refined styling */}
+              <nav className="flex-1 px-3 space-y-1">
                 {navigation.map((item) => {
-                  const isActive =
-                    pathname === item.href || (item.subItems && item.subItems.some((sub) => pathname === sub.href))
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                   const hasSubItems = item.subItems && item.subItems.length > 0
-                  const isExpanded = expandedMenus[item.name]
+                  const isHelpActive = hasSubItems && pathname.startsWith('/help')
 
                   if (hasSubItems) {
                     return (
                       <div key={item.name}>
                         <button
-                          onClick={() => toggleSubMenu(item.name)}
-                          className={`group flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
-                            isActive
-                              ? "bg-neutral-900 text-white"
-                              : "text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100"
+                          onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
+                          className={`group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 w-full ${
+                            isHelpActive
+                              ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
+                              : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
                           }`}
                         >
-                          <item.icon className="flex-shrink-0 h-[18px] w-[18px]" />
-                          <span className="ml-3 flex-1 text-left">{item.name}</span>
-                          <ChevronRight
-                            className={`flex-shrink-0 h-4 w-4 transition-transform duration-200 ${
-                              isExpanded ? "rotate-90" : ""
-                            }`}
-                          />
+                          <item.icon className={`flex-shrink-0 h-5 w-5 mr-3.5 transition-transform duration-200 ${
+                            isHelpActive ? 'scale-110' : 'group-hover:scale-105'
+                          }`} />
+                          <span className="flex-1 text-left">{item.name}</span>
+                          {isHelpMenuOpen ? (
+                            <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                          ) : (
+                            <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                          )}
                         </button>
-                        <div
-                          className={`overflow-hidden transition-all duration-200 ${
-                            isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                          }`}
-                        >
-                          <div className="ml-9 mt-1 space-y-0.5 border-l-2 border-neutral-100 pl-3">
+                        {isHelpMenuOpen && (
+                          <div className="ml-8 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
                             {item.subItems.map((subItem) => {
                               const isSubActive = pathname === subItem.href
                               return (
@@ -241,10 +226,10 @@ export default function Sidebar() {
                                   key={subItem.name}
                                   href={subItem.href}
                                   onClick={closeMobileMenu}
-                                  className={`block px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                                     isSubActive
-                                      ? "bg-neutral-800 text-white"
-                                      : "text-neutral-600 hover:bg-neutral-50 active:bg-neutral-100"
+                                      ? 'bg-neutral-800 text-white'
+                                      : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
                                   }`}
                                 >
                                   {subItem.name}
@@ -252,7 +237,7 @@ export default function Sidebar() {
                               )
                             })}
                           </div>
-                        </div>
+                        )}
                       </div>
                     )
                   }
@@ -262,69 +247,61 @@ export default function Sidebar() {
                       key={item.name}
                       href={item.href}
                       onClick={closeMobileMenu}
-                      className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      className={`group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 ${
                         isActive
-                          ? "bg-neutral-900 text-white"
-                          : "text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100"
+                          ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
+                          : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
                       }`}
                     >
-                      <item.icon className="flex-shrink-0 h-[18px] w-[18px]" />
-                      <span className="ml-3">{item.name}</span>
+                      <item.icon className={`flex-shrink-0 h-5 w-5 mr-3.5 transition-transform duration-200 ${
+                        isActive ? 'scale-110' : 'group-hover:scale-105'
+                      }`} />
+                      {item.name}
                     </Link>
                   )
                 })}
               </nav>
             </div>
-
-            <div className="flex-shrink-0 border-t border-neutral-100 p-3 bg-neutral-50/50">
-              <div className="relative">
+            
+            {/* <CHANGE> Enhanced user menu section */}
+            <div className="flex-shrink-0 border-t border-neutral-200/80 p-3 bg-neutral-50/50">
+              <div className="relative w-full">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="group flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-lg text-neutral-700 hover:bg-white active:bg-neutral-50 transition-all duration-200"
+                  className="group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm w-full transition-all duration-200"
                 >
-                  <div className="flex-shrink-0 h-7 w-7 rounded-full bg-neutral-900 flex items-center justify-center">
-                    <User className="h-3.5 w-3.5 text-white" />
+                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-neutral-700 flex items-center justify-center mr-3 shadow-sm">
+                    <User className="h-4 w-4 text-white" />
                   </div>
-                  <span className="ml-3 flex-1 text-left truncate text-xs">
-                    {session?.user?.name || session?.user?.email}
-                  </span>
-                  <ChevronRight
-                    className={`flex-shrink-0 h-4 w-4 transition-transform duration-200 ${
-                      isUserMenuOpen ? "rotate-90" : ""
-                    }`}
-                  />
+                  <span className="flex-1 text-left truncate text-sm">{session?.user?.name || session?.user?.email}</span>
+                  {isUserMenuOpen ? (
+                    <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                  ) : (
+                    <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                  )}
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-neutral-200 rounded-lg shadow-xl overflow-hidden">
-                    {session?.user?.role !== "vms" && (
-                      <Link
-                        href="/notifications"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100"
-                      >
-                        <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                        Notificaciones
-                        {unreadCount > 0 && (
-                          <span className="ml-auto bg-red-500 text-white text-[10px] font-semibold rounded-full h-5 min-w-[20px] px-1.5 flex items-center justify-center">
-                            {unreadCount > 99 ? "99+" : unreadCount}
-                          </span>
-                        )}
-                      </Link>
-                    )}
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
                     <Link
                       href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100"
+                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
                     >
                       <User className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
                       Perfil
                     </Link>
-                    {session?.user?.role === "admin" && (
+                    {session?.user?.role === 'admin' && (
                       <Link
                         href="/users"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100"
+                        onClick={() => {
+                          setIsUserMenuOpen(false)
+                          if (isHovered) {
+                            setIsHovered(false)
+                            setIsCollapsed(true)
+                          }
+                        }}
+                        className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
                       >
                         <Shield className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
                         Usuarios
@@ -332,10 +309,14 @@ export default function Sidebar() {
                     )}
                     <button
                       onClick={() => {
-                        signOut({ callbackUrl: "/login" })
+                        signOut({ callbackUrl: '/login' })
                         setIsUserMenuOpen(false)
+                        if (isHovered) {
+                          setIsHovered(false)
+                          setIsCollapsed(true)
+                        }
                       }}
-                      className="flex items-center px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left"
+                      className="flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-colors duration-150"
                     >
                       <LogOut className="flex-shrink-0 h-4 w-4 mr-3" />
                       Cerrar Sesión
@@ -348,97 +329,101 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* Desktop Sidebar */}
+      {/* <CHANGE> Premium desktop sidebar with refined styling and animations */}
+      {/* Desktop sidebar */}
       <div
-        className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ease-out ${
-          isCollapsed ? "md:w-16" : "md:w-64"
-        }`}
+        className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ease-in-out ${isCollapsed ? 'md:w-[72px]' : 'md:w-64'}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-neutral-200/60">
-          <div className="flex-1 flex flex-col overflow-y-auto">
-            <div className="flex items-center h-16 px-3 border-b border-neutral-100">
+        <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-neutral-200/80 shadow-sm">
+          <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
+            {/* <CHANGE> Enhanced header with premium toggle button */}
+            <div className="flex items-center flex-shrink-0 px-4 mb-2">
               <button
                 onClick={toggleSidebar}
-                className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 active:scale-95 transition-all duration-200"
-                aria-label="Toggle sidebar"
+                className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 transition-all duration-200 group"
               >
-                <div className="text-sm font-medium">{isCollapsed ? "→" : "←"}</div>
+                <span className="sr-only">Toggle sidebar</span>
+                <div className="text-base font-medium">
+                  {isCollapsed ? '→' : '←'}
+                </div>
               </button>
               {!isCollapsed && (
-                <div className="ml-2 flex items-center gap-2 min-w-0">
-                  <img src="/images/logo.png" alt="Logo" className="h-6 w-6 object-contain flex-shrink-0" />
-                  <div className="text-[10px] font-semibold text-neutral-900 leading-tight tracking-tight">
-                    Network
-                    <br />
-                    Management
-                    <br />
-                    Argentina
-                  </div>
+                <div className="ml-3 flex items-center gap-2.5 animate-in fade-in slide-in-from-left-2 duration-200">
+                  <img src="/images/logo.png" alt="Logo" className="h-7 w-7 object-contain" />
+                  <h1 className="text-sm font-semibold text-neutral-900 tracking-tight leading-tight">
+                    Network<br />Management<br />Argentina
+                  </h1>
                 </div>
               )}
-              {isCollapsed && <img src="/images/logo.png" alt="Logo" className="ml-1 h-6 w-6 object-contain" />}
+              {isCollapsed && (
+                <div className="ml-2">
+                  <img src="/images/logo.png" alt="Logo" className="h-7 w-7 object-contain" />
+                </div>
+              )}
             </div>
-
-            <nav className="flex-1 px-2 py-4 space-y-0.5">
+            
+            {/* <CHANGE> Premium navigation with refined active states and hover effects */}
+            <nav className="mt-6 flex-1 px-3 space-y-1">
               {navigation.map((item) => {
-                const isActive =
-                  pathname === item.href || (item.subItems && item.subItems.some((sub) => pathname === sub.href))
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                 const hasSubItems = item.subItems && item.subItems.length > 0
-                const isExpanded = expandedMenus[item.name]
+                const isHelpActive = hasSubItems && pathname.startsWith('/help')
 
                 if (hasSubItems) {
                   return (
                     <div key={item.name}>
                       <button
-                        onClick={() => !isCollapsed && toggleSubMenu(item.name)}
-                        className={`group flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                          isActive ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-50"
-                        } ${isCollapsed ? "justify-center" : ""}`}
+                        onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
+                        className={`group flex items-center px-3 py-2.5 text-[15px] font-medium rounded-xl transition-all duration-200 relative w-full ${
+                          isHelpActive
+                            ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
+                            : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                        } ${isCollapsed ? 'justify-center' : ''}`}
                         title={isCollapsed ? item.name : undefined}
                       >
-                        <item.icon className="flex-shrink-0 h-[18px] w-[18px]" />
+                        <item.icon className={`flex-shrink-0 h-5 w-5 transition-transform duration-200 ${
+                          isHelpActive ? 'scale-110' : 'group-hover:scale-105'
+                        }`} />
                         {!isCollapsed && (
                           <>
-                            <span className="ml-3 flex-1 text-left">{item.name}</span>
-                            <ChevronRight
-                              className={`flex-shrink-0 h-4 w-4 transition-transform duration-200 ${
-                                isExpanded ? "rotate-90" : ""
-                              }`}
-                            />
+                            <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200 flex-1 text-left">{item.name}</span>
+                            {isHelpMenuOpen ? (
+                              <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                            ) : (
+                              <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                            )}
                           </>
                         )}
+                        {isHelpActive && !isCollapsed && (
+                          <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-200" />
+                        )}
                       </button>
-                      {!isCollapsed && (
-                        <div
-                          className={`overflow-hidden transition-all duration-200 ${
-                            isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                          }`}
-                        >
-                          <div className="ml-9 mt-1 space-y-0.5 border-l-2 border-neutral-100 pl-3">
-                            {item.subItems.map((subItem) => {
-                              const isSubActive = pathname === subItem.href
-                              return (
-                                <Link
-                                  key={subItem.name}
-                                  href={subItem.href}
-                                  onClick={() => {
-                                    if (isHovered) {
-                                      setIsHovered(false)
-                                      setIsCollapsed(true)
-                                      setExpandedMenus({})
-                                    }
-                                  }}
-                                  className={`block px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${
-                                    isSubActive ? "bg-neutral-800 text-white" : "text-neutral-600 hover:bg-neutral-50"
-                                  }`}
-                                >
-                                  {subItem.name}
-                                </Link>
-                              )
-                            })}
-                          </div>
+                      {!isCollapsed && isHelpMenuOpen && (
+                        <div className="ml-6 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
+                          {item.subItems.map((subItem) => {
+                            const isSubActive = pathname === subItem.href
+                            return (
+                              <Link
+                                key={subItem.name}
+                                href={subItem.href}
+                                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                  isSubActive
+                                    ? 'bg-neutral-800 text-white'
+                                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                                }`}
+                                onClick={() => {
+                                  if (isHovered) {
+                                    setIsHovered(false)
+                                    setIsCollapsed(true)
+                                  }
+                                }}
+                              >
+                                {subItem.name}
+                              </Link>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
@@ -449,9 +434,11 @@ export default function Sidebar() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                      isActive ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-50"
-                    } ${isCollapsed ? "justify-center" : ""}`}
+                    className={`group flex items-center px-3 py-2.5 text-[15px] font-medium rounded-xl transition-all duration-200 relative ${
+                      isActive
+                        ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
+                        : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
+                    } ${isCollapsed ? 'justify-center' : ''}`}
                     title={isCollapsed ? item.name : undefined}
                     onClick={() => {
                       if (isHovered) {
@@ -460,95 +447,53 @@ export default function Sidebar() {
                       }
                     }}
                   >
-                    <item.icon className="flex-shrink-0 h-[18px] w-[18px]" />
-                    {!isCollapsed && <span className="ml-3">{item.name}</span>}
+                    <div className="relative">
+                      <item.icon className={`flex-shrink-0 h-5 w-5 transition-transform duration-200 ${
+                        isActive ? 'scale-110' : 'group-hover:scale-105'
+                      }`} />
+                      {item.name === 'Notificaciones' && unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-semibold">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    {!isCollapsed && (
+                      <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200">{item.name}</span>
+                    )}
+                    {isActive && !isCollapsed && (
+                      <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-200" />
+                    )}
                   </Link>
                 )
               })}
             </nav>
           </div>
-
-          <div className="flex-shrink-0 border-t border-neutral-100 p-2 bg-neutral-50/30">
-            {session?.user?.role !== "vms" && (
-              <div className={`mb-1 ${isCollapsed ? "flex justify-center" : ""}`}>
-                <Link
-                  href="/notifications"
-                  className={`group relative flex items-center px-3 py-2 text-sm font-medium rounded-lg text-neutral-700 hover:bg-white transition-all duration-200 ${
-                    isCollapsed ? "w-auto justify-center" : "w-full"
-                  }`}
-                  title={isCollapsed ? "Notificaciones" : undefined}
-                  onClick={() => {
-                    if (isHovered) {
-                      setIsHovered(false)
-                      setIsCollapsed(true)
-                    }
-                  }}
-                >
-                  <div className="relative">
-                    <Bell className="flex-shrink-0 h-[18px] w-[18px]" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-semibold rounded-full h-3.5 min-w-[14px] px-1 flex items-center justify-center">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </div>
-                  {!isCollapsed && <span className="ml-3">Notificaciones</span>}
-                </Link>
-              </div>
-            )}
-
-            <div className="relative">
+          
+          {/* <CHANGE> Premium user section with enhanced dropdown */}
+          <div className="flex-shrink-0 border-t border-neutral-200/80 p-3 bg-neutral-50/50">
+            <div className="relative w-full">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg text-neutral-700 hover:bg-white transition-all duration-200 ${
-                  isCollapsed ? "w-auto justify-center" : "w-full"
-                }`}
-                title={isCollapsed ? "Menú de usuario" : undefined}
+                className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl text-neutral-700 hover:bg-white hover:text-neutral-900 hover:shadow-sm transition-all duration-200 ${isCollapsed ? 'w-auto justify-center' : 'w-full'}`}
+                title={isCollapsed ? 'Menú de usuario' : undefined}
               >
-                <div className="flex-shrink-0 h-[18px] w-[18px] rounded-full bg-neutral-900 flex items-center justify-center">
-                  <User className="h-2.5 w-2.5 text-white" />
+                <div className="flex-shrink-0 h-5 w-5 rounded-full bg-neutral-700 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200">
+                  <User className="h-3 w-3 text-white" />
                 </div>
                 {!isCollapsed && (
                   <>
-                    <span className="ml-3 flex-1 text-left truncate text-xs">
-                      {session?.user?.name || session?.user?.email}
-                    </span>
-                    <ChevronRight
-                      className={`flex-shrink-0 h-4 w-4 transition-transform duration-200 ${
-                        isUserMenuOpen ? "rotate-90" : ""
-                      }`}
-                    />
+                    <span className="ml-3 flex-1 text-left truncate text-[13px]">{session?.user?.name || session?.user?.email}</span>
+                    {isUserMenuOpen ? (
+                      <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                    ) : (
+                      <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
+                    )}
                   </>
                 )}
               </button>
 
               {isUserMenuOpen && (
-                <div
-                  className={`absolute ${
-                    isCollapsed ? "left-full ml-2 top-0" : "bottom-full left-0 right-0 mb-2"
-                  } bg-white border border-neutral-200 rounded-lg shadow-xl z-[9999] min-w-[200px] overflow-hidden`}
-                >
-                  {session?.user?.role !== "vms" && (
-                    <Link
-                      href="/notifications"
-                      onClick={() => {
-                        setIsUserMenuOpen(false)
-                        if (isHovered) {
-                          setIsHovered(false)
-                          setIsCollapsed(true)
-                        }
-                      }}
-                      className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100"
-                    >
-                      <Bell className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
-                      Notificaciones
-                      {unreadCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-[10px] font-semibold rounded-full h-5 min-w-[20px] px-1.5 flex items-center justify-center">
-                          {unreadCount > 99 ? "99+" : unreadCount}
-                        </span>
-                      )}
-                    </Link>
-                  )}
+                <div className={`absolute ${isCollapsed ? 'left-full ml-2 top-0' : 'bottom-full left-0 right-0 mb-2'} bg-white border border-neutral-200 rounded-xl shadow-xl z-[9999] min-w-[200px] overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
                   <Link
                     href="/profile"
                     onClick={() => {
@@ -558,22 +503,16 @@ export default function Sidebar() {
                         setIsCollapsed(true)
                       }
                     }}
-                    className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100"
+                    className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
                   >
                     <User className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
                     Perfil
                   </Link>
-                  {session?.user?.role === "admin" && (
+                  {session?.user?.role === 'admin' && (
                     <Link
                       href="/users"
-                      onClick={() => {
-                        setIsUserMenuOpen(false)
-                        if (isHovered) {
-                          setIsHovered(false)
-                          setIsCollapsed(true)
-                        }
-                      }}
-                      className="flex items-center px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 border-b border-neutral-100 transition-colors duration-150"
                     >
                       <Shield className="flex-shrink-0 h-4 w-4 mr-3 text-neutral-500" />
                       Usuarios
@@ -581,14 +520,14 @@ export default function Sidebar() {
                   )}
                   <button
                     onClick={() => {
-                      signOut({ callbackUrl: "/login" })
+                      signOut({ callbackUrl: '/login' })
                       setIsUserMenuOpen(false)
                       if (isHovered) {
                         setIsHovered(false)
                         setIsCollapsed(true)
                       }
                     }}
-                    className="flex items-center px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left"
+                    className="flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-colors duration-150"
                   >
                     <LogOut className="flex-shrink-0 h-4 w-4 mr-3" />
                     Cerrar Sesión
