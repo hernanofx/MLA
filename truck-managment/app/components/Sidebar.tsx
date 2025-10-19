@@ -118,7 +118,7 @@ export default function Sidebar() {
     {
       name: 'VMS',
       href: '#',
-      icon: Truck,
+      icon: Building2,
       subItems: [
         { name: 'Proveedores', href: '/providers', icon: Building2 },
         { name: 'Monitoreo VMS', href: '/vms-monitoring', icon: BarChart3 }
