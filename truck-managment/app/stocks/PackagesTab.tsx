@@ -802,6 +802,24 @@ export default function PackagesTab() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              const params = new URLSearchParams();
+              if (filters.providerId) params.append('providerId', filters.providerId);
+              if (filters.warehouseId) params.append('warehouseId', filters.warehouseId);
+              if (filters.locationId) params.append('locationId', filters.locationId);
+              if (filters.status) params.append('status', filters.status);
+              if (filters.trackingNumber) params.append('trackingNumber', filters.trackingNumber);
+              if (filters.trackingNumbers) params.append('trackingNumbers', filters.trackingNumbers);
+              const url = `/api/packages/export?${params}`
+              window.open(url, '_blank')
+            }}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            title="Exportar a Excel"
+          >
+            <FileSpreadsheet className="h-4 w-4 mr-1" />
+            Excel
+          </button>
           {totalPages > 1 && (
             <div className="flex flex-wrap justify-center sm:justify-end gap-1">
               <button

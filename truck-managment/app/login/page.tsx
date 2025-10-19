@@ -58,7 +58,7 @@ export default function LoginPage() {
                 Network Management Argentina
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                Sistema de Gestión de Viajes
+                Sistema de Gestión
               </p>
             </div>
 

@@ -116,7 +116,7 @@ export default function WikiPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <BookOpen className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-3xl font-bold text-gray-900">Wiki</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Wiki MLA</h1>
             </div>
             {session?.user?.role === 'admin' && (
               <div className="flex gap-3">
@@ -138,7 +138,7 @@ export default function WikiPage() {
             )}
           </div>
           <p className="mt-2 text-lg text-gray-600">
-            Base de conocimientos del sistema de gestión de camiones.
+            Base de conocimientos. Procedimientos
           </p>
         </div>
 
