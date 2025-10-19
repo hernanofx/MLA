@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching shipments:', error)
     return NextResponse.json(
-      { error: error.message || 'Error al obtener los envíos' },
+      { error: error.message || 'Error al obtener los lotes' },
       { status: 500 }
     )
   }

@@ -105,6 +105,7 @@ export async function GET(
         codigoPedido: true,
         chofer: true,
         razonSocial: true,
+        fechaReparto: true,
         scannedPackage: true
       }
     })
@@ -141,7 +142,8 @@ export async function GET(
         return {
           trackingNumber: pr.codigoPedido,
           chofer: preRuteo?.chofer || '',
-          razonSocial: preRuteo?.razonSocial || ''
+          razonSocial: preRuteo?.razonSocial || '',
+          fechaReparto: preRuteo?.fechaReparto
         }
       })
 

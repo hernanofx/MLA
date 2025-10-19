@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/app/components/AppLayout'
-import { Package, TrendingUp, CheckCircle2, AlertTriangle, Plus, FileText } from 'lucide-react'
+import { Package, TrendingUp, CheckCircle2, AlertTriangle, Plus, FileText, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatArgentinaDate } from '@/lib/date-utils'
 
@@ -70,6 +70,29 @@ export default function VMSDashboard() {
       console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteShipment = async (shipmentId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este lote? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/vms/shipments/${shipmentId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al eliminar el lote')
+      }
+
+      // Refresh the data
+      fetchDashboardData()
+      alert('Lote eliminado exitosamente')
+    } catch (error: any) {
+      alert(error.message || 'Error al eliminar el lote')
     }
   }
 
@@ -143,7 +166,7 @@ export default function VMSDashboard() {
           </div>
         ) : stats ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            {/* Total Envíos */}
+            {/* Total Lotes */}
             <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -151,7 +174,7 @@ export default function VMSDashboard() {
                 </div>
                 <div className="ml-4">
                   <dt className="text-sm font-medium text-gray-600">
-                    Total Envíos
+                    Total Lotes
                   </dt>
                   <dd className="text-2xl font-bold text-gray-900">
                     {stats.totalShipments}
@@ -217,7 +240,7 @@ export default function VMSDashboard() {
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">
-                Envíos Recientes
+                Lotes Recientes
               </h2>
               <button
                 onClick={() => router.push('/vms/shipments')}
@@ -243,10 +266,10 @@ export default function VMSDashboard() {
               <div className="text-center py-12">
                 <FileText className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  No hay envíos
+                  No hay lotes
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Comienza creando tu primer envío para empezar a trabajar.
+                  Comienza creando tu primer lote para empezar a trabajar.
                 </p>
                 <div className="mt-6">
                   <button
@@ -254,7 +277,7 @@ export default function VMSDashboard() {
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                   >
                     <Plus className="h-5 w-5 mr-2" />
-                    Nuevo Envío
+                    Nuevo Lote
                   </button>
                 </div>
               </div>
@@ -269,7 +292,7 @@ export default function VMSDashboard() {
                       }`} />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          Envío del {formatArgentinaDate(shipment.shipmentDate)}
+                          Lote del {formatArgentinaDate(shipment.shipmentDate)}
                         </p>
                         <p className="text-sm text-gray-600">
                           {shipment.status === 'PRE_ALERTA' && 'Esperando Pre-Ruteo'}
@@ -293,6 +316,15 @@ export default function VMSDashboard() {
                       >
                         Ver →
                       </button>
+                      {shipment.status !== 'FINALIZADO' && (
+                        <button
+                          onClick={() => handleDeleteShipment(shipment.id)}
+                          className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+                          title="Eliminar lote"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

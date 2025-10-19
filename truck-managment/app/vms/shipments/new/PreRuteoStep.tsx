@@ -15,6 +15,17 @@ export default function PreRuteoStep({ shipmentId, onComplete }: PreRuteoStepPro
   const [preview, setPreview] = useState<any[]>([])
   const [errors, setErrors] = useState<string[]>([])
 
+  const parseExcelDateToString = (excelDate: any): string => {
+    if (typeof excelDate === 'number') {
+      const date = new Date((excelDate - 25569) * 86400 * 1000)
+      return date.toLocaleDateString('es-ES')
+    }
+    if (excelDate instanceof Date) {
+      return excelDate.toLocaleDateString('es-ES')
+    }
+    return String(excelDate)
+  }
+
   const requiredColumns = [
     'Código cliente', 'Razón social', 'Domicilio', 'Tipo de Cliente',
     'Fecha de Reparto', 'Codigo Reparto', 'Máquina', 'Chofer',
@@ -70,7 +81,11 @@ export default function PreRuteoStep({ shipmentId, onComplete }: PreRuteoStepPro
       const rows = jsonData.slice(1, 6).map((row: any) => {
         const obj: any = {}
         headers.forEach((header, index) => {
-          obj[header] = row[index]
+          let value = row[index]
+          if ((header === 'Fecha de Reparto' || header === 'Fecha De Pedido' || header === 'Arribo' || header === 'Partida') && typeof value === 'number') {
+            value = parseExcelDateToString(value)
+          }
+          obj[header] = value
         })
         return obj
       })

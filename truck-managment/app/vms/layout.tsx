@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth'
 
 export const metadata = {
   title: 'VMS - Sistema de Gestión de Proveedores',
-  description: 'Sistema de verificación y gestión de envíos para proveedores',
+  description: 'Sistema de verificación y gestión de lotes para proveedores',
 }
 
 export default async function VMSLayout({

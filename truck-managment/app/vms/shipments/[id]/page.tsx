@@ -40,7 +40,7 @@ interface ReportStats {
 interface ScannedPackage {
   id: string
   trackingNumber: string
-  status: 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO'
+  status: 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO' | 'FALTANTES'
   scannedAt: string
   preAlerta?: {
     buyer: string
@@ -50,6 +50,7 @@ interface ScannedPackage {
   preRuteo?: {
     chofer: string
     razonSocial: string
+    fechaReparto?: Date
   }
 }
 
@@ -71,6 +72,7 @@ interface PrevioItem {
   trackingNumber: string
   chofer: string
   razonSocial: string
+  fechaReparto?: Date
 }
 
 interface SobranteItem {
@@ -246,7 +248,8 @@ export default function ShipmentDetailPage() {
           scannedAt: new Date().toISOString(),
           preRuteo: {
             chofer: item.chofer,
-            razonSocial: item.razonSocial
+            razonSocial: item.razonSocial,
+            fechaReparto: item.fechaReparto
           }
         })) : []
       
@@ -265,7 +268,58 @@ export default function ShipmentDetailPage() {
       
       case 'all':
       default:
-        return stats.details
+        // Combine all categories for "Todos"
+        const allItems: ScannedPackage[] = []
+        
+        // Add scanned packages (OK and SOBRANTE)
+        allItems.push(...stats.details)
+        
+        // Add faltantes
+        if (stats.faltantesData) {
+          allItems.push(...stats.faltantesData.map(item => ({
+            id: `faltante-${item.trackingNumber}`,
+            trackingNumber: item.trackingNumber,
+            status: 'FALTANTES' as const,
+            scannedAt: new Date().toISOString(),
+            preAlerta: {
+              buyer: item.buyer,
+              city: item.city,
+              weight: item.weight
+            }
+          })))
+        }
+        
+        // Add fuera cobertura
+        if (stats.fueraCoberturaData) {
+          allItems.push(...stats.fueraCoberturaData.map(item => ({
+            id: `fuera-${item.trackingNumber}`,
+            trackingNumber: item.trackingNumber,
+            status: 'FUERA_COBERTURA' as const,
+            scannedAt: new Date().toISOString(),
+            preAlerta: {
+              buyer: item.buyer,
+              city: item.city,
+              weight: item.weight
+            }
+          })))
+        }
+        
+        // Add previo
+        if (stats.previoData) {
+          allItems.push(...stats.previoData.map(item => ({
+            id: `previo-${item.trackingNumber}`,
+            trackingNumber: item.trackingNumber,
+            status: 'PREVIO' as const,
+            scannedAt: new Date().toISOString(),
+            preRuteo: {
+              chofer: item.chofer,
+              razonSocial: item.razonSocial,
+              fechaReparto: item.fechaReparto
+            }
+          })))
+        }
+        
+        return allItems
     }
   }
 
@@ -349,7 +403,7 @@ export default function ShipmentDetailPage() {
                         onClick={() => router.push('/vms/shipments')}
                         className="text-gray-400 hover:text-gray-500 transition-colors"
                       >
-                        Envíos
+                        Lotes
                       </button>
                     </li>
                     <li>
@@ -362,7 +416,7 @@ export default function ShipmentDetailPage() {
                     </li>
                   </ol>
                 </nav>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Reporte de Envío</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Reporte de Lote</h1>
                 {shipmentInfo && (
                   <p className="mt-1 text-sm text-gray-600">
                     Fecha: <span className="font-medium">{formatArgentinaDateLong(shipmentInfo.shipmentDate)}</span>
@@ -383,7 +437,7 @@ export default function ShipmentDetailPage() {
                   className="inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Volver a Envíos</span>
+                  <span className="hidden sm:inline">Volver a Lotes</span>
                   <span className="sm:hidden">Volver</span>
                 </button>
                 <button
@@ -534,11 +588,11 @@ export default function ShipmentDetailPage() {
                   📦
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {filter === 'all' ? 'No hay paquetes en este envío' : `No hay paquetes en la categoría "${filter}"`}
+                  {filter === 'all' ? 'No hay paquetes en este lote' : `No hay paquetes en la categoría "${filter}"`}
                 </h3>
                 <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
                   {filter === 'all' 
-                    ? 'Este envío aún no tiene paquetes escaneados o la información no está disponible.'
+                    ? 'Este lote aún no tiene paquetes escaneados o la información no está disponible.'
                     : `No se encontraron paquetes que coincidan con el filtro seleccionado. Intenta cambiar la categoría o limpiar los filtros.`}
                 </p>
                 {filter !== 'all' && (
@@ -608,12 +662,24 @@ export default function ShipmentDetailPage() {
                       <div className="text-right flex-shrink-0">
                         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                           {(() => {
-                            if (!pkg.scannedAt) return 'Sin fecha'
-                            try {
-                              return formatArgentinaDateTime(pkg.scannedAt)
-                            } catch {
-                              return 'Error'
+                            // Try to get fechaReparto from preRuteo first
+                            const pkgWithPreRuteo = pkg as any
+                            if (pkgWithPreRuteo.preRuteo?.fechaReparto) {
+                              try {
+                                return formatArgentinaDateTime(pkgWithPreRuteo.preRuteo.fechaReparto)
+                              } catch {
+                                return 'Error'
+                              }
                             }
+                            // Fallback to scannedAt
+                            if (pkg.scannedAt) {
+                              try {
+                                return formatArgentinaDateTime(pkg.scannedAt)
+                              } catch {
+                                return 'Error'
+                              }
+                            }
+                            return 'Sin fecha'
                           })()}
                         </span>
                       </div>

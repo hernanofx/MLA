@@ -113,9 +113,9 @@ export default function NewShipmentWizard() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Volver
           </button>
-          <h1 className="text-3xl font-semibold text-gray-900">Nuevo Envío</h1>
+          <h1 className="text-3xl font-semibold text-gray-900">Nuevo Lote</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Sigue los pasos para registrar y verificar un nuevo envío
+            Sigue los pasos para registrar y verificar un nuevo lote
           </p>
         </div>
 

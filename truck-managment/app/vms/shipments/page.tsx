@@ -166,11 +166,11 @@ export default function ShipmentsListPage() {
                       </svg>
                     </li>
                     <li>
-                      <span className="text-gray-500">Todos los Envíos</span>
+                      <span className="text-gray-500">Todos los Lotes</span>
                     </li>
                   </ol>
                 </nav>
-                <h1 className="mt-2 text-2xl font-bold text-gray-900">Gestión de Envíos</h1>
+                <h1 className="mt-2 text-2xl font-bold text-gray-900">Gestión de Lotes</h1>
                 {providerInfo && (
                   <p className="mt-1 text-sm text-gray-600">
                     Proveedor: <span className="font-medium">{providerInfo.name}</span>
@@ -194,7 +194,7 @@ export default function ShipmentsListPage() {
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Envío
+                  Nuevo Lote
                 </button>
               </div>
             </div>
@@ -221,7 +221,7 @@ export default function ShipmentsListPage() {
               <div>
                 <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700">
                   <Filter className="h-4 w-4 inline mr-1" />
-                  Estado del envío
+                  Estado del lote
                 </label>
                 <select
                   id="status-filter"
@@ -257,7 +257,7 @@ export default function ShipmentsListPage() {
             <div className="flex items-center">
               <Package className="h-8 w-8 mr-3 opacity-90" />
               <div>
-                <p className="text-sm font-medium opacity-90">Total Envíos</p>
+                <p className="text-sm font-medium opacity-90">Total Lotes</p>
                 <p className="text-2xl font-bold">{shipments.length}</p>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function ShipmentsListPage() {
           {loading ? (
             <div className="p-12 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="mt-4 text-sm text-gray-500">Cargando envíos...</p>
+              <p className="mt-4 text-sm text-gray-500">Cargando lotes...</p>
             </div>
           ) : filteredShipments.length === 0 ? (
             <div className="p-12 text-center">
@@ -308,12 +308,12 @@ export default function ShipmentsListPage() {
                 📦
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {shipments.length === 0 ? 'No hay envíos registrados' : 'No se encontraron envíos con los filtros aplicados'}
+                {shipments.length === 0 ? 'No hay lotes registrados' : 'No se encontraron lotes con los filtros aplicados'}
               </h3>
               <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
                 {shipments.length === 0 
-                  ? 'Comienza creando tu primer envío para gestionar tus paquetes de manera eficiente.'
-                  : 'Intenta cambiar los filtros de búsqueda o limpiar todos los filtros para ver todos los envíos.'}
+                  ? 'Comienza creando tu primer lote para gestionar tus paquetes de manera eficiente.'
+                  : 'Intenta cambiar los filtros de búsqueda o limpiar todos los filtros para ver todos los lotes.'}
               </p>
               {shipments.length === 0 && (
                 <button
@@ -321,7 +321,7 @@ export default function ShipmentsListPage() {
                   className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 transform hover:scale-105"
                 >
                   <Plus className="h-5 w-5 mr-2" />
-                  Crear Primer Envío
+                  Crear Primer Lote
                 </button>
               )}
               {shipments.length > 0 && (
@@ -342,7 +342,7 @@ export default function ShipmentsListPage() {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Fecha de Envío
+                      Fecha de Lote
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Estado
@@ -437,7 +437,7 @@ export default function ShipmentsListPage() {
         {/* Results count */}
         {filteredShipments.length > 0 && (
           <div className="mt-4 text-sm text-gray-500 text-center">
-            Mostrando {filteredShipments.length} de {shipments.length} envíos
+            Mostrando {filteredShipments.length} de {shipments.length} lotes
           </div>
         )}
       </div>
