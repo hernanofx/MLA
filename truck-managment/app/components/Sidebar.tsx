@@ -15,7 +15,7 @@ export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false)
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
-  const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false)
+  const [openMenus, setOpenMenus] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
     // Emit event when collapsed state changes
@@ -128,8 +128,8 @@ export default function Sidebar() {
     },
     { name: 'Stock', href: '/stocks', icon: Warehouse },
     { name: 'Mapas', href: '/maps', icon: MapPin },
-    { name: 'Notificaciones', href: '/notifications', icon: Bell },
     { name: 'Procesos', href: '/wiki', icon: BookOpen },
+    { name: 'Notificaciones', href: '/notifications', icon: Bell },
     {
       name: 'Ayuda',
       href: '/help',
@@ -194,30 +194,30 @@ export default function Sidebar() {
                 {navigation.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                   const hasSubItems = item.subItems && item.subItems.length > 0
-                  const isHelpActive = hasSubItems && pathname.startsWith('/help')
+                  const isMenuActive = hasSubItems && openMenus[item.name]
 
                   if (hasSubItems) {
                     return (
                       <div key={item.name}>
                         <button
-                          onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
+                          onClick={() => setOpenMenus(prev => ({...prev, [item.name]: !prev[item.name]}))}
                           className={`group flex items-center px-3.5 py-3 text-[15px] font-medium rounded-xl transition-all duration-200 w-full ${
-                            isHelpActive
+                            isMenuActive
                               ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
                               : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
                           }`}
                         >
                           <item.icon className={`flex-shrink-0 h-5 w-5 mr-3.5 transition-transform duration-200 ${
-                            isHelpActive ? 'scale-110' : 'group-hover:scale-105'
+                            isMenuActive ? 'scale-110' : 'group-hover:scale-105'
                           }`} />
                           <span className="flex-1 text-left">{item.name}</span>
-                          {isHelpMenuOpen ? (
+                          {openMenus[item.name] ? (
                             <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
                           ) : (
                             <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
                           )}
                         </button>
-                        {isHelpMenuOpen && (
+                        {openMenus[item.name] && (
                           <div className="ml-8 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
                             {item.subItems.map((subItem) => {
                               const isSubActive = pathname === subItem.href
@@ -369,38 +369,38 @@ export default function Sidebar() {
               {navigation.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                 const hasSubItems = item.subItems && item.subItems.length > 0
-                const isHelpActive = hasSubItems && pathname.startsWith('/help')
+                const isMenuActive = hasSubItems && openMenus[item.name]
 
                 if (hasSubItems) {
                   return (
                     <div key={item.name}>
                       <button
-                        onClick={() => setIsHelpMenuOpen(!isHelpMenuOpen)}
+                        onClick={() => setOpenMenus(prev => ({...prev, [item.name]: !prev[item.name]}))}
                         className={`group flex items-center px-3 py-2.5 text-[15px] font-medium rounded-xl transition-all duration-200 relative w-full ${
-                          isHelpActive
+                          isMenuActive
                             ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20'
                             : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
                         } ${isCollapsed ? 'justify-center' : ''}`}
                         title={isCollapsed ? item.name : undefined}
                       >
                         <item.icon className={`flex-shrink-0 h-5 w-5 transition-transform duration-200 ${
-                          isHelpActive ? 'scale-110' : 'group-hover:scale-105'
+                          isMenuActive ? 'scale-110' : 'group-hover:scale-105'
                         }`} />
                         {!isCollapsed && (
                           <>
                             <span className="ml-3 animate-in fade-in slide-in-from-left-1 duration-200 flex-1 text-left">{item.name}</span>
-                            {isHelpMenuOpen ? (
+                            {openMenus[item.name] ? (
                               <ChevronUp className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
                             ) : (
                               <ChevronDown className="flex-shrink-0 h-4 w-4 ml-2 text-neutral-500" />
                             )}
                           </>
                         )}
-                        {isHelpActive && !isCollapsed && (
+                        {isMenuActive && !isCollapsed && (
                           <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-200" />
                         )}
                       </button>
-                      {!isCollapsed && isHelpMenuOpen && (
+                      {!isCollapsed && openMenus[item.name] && (
                         <div className="ml-6 mt-1 space-y-1 animate-in fade-in slide-in-from-left-1 duration-200">
                           {item.subItems.map((subItem) => {
                             const isSubActive = pathname === subItem.href
