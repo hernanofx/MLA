@@ -21,6 +21,7 @@ enum NotificationType {
   NEW_PRE_ALERTA
   NEW_PRE_RUTEO
   VERIFICATION_COMPLETED
+  NEW_SHIPMENT
 }
 
 enum ShipmentStatus {
@@ -241,6 +242,7 @@ model UserNotificationPreferences {
   editZone     Boolean @default(true)
   assignProvider Boolean @default(true)
   unassignProvider Boolean @default(true)
+  newShipment  Boolean @default(true)
   user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

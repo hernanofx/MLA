@@ -24,6 +24,7 @@ interface Preferences {
   editZone: boolean
   assignProvider: boolean
   unassignProvider: boolean
+  newShipment: boolean
 }
 
 export default function NotificationsPage() {
@@ -41,7 +42,8 @@ export default function NotificationsPage() {
     newZone: true,
     editZone: true,
     assignProvider: true,
-    unassignProvider: true
+    unassignProvider: true,
+    newShipment: true
   })
   const [activeTab, setActiveTab] = useState<'notifications' | 'preferences'>('notifications')
   const [error, setError] = useState('')
@@ -146,6 +148,8 @@ export default function NotificationsPage() {
         return '➕'
       case 'UNASSIGN_PROVIDER':
         return '➖'
+      case 'NEW_SHIPMENT':
+        return '📦'
       default:
         return '🔔'
     }
@@ -343,6 +347,19 @@ export default function NotificationsPage() {
                         />
                         <label htmlFor="newLoad" className="ml-3 text-sm font-medium text-gray-700">
                           📦 Nuevas Cargas
+                        </label>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          id="newShipment"
+                          type="checkbox"
+                          checked={preferences.newShipment}
+                          onChange={(e) => setPreferences({ ...preferences, newShipment: e.target.checked })}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="newShipment" className="ml-3 text-sm font-medium text-gray-700">
+                          📦 Nuevos Lotes VMS
                         </label>
                       </div>
 

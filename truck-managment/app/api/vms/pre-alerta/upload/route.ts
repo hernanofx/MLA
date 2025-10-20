@@ -46,6 +46,27 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Create notifications for subscribed users
+    const subscribedUsers = await prisma.userNotificationPreferences.findMany({
+      where: { newShipment: true },
+      select: { userId: true }
+    })
+
+    if (subscribedUsers.length > 0) {
+      const provider = await prisma.provider.findUnique({
+        where: { id: providerId },
+        select: { name: true }
+      })
+      
+      await prisma.notification.createMany({
+        data: subscribedUsers.map(user => ({
+          type: 'NEW_SHIPMENT',
+          message: `Nuevo lote cargado por ${provider?.name}: ${preAlertas.length} paquetes`,
+          userId: user.userId
+        }))
+      })
+    }
+
     // Insertar las pre-alertas
     const preAlertas = jsonData.map((row: any) => ({
       shipmentId: shipment.id,
