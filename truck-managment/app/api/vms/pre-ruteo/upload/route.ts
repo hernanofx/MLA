@@ -66,44 +66,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Insertar los pre-ruteos
-    const preRuteos = jsonData.map((row: any, index: number) => {
-      // Buscar la columna de ruta con diferentes nombres posibles
-      const ruta = row['Ruta'] || row['ruta'] || row['RUTA'] || 
-                   row['Codigo Reparto'] || row['Codigo de Reparto'] || 
-                   row['CodigoReparto'] || null
-      
-      // Log del primer registro para debug
-      if (index === 0) {
-        console.log('Primer registro - Ruta encontrada:', ruta)
-        console.log('Valores de búsqueda:', {
-          'Ruta': row['Ruta'],
-          'ruta': row['ruta'],
-          'RUTA': row['RUTA'],
-          'Codigo Reparto': row['Codigo Reparto']
-        })
-      }
-
-      return {
-        shipmentId: shipmentId,
-        codigoCliente: String(row['Código cliente'] || ''),
-        razonSocial: String(row['Razón social'] || ''),
-        domicilio: String(row['Domicilio'] || ''),
-        tipoCliente: String(row['Tipo de Cliente'] || ''),
-        fechaReparto: parseExcelDate(row['Fecha de Reparto']),
-        codigoReparto: String(row['Codigo Reparto'] || ''),
-        ruta: ruta ? String(ruta) : null,
-        maquina: row['Máquina'] ? String(row['Máquina']) : null,
-        chofer: row['Chofer'] ? String(row['Chofer']) : null,
-        fechaPedido: parseExcelDate(row['Fecha De Pedido']),
-        codigoPedido: String(row['Codigo de Pedido'] || ''),
-        ventanaHoraria: row['Ventana Horaria'] ? String(row['Ventana Horaria']) : null,
-        arribo: row['Arribo'] ? parseExcelDate(row['Arribo']) : null,
-        partida: row['Partida'] ? parseExcelDate(row['Partida']) : null,
-        pesoKg: row['Peso (kg)'] ? parseFloat(row['Peso (kg)']) : null,
-        volumenM3: row['Volumen (m3)'] ? parseFloat(row['Volumen (m3)']) : null,
-        dinero: row['Dinero ($)'] ? parseFloat(row['Dinero ($)']) : null,
-      }
-    })
+    const preRuteos = jsonData.map((row: any) => ({
+      shipmentId: shipmentId,
+      codigoCliente: String(row['Código cliente'] || ''),
+      razonSocial: String(row['Razón social'] || ''),
+      domicilio: String(row['Domicilio'] || ''),
+      tipoCliente: String(row['Tipo de Cliente'] || ''),
+      fechaReparto: parseExcelDate(row['Fecha de Reparto']),
+      codigoReparto: String(row['Codigo Reparto'] || ''),
+      ruta: row['Máquina'] ? String(row['Máquina']) : null, // Columna G = Máquina
+      maquina: row['Máquina'] ? String(row['Máquina']) : null,
+      chofer: row['Chofer'] ? String(row['Chofer']) : null,
+      fechaPedido: parseExcelDate(row['Fecha De Pedido']),
+      codigoPedido: String(row['Codigo de Pedido'] || ''),
+      ventanaHoraria: row['Ventana Horaria'] ? String(row['Ventana Horaria']) : null,
+      arribo: row['Arribo'] ? parseExcelDate(row['Arribo']) : null,
+      partida: row['Partida'] ? parseExcelDate(row['Partida']) : null,
+      pesoKg: row['Peso (kg)'] ? parseFloat(row['Peso (kg)']) : null,
+      volumenM3: row['Volumen (m3)'] ? parseFloat(row['Volumen (m3)']) : null,
+      dinero: row['Dinero ($)'] ? parseFloat(row['Dinero ($)']) : null,
+    }))
 
     await prisma.preRuteo.createMany({
       data: preRuteos,
