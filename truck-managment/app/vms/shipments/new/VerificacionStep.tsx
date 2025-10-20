@@ -21,6 +21,8 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
   const [scannedPackages, setScannedPackages] = useState<ScanResult[]>([])
   const [currentScan, setCurrentScan] = useState('')
   const [error, setError] = useState('')
+  const [lastScanResult, setLastScanResult] = useState<ScanResult | null>(null)
+  const [showFlash, setShowFlash] = useState(false)
   const [stats, setStats] = useState({
     ok: 0,
     sobrante: 0,
@@ -73,6 +75,14 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
         ...prev,
         [result.status.toLowerCase()]: prev[result.status.toLowerCase() as keyof typeof prev] + 1,
       }))
+
+      // Mostrar mensaje flash grande
+      setLastScanResult(scanResult)
+      setShowFlash(true)
+      setTimeout(() => {
+        setShowFlash(false)
+        setLastScanResult(null)
+      }, 1000)
 
       // Limpiar input
       setCurrentScan('')
@@ -157,6 +167,41 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
 
   return (
     <div className="space-y-6">
+      {/* Flash Message Full Screen */}
+      {showFlash && lastScanResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-fade-in">
+          <div className={`text-center transform scale-110 animate-bounce-once ${
+            lastScanResult.status === 'OK' ? 'text-green-400' :
+            lastScanResult.status === 'SOBRANTE' ? 'text-red-400' :
+            lastScanResult.status === 'FUERA_COBERTURA' ? 'text-yellow-400' :
+            'text-blue-400'
+          }`}>
+            <div className="mb-8">
+              {lastScanResult.status === 'OK' && <CheckCircle2 className="h-48 w-48 mx-auto" />}
+              {lastScanResult.status === 'SOBRANTE' && <XCircle className="h-48 w-48 mx-auto" />}
+              {lastScanResult.status === 'FUERA_COBERTURA' && <AlertTriangle className="h-48 w-48 mx-auto" />}
+              {lastScanResult.status === 'PREVIO' && <Clock className="h-48 w-48 mx-auto" />}
+            </div>
+            <h1 className="text-8xl font-bold mb-6">
+              {lastScanResult.status}
+            </h1>
+            <p className="text-4xl font-semibold mb-4">
+              {lastScanResult.trackingNumber}
+            </p>
+            {lastScanResult.details && (
+              <div className="text-2xl text-white space-y-2 mt-8">
+                {lastScanResult.details.preAlerta && (
+                  <p>📦 {lastScanResult.details.preAlerta.buyer}</p>
+                )}
+                {lastScanResult.details.preRuteo && (
+                  <p>🚚 Ruta: {lastScanResult.details.preRuteo.ruta || 'N/A'} - {lastScanResult.details.preRuteo.chofer}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Scanner Input */}
       <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-6 border-2 border-indigo-200">
         <div className="flex items-center justify-between mb-4">
@@ -288,7 +333,10 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
                             )}
                             {scan.details.preRuteo && (
                               <div className="text-xs text-gray-600">
-                                <span className="font-medium text-blue-700">🚚 Pre-Ruteo:</span> {scan.details.preRuteo.chofer} • {scan.details.preRuteo.razonSocial}
+                                <span className="font-medium text-blue-700">🚚 Pre-Ruteo:</span> 
+                                {scan.details.preRuteo.ruta && <span className="font-semibold"> Ruta {scan.details.preRuteo.ruta}</span>}
+                                {scan.details.preRuteo.chofer && <span> • {scan.details.preRuteo.chofer}</span>}
+                                {scan.details.preRuteo.razonSocial && <span> • {scan.details.preRuteo.razonSocial}</span>}
                               </div>
                             )}
                           </div>

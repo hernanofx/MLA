@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
       tipoCliente: String(row['Tipo de Cliente'] || ''),
       fechaReparto: parseExcelDate(row['Fecha de Reparto']),
       codigoReparto: String(row['Codigo Reparto'] || ''),
+      ruta: row['Ruta'] ? String(row['Ruta']) : null,
       maquina: row['Máquina'] ? String(row['Máquina']) : null,
       chofer: row['Chofer'] ? String(row['Chofer']) : null,
       fechaPedido: parseExcelDate(row['Fecha De Pedido']),

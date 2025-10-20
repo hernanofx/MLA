@@ -325,23 +325,32 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
           Volver al Inicio
         </button>
 
-        <button
-          onClick={handleDownloadExcel}
-          disabled={downloading}
-          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {downloading ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Generando...
-            </>
-          ) : (
-            <>
-              <Download className="h-5 w-5 mr-2" />
-              Descargar Reporte Excel
-            </>
-          )}
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => router.push('/vms/shipments/new')}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            Nuevo Lote
+          </button>
+          
+          <button
+            onClick={handleDownloadExcel}
+            disabled={downloading}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {downloading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Generando...
+              </>
+            ) : (
+              <>
+                <Download className="h-5 w-5 mr-2" />
+                Descargar Reporte Excel
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Info Box */}

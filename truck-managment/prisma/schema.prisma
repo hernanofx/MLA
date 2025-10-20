@@ -373,6 +373,7 @@ model PreRuteo {
   pesoKg            Float?
   volumenM3         Float?
   dinero            Float?
+  ruta              String?
   
   verified          Boolean  @default(false)
   verificationStatus VerificationStatus?

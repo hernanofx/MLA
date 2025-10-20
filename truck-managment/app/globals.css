@@ -13,3 +13,29 @@
   color: #111827 !important;
 }
 
+/* Animaciones para el flash de escaneo */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-once {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-in;
+}
+
+.animate-bounce-once {
+  animation: bounce-once 0.5s ease-in-out;
+}
