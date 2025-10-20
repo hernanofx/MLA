@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
           weight: preAlerta.weight,
         } : null,
         preRuteo: preRuteo ? {
+          ruta: preRuteo.ruta,
           razonSocial: preRuteo.razonSocial,
           domicilio: preRuteo.domicilio,
           chofer: preRuteo.chofer,
