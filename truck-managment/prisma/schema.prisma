@@ -233,16 +233,16 @@ model Notification {
 
 model UserNotificationPreferences {
   userId       String @id
-  newProvider  Boolean @default(true)
-  newTruck     Boolean @default(true)
-  newEntry     Boolean @default(true)
-  newLoad      Boolean @default(true)
-  newInventory Boolean @default(true)
-  newZone      Boolean @default(true)
-  editZone     Boolean @default(true)
-  assignProvider Boolean @default(true)
-  unassignProvider Boolean @default(true)
-  newShipment  Boolean @default(true)
+  newProvider  Boolean @default(false)
+  newTruck     Boolean @default(false)
+  newEntry     Boolean @default(false)
+  newLoad      Boolean @default(false)
+  newInventory Boolean @default(false)
+  newZone      Boolean @default(false)
+  editZone     Boolean @default(false)
+  assignProvider Boolean @default(false)
+  unassignProvider Boolean @default(false)
+  newShipment  Boolean @default(false)
   user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

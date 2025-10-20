@@ -34,16 +34,16 @@ export default function NotificationsPage() {
   const [saving, setSaving] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [preferences, setPreferences] = useState<Preferences>({
-    newProvider: true,
-    newTruck: true,
-    newEntry: true,
-    newLoad: true,
-    newInventory: true,
-    newZone: true,
-    editZone: true,
-    assignProvider: true,
-    unassignProvider: true,
-    newShipment: true
+    newProvider: false,
+    newTruck: false,
+    newEntry: false,
+    newLoad: false,
+    newInventory: false,
+    newZone: false,
+    editZone: false,
+    assignProvider: false,
+    unassignProvider: false,
+    newShipment: false
   })
   const [activeTab, setActiveTab] = useState<'notifications' | 'preferences'>('notifications')
   const [error, setError] = useState('')
