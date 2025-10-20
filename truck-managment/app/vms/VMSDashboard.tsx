@@ -141,11 +141,20 @@ export default function VMSDashboard() {
                   Bienvenido, {session?.user?.name || 'Usuario'}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Estado del sistema</p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <p className="text-lg font-semibold text-gray-900">Operativo</p>
+              <div className="flex flex-col items-end space-y-3">
+                <button
+                  onClick={() => router.push('/vms/shipments/new')}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Nuevo Lote
+                </button>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Estado del sistema</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <p className="text-lg font-semibold text-gray-900">Operativo</p>
+                  </div>
                 </div>
               </div>
             </div>
