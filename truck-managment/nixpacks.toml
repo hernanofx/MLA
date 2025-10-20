@@ -5,7 +5,7 @@ nixPkgs = ["...", "nodejs", "yarn"]
 cmds = ["yarn install"]
 
 [phases.build]
-cmds = ["yarn build"]
+cmds = ["yarn build", "yarn migrate || true"]
 
 [start]
 cmd = "yarn start"
