@@ -38,6 +38,21 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
     }
   }, [scanning])
 
+  // Event listener para ocultar el fullscreen con cualquier tecla
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showFlash) {
+        setShowFlash(false)
+        setLastScanResult(null)
+      }
+    }
+
+    if (showFlash) {
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showFlash])
+
   const handleScan = async (trackingNumber: string) => {
     if (!trackingNumber.trim()) return
 
@@ -76,13 +91,10 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
         [result.status.toLowerCase()]: prev[result.status.toLowerCase() as keyof typeof prev] + 1,
       }))
 
-      // Mostrar mensaje flash grande
+      // Mostrar mensaje flash grande persistente
       setLastScanResult(scanResult)
       setShowFlash(true)
-      setTimeout(() => {
-        setShowFlash(false)
-        setLastScanResult(null)
-      }, 1000)
+      // No ocultar automáticamente - permanece hasta siguiente escaneo o tecla presionada
 
       // Limpiar input
       setCurrentScan('')
