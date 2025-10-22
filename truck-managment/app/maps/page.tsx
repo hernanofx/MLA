@@ -415,27 +415,6 @@ export default function MapsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {/* Export Section */}
-            <div className="mt-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Exportar Datos</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => handleExport('withProviders', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors">
-                  <Download className="h-3 w-3" /> Con Prov. (XLSX)
-                </button>
-                <button onClick={() => handleExport('withoutProviders', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition-colors">
-                  <Download className="h-3 w-3" /> Sin Prov. (XLSX)
-                </button>
-                <button onClick={() => handleExport('postalCodes', 'csv')} className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
-                  <Download className="h-3 w-3" /> Cód. Post. (CSV)
-                </button>
-                <button onClick={() => handleExport('polygons', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 transition-colors">
-                  <Download className="h-3 w-3" /> Polígonos (XLSX)
-                </button>
-                <button onClick={() => handleExport('all', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 transition-colors col-span-2">
-                  <Download className="h-3 w-3" /> Todo (XLSX)
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Zones List */}
@@ -575,8 +554,47 @@ export default function MapsPage() {
         </div>
 
         {/* Map Panel */}
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} onDrawCreated={handleDrawCreated} providers={providers} />
+          
+          {/* Floating Export Buttons */}
+          <div className="absolute bottom-4 right-4 z-10 bg-white rounded-lg shadow-lg border border-gray-200 p-3">
+            <div className="flex flex-col gap-2">
+              <div className="text-xs font-semibold text-gray-700 mb-1 text-center">Exportar</div>
+              <button 
+                onClick={() => handleExport('withProviders', 'xlsx')} 
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                title="Zonas con proveedores asignados"
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Con Prov.</span>
+              </button>
+              <button 
+                onClick={() => handleExport('withoutProviders', 'xlsx')} 
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                title="Zonas sin proveedores asignados"
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Sin Prov.</span>
+              </button>
+              <button 
+                onClick={() => handleExport('postalCodes', 'xlsx')} 
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                title="Códigos postales con zonas asociadas"
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Cód. Post.</span>
+              </button>
+              <button 
+                onClick={() => handleExport('all', 'xlsx')} 
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                title="Todas las zonas"
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Todo</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

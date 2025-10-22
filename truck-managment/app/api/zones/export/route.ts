@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const filter = searchParams.get('filter') || 'all'; // 'all', 'withProviders', 'withoutProviders', 'postalCodes', 'polygons'
+    const filter = searchParams.get('filter') || 'all'; // 'all', 'withProviders', 'withoutProviders', 'postalCodes'
     const format = searchParams.get('format') || 'xlsx'; // 'xlsx' or 'csv'
 
     let whereClause: any = {};
@@ -20,8 +20,6 @@ export async function GET(request: NextRequest) {
       whereClause.coverages = { some: {} };
     } else if (filter === 'withoutProviders') {
       whereClause.coverages = { none: {} };
-    } else if (filter === 'polygons') {
-      whereClause.geometry = { not: null };
     }
 
     const zones = await prisma.zone.findMany({
