@@ -385,217 +385,178 @@ export default function MapsPage() {
   }
 
   return (
-
     <AppLayout>
       <div className="h-screen flex bg-gray-50">
         {/* Left Panel - Zones and Details */}
         <div className="w-96 bg-white shadow-lg flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200 sticky top-0 z-10 bg-white">
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-xl font-bold text-gray-900">Mapa de Cobertura</h1>
-              {isAdmin && (
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label="Nueva Zona"
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              )}
+            {/* Header */}
+            <div className="p-4 border-b border-gray-200 sticky top-0 z-10 bg-white">
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="text-xl font-bold text-gray-900">Mapa de Cobertura</h1>
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="Nueva Zona"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Buscar zona por localidad, código postal o provincia..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Buscar zona por localidad, código postal o provincia..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
 
-          {/* Zones List */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">
-                Zonas ({filteredZones.length})
-              </h2>
-              <div className="space-y-2">
-                {filteredZones.map((zone) => {
-                  const status = getZoneStatus(zone);
-                  return (
-                    <div
-                      key={zone.id}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        selectedZone?.id === zone.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
-                      }`}
-                      onClick={() => handleZoneSelect(zone)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                            <span className="font-medium text-gray-900 truncate">
-                              {zone.locality}
-                            </span>
-                            {status === 'covered' ? (
-                              <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                            )}
+            {/* Zones List */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                  Zonas ({filteredZones.length})
+                </h2>
+                <div className="space-y-2">
+                  {filteredZones.map((zone) => {
+                    const status = getZoneStatus(zone);
+                    return (
+                      <div
+                        key={zone.id}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                          selectedZone?.id === zone.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                        onClick={() => handleZoneSelect(zone)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-900 truncate">
+                                {zone.locality}
+                              </span>
+                              {status === 'covered' ? (
+                                <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 truncate">
+                              {zone.postalCodes.slice(0, 3).join(', ')}
+                              {zone.postalCodes.length > 3 && ` +${zone.postalCodes.length - 3} más`}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {zone.province} • {zone.department}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-600 truncate">
-                            {zone.postalCodes.slice(0, 3).join(', ')}
-                            {zone.postalCodes.length > 3 && ` +${zone.postalCodes.length - 3} más`}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {zone.province} • {zone.department}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Zone Details Panel */}
-          {selectedZone && (
-            <div className="border-t border-gray-200 bg-gray-50 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-base font-semibold text-gray-900 truncate">
-                  {selectedZone.locality}
-                </h3>
-                {/* ActionMenu de tres puntitos */}
-                <div>
-                  {isAdmin && (
-                    <ActionMenu
-                      onEdit={() => openEditModal(selectedZone)}
-                      onDelete={() => deleteZone(selectedZone.id)}
-                      editLabel="Editar"
-                      deleteLabel="Eliminar"
-                    />
-                  )}
+            {/* Zone Details Panel */}
+            {selectedZone && (
+              <div className="border-t border-gray-200 bg-gray-50 p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-base font-semibold text-gray-900 truncate">
+                    {selectedZone.locality}
+                  </h3>
+                  {/* ActionMenu de tres puntitos */}
+                  <div>
+                    {isAdmin && (
+                      <ActionMenu
+                        onEdit={() => openEditModal(selectedZone)}
+                        onDelete={() => deleteZone(selectedZone.id)}
+                        editLabel="Editar"
+                        deleteLabel="Eliminar"
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Códigos Postales</span>
-                  <span className="text-gray-700">{selectedZone.postalCodes.join(', ')}</span>
-                </div>
-                <div>
-                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Ubicación</span>
-                  <span className="text-gray-700">{selectedZone.province}, {selectedZone.department}</span>
-                </div>
-                <div>
-                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Tipo</span>
-                  <span className="text-gray-700">{selectedZone.type}</span>
-                </div>
-                <div>
-                  <span className="block text-xs font-medium text-gray-500 flex items-center gap-2 mb-0.5">
-                    <Users className="h-4 w-4" /> Proveedores Asignados ({selectedZone.coverages.length})
-                  </span>
-                  {selectedZone.coverages.length > 0 ? (
-                    <div className="mt-1 space-y-1">
-                      {selectedZone.coverages.map((coverage) => (
-                        <div key={coverage.provider.id} className="flex items-center justify-between p-1 bg-white rounded border border-gray-100">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-xs text-gray-900">{coverage.provider.name}</span>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="block text-xs font-medium text-gray-500 mb-0.5">Códigos Postales</span>
+                    <span className="text-gray-700">{selectedZone.postalCodes.join(', ')}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-medium text-gray-500 mb-0.5">Ubicación</span>
+                    <span className="text-gray-700">{selectedZone.province}, {selectedZone.department}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-medium text-gray-500 mb-0.5">Tipo</span>
+                    <span className="text-gray-700">{selectedZone.type}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-medium text-gray-500 flex items-center gap-2 mb-0.5">
+                      <Users className="h-4 w-4" /> Proveedores Asignados ({selectedZone.coverages.length})
+                    </span>
+                    {selectedZone.coverages.length > 0 ? (
+                      <div className="mt-1 space-y-1">
+                        {selectedZone.coverages.map((coverage) => (
+                          <div key={coverage.provider.id} className="flex items-center justify-between p-1 bg-white rounded border border-gray-100">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span className="text-xs text-gray-900">{coverage.provider.name}</span>
+                            </div>
+                            <button
+                              onClick={() => removeProviderAssignment(coverage.id)}
+                              className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                              title="Remover asignación"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => removeProviderAssignment(coverage.id)}
-                            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
-                            title="Remover asignación"
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 mt-1">Sin proveedores asignados</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="block text-xs font-medium text-gray-500 mb-0.5">Asignar Nuevo Proveedor</span>
+                    <div className="mt-1 flex gap-2">
+                      <select
+                        className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value={selectedProviderId}
+                        onChange={(e) => setSelectedProviderId(e.target.value)}
+                      >
+                        <option value="">Seleccionar proveedor...</option>
+                        {providers.map((provider) => (
+                          <option key={provider.id} value={provider.id}>
+                            {provider.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={assignProvider}
+                        disabled={!selectedProviderId || assigning}
+                      >
+                        {assigning ? 'Asignando...' : 'Asignar'}
+                      </button>
                     </div>
-                  ) : (
-                    <span className="text-xs text-gray-400 mt-1">Sin proveedores asignados</span>
-                  )}
-                </div>
-                <div>
-                  <span className="block text-xs font-medium text-gray-500 mb-0.5">Asignar Nuevo Proveedor</span>
-                  <div className="mt-1 flex gap-2">
-                    <select
-                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      value={selectedProviderId}
-                      onChange={(e) => setSelectedProviderId(e.target.value)}
-                    >
-                      <option value="">Seleccionar proveedor...</option>
-                      {providers.map((provider) => (
-                        <option key={provider.id} value={provider.id}>
-                          {provider.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={assignProvider}
-                      disabled={!selectedProviderId || assigning}
-                    >
-                      {assigning ? 'Asignando...' : 'Asignar'}
-                    </button>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Map Panel */}
-        <div className="flex-1 relative">
-          <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} onDrawCreated={handleDrawCreated} providers={providers} />
-          
-          {/* Floating Export Buttons */}
-          <div className="absolute bottom-4 right-4 z-50">
-            <div className="flex flex-col gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2">
-              <div className="flex gap-1">
-                <button 
-                  onClick={() => handleExport('withProviders', 'xlsx')} 
-                  className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-200 shadow-sm hover:shadow-md"
-                  title="Zonas con proveedores asignados"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
-                <button 
-                  onClick={() => handleExport('withoutProviders', 'xlsx')} 
-                  className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all duration-200 shadow-sm hover:shadow-md"
-                  title="Zonas sin proveedores asignados"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="flex gap-1">
-                <button 
-                  onClick={() => handleExport('postalCodes', 'xlsx')} 
-                  className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all duration-200 shadow-sm hover:shadow-md"
-                  title="Códigos postales con zonas asociadas"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
-                <button 
-                  onClick={() => handleExport('all', 'xlsx')} 
-                  className="p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-all duration-200 shadow-sm hover:shadow-md"
-                  title="Todas las zonas"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+          {/* Map Panel */}
+          <div className="flex-1 relative">
+            <MapComponent zones={filteredZones} onZoneSelect={handleZoneSelect} selectedZone={selectedZone} onDrawCreated={handleDrawCreated} providers={providers} />
           </div>
         </div>
-      </div>
 
       {/* Create Zone Modal */}
       {showCreateModal && (
@@ -832,6 +793,44 @@ export default function MapsPage() {
           </div>
         </div>
       )}
+      
+      {/* Floating Export Buttons - With higher z-index */}
+      <div className="fixed bottom-4 right-4" style={{ zIndex: 10000 }}>
+        <div className="flex flex-col gap-1 bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-2">
+          <div className="flex gap-1">
+            <button 
+              onClick={() => handleExport('withProviders', 'xlsx')} 
+              className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Zonas con proveedores asignados"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+            <button 
+              onClick={() => handleExport('withoutProviders', 'xlsx')} 
+              className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Zonas sin proveedores asignados"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex gap-1">
+            <button 
+              onClick={() => handleExport('postalCodes', 'xlsx')} 
+              className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Códigos postales con zonas asociadas"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+            <button 
+              onClick={() => handleExport('all', 'xlsx')} 
+              className="p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Todas las zonas"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
     </AppLayout>
   );
 }
