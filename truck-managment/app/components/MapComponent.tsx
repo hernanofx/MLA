@@ -279,16 +279,24 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
       }
     });
 
-    // Auto zoom si hay zonas
+    // Auto zoom si hay zonas - con timeout para asegurar que el DOM esté listo
     if (zones.length > 0 && zonesLayer.getLayers().length > 0) {
-      try {
-        const bounds = zonesLayer.getBounds();
-        if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+      // Esperar a que Leaflet termine de inicializar completamente
+      setTimeout(() => {
+        try {
+          // Verificar que el mapa aún existe y está válido
+          if (!map || !map.getContainer()) return;
+          
+          const bounds = zonesLayer.getBounds();
+          if (bounds.isValid()) {
+            // Invalidar el tamaño del mapa primero para asegurar que las capas internas estén actualizadas
+            map.invalidateSize();
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+          }
+        } catch (error) {
+          console.warn('Error al ajustar bounds del mapa:', error);
         }
-      } catch (error) {
-        // Error silencioso
-      }
+      }, 100);
     }
   }, [zones, selectedZone, onZoneSelect, providers]);
 
@@ -298,26 +306,34 @@ export default function MapComponent({ zones, onZoneSelect, selectedZone, onDraw
     
     if (!map || !selectedZone || !selectedZone.geometry) return;
 
-    try {
-      if (selectedZone.geometry.type === 'MultiPoint' && selectedZone.geometry.coordinates.length < 3) {
-        // Zoom a punto único
-        const [lng, lat] = selectedZone.geometry.coordinates[0];
-        map.flyTo([lat, lng], 14, { duration: 1 });
-      } else {
-        // Zoom a polígono
-        const geoJsonLayer = L.geoJSON(selectedZone.geometry);
-        const bounds = geoJsonLayer.getBounds();
-        if (bounds.isValid()) {
-          map.flyToBounds(bounds, { 
-            padding: [100, 100],
-            maxZoom: 14,
-            duration: 1
-          });
+    // Timeout para asegurar que las transiciones anteriores hayan terminado
+    setTimeout(() => {
+      try {
+        // Verificar que el mapa aún existe
+        if (!map || !map.getContainer()) return;
+
+        if (selectedZone.geometry.type === 'MultiPoint' && selectedZone.geometry.coordinates.length < 3) {
+          // Zoom a punto único
+          const [lng, lat] = selectedZone.geometry.coordinates[0];
+          map.flyTo([lat, lng], 14, { duration: 1 });
+        } else {
+          // Zoom a polígono
+          const geoJsonLayer = L.geoJSON(selectedZone.geometry);
+          const bounds = geoJsonLayer.getBounds();
+          if (bounds.isValid()) {
+            // Invalidar tamaño antes de hacer flyToBounds
+            map.invalidateSize();
+            map.flyToBounds(bounds, { 
+              padding: [100, 100],
+              maxZoom: 14,
+              duration: 1
+            });
+          }
         }
+      } catch (error) {
+        console.warn('Error al hacer zoom a zona seleccionada:', error);
       }
-    } catch (error) {
-      // Error silencioso
-    }
+    }, 50);
   }, [selectedZone]);
 
   return (
