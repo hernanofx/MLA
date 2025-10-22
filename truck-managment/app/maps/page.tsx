@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import AppLayout from '../components/AppLayout';
 import ActionMenu from '../components/ActionMenu';
-import { Search, MapPin, Users, CheckCircle, XCircle, Plus, X, Edit2, Trash2 } from 'lucide-react';
+import { Search, MapPin, Users, CheckCircle, XCircle, Plus, X, Edit2, Trash2, Download } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 // Dynamically import the map component to avoid SSR issues
@@ -103,6 +103,23 @@ export default function MapsPage() {
     );
     setFilteredZones(filtered);
   }, [zones, searchTerm]);
+
+  const handleExport = async (filter: string, format: string) => {
+    try {
+      const response = await fetch(`/api/zones/export?filter=${filter}&format=${format}`);
+      if (!response.ok) throw new Error('Error en la exportación');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `zonas_${filter}.${format}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting:', error);
+      alert('Error al exportar datos');
+    }
+  };
 
   const assignProvider = async () => {
     if (!selectedZone || !selectedProviderId) return;
@@ -397,6 +414,27 @@ export default function MapsPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+            {/* Export Section */}
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Exportar Datos</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => handleExport('withProviders', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors">
+                  <Download className="h-3 w-3" /> Con Prov. (XLSX)
+                </button>
+                <button onClick={() => handleExport('withoutProviders', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition-colors">
+                  <Download className="h-3 w-3" /> Sin Prov. (XLSX)
+                </button>
+                <button onClick={() => handleExport('postalCodes', 'csv')} className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors">
+                  <Download className="h-3 w-3" /> Cód. Post. (CSV)
+                </button>
+                <button onClick={() => handleExport('polygons', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 transition-colors">
+                  <Download className="h-3 w-3" /> Polígonos (XLSX)
+                </button>
+                <button onClick={() => handleExport('all', 'xlsx')} className="flex items-center gap-1 px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 transition-colors col-span-2">
+                  <Download className="h-3 w-3" /> Todo (XLSX)
+                </button>
+              </div>
             </div>
           </div>
 
