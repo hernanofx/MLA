@@ -38,6 +38,40 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
     }
   }, [scanning])
 
+  // 🔥 NUEVO: Polling para actualizar estadísticas cada 5 segundos cuando está escaneando
+  useEffect(() => {
+    if (!scanning) return
+
+    const fetchUpdatedStats = async () => {
+      try {
+        const response = await fetch(`/api/vms/shipments/${shipmentId}/report`)
+        if (response.ok) {
+          const data = await response.json()
+          // Actualizar solo las estadísticas, no los paquetes escaneados localmente
+          const newStats = {
+            ok: data.ok || 0,
+            sobrante: data.sobrante || 0,
+            fueraCobertura: data.fueraCobertura || 0,
+            previo: data.previo || 0,
+          }
+          
+          // Solo actualizar si hay cambios para evitar re-renders innecesarios
+          if (JSON.stringify(newStats) !== JSON.stringify(stats)) {
+            setStats(newStats)
+          }
+        }
+      } catch (error) {
+        console.error('Error refreshing stats:', error)
+      }
+    }
+
+    // Ejecutar inmediatamente y luego cada 5 segundos
+    fetchUpdatedStats()
+    const interval = setInterval(fetchUpdatedStats, 5000)
+
+    return () => clearInterval(interval)
+  }, [scanning, shipmentId])
+
   // Event listener para ocultar el fullscreen con cualquier tecla
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

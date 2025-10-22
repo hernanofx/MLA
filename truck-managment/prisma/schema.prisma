@@ -405,6 +405,7 @@ model ScannedPackage {
   
   createdAt         DateTime @default(now())
   
+  @@unique([shipmentId, trackingNumber])
   @@index([shipmentId])
   @@index([trackingNumber])
   @@index([status])

@@ -46,37 +46,21 @@ export async function POST(request: NextRequest) {
     // Verificar acceso al shipment
     verifyProviderAccess(shipment.providerId, providerId)
 
-    // Verificar si el paquete ya fue escaneado
-    const existingScanned = await prisma.scannedPackage.findFirst({
-      where: {
-        shipmentId,
-        trackingNumber: trackingNumber.trim()
-      }
-    })
-
-    if (existingScanned) {
-      return NextResponse.json({ 
-        error: 'PAQUETE_YA_ESCANEADO',
-        message: 'PAQUETE YA ESCANEADO',
-        scannedAt: existingScanned.scanTimestamp
-      }, { status: 400 })
-    }
-
-    // Buscar en pre-alerta
-    const preAlerta = await prisma.preAlerta.findFirst({
-      where: {
-        shipmentId,
-        trackingNumber: trackingNumber.trim()
-      }
-    })
-
-    // Buscar en pre-ruteo (codigoPedido es el tracking number)
-    const preRuteo = await prisma.preRuteo.findFirst({
-      where: {
-        shipmentId,
-        codigoPedido: trackingNumber.trim()
-      }
-    })
+    // Buscar en pre-alerta y pre-ruteo en paralelo
+    const [preAlerta, preRuteo] = await Promise.all([
+      prisma.preAlerta.findFirst({
+        where: {
+          shipmentId,
+          trackingNumber: trimmedTracking
+        }
+      }),
+      prisma.preRuteo.findFirst({
+        where: {
+          shipmentId,
+          codigoPedido: trimmedTracking
+        }
+      })
+    ])
 
     // Determinar el estado según la lógica de negocio
     let status: 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO'
@@ -91,60 +75,100 @@ export async function POST(request: NextRequest) {
       status = 'PREVIO' // En pre-ruteo pero no en pre-alerta
     }
 
-    // Registrar el paquete escaneado
-    const scannedPackage = await prisma.scannedPackage.create({
-      data: {
-        shipmentId,
-        trackingNumber: trackingNumber.trim(),
-        scannedBy: session.user.id,
-        status,
-        preAlertaId: preAlerta?.id || null,
-        preRuteoId: preRuteo?.id || null,
-      },
-      include: {
-        preAlerta: true,
-        preRuteo: true,
+    // Intentar registrar el paquete escaneado
+    // El constraint único en BD previene duplicados incluso en race conditions
+    try {
+      const scannedPackage = await prisma.scannedPackage.create({
+        data: {
+          shipmentId,
+          trackingNumber: trimmedTracking,
+          scannedBy: session.user.id,
+          status,
+          preAlertaId: preAlerta?.id || null,
+          preRuteoId: preRuteo?.id || null,
+        },
+        include: {
+          preAlerta: true,
+          preRuteo: true,
+        }
+      })
+
+      // Marcar como verificados en paralelo
+      const updatePromises = []
+      
+      if (preAlerta) {
+        updatePromises.push(
+          prisma.preAlerta.update({
+            where: { id: preAlerta.id },
+            data: {
+              verified: true,
+              verificationStatus: status
+            }
+          })
+        )
       }
-    })
 
-    // Marcar como verificados
-    if (preAlerta) {
-      await prisma.preAlerta.update({
-        where: { id: preAlerta.id },
-        data: {
-          verified: true,
-          verificationStatus: status
-        }
+      if (preRuteo) {
+        updatePromises.push(
+          prisma.preRuteo.update({
+            where: { id: preRuteo.id },
+            data: {
+              verified: true,
+              verificationStatus: status
+            }
+          })
+        )
+      }
+
+      await Promise.all(updatePromises)
+
+      return NextResponse.json({
+        status,
+        details: {
+          preAlerta: preAlerta ? {
+            buyer: preAlerta.buyer,
+            city: preAlerta.buyerCity,
+            weight: preAlerta.weight,
+          } : null,
+          preRuteo: preRuteo ? {
+            ruta: preRuteo.ruta,
+            razonSocial: preRuteo.razonSocial,
+            domicilio: preRuteo.domicilio,
+            chofer: preRuteo.chofer,
+          } : null,
+        },
+        scannedPackage,
+        scannedBy: session.user.name || session.user.email
       })
-    }
 
-    if (preRuteo) {
-      await prisma.preRuteo.update({
-        where: { id: preRuteo.id },
-        data: {
-          verified: true,
-          verificationStatus: status
-        }
-      })
-    }
+    } catch (dbError: any) {
+      // Si es error de constraint único (código P2002 de Prisma)
+      // Esto maneja race conditions cuando múltiples dispositivos escanean el mismo código
+      if (dbError.code === 'P2002') {
+        // Buscar quién lo escaneó primero para informar al usuario
+        const existingScanned = await prisma.scannedPackage.findFirst({
+          where: {
+            shipmentId,
+            trackingNumber: trimmedTracking
+          },
+          include: {
+            scannedByUser: {
+              select: { name: true, email: true }
+            }
+          }
+        })
 
-    return NextResponse.json({
-      status,
-      details: {
-        preAlerta: preAlerta ? {
-          buyer: preAlerta.buyer,
-          city: preAlerta.buyerCity,
-          weight: preAlerta.weight,
-        } : null,
-        preRuteo: preRuteo ? {
-          ruta: preRuteo.ruta,
-          razonSocial: preRuteo.razonSocial,
-          domicilio: preRuteo.domicilio,
-          chofer: preRuteo.chofer,
-        } : null,
-      },
-      scannedPackage
-    })
+        return NextResponse.json({ 
+          error: 'PAQUETE_YA_ESCANEADO',
+          message: 'PAQUETE YA ESCANEADO',
+          scannedAt: existingScanned?.scanTimestamp,
+          scannedBy: existingScanned?.scannedByUser?.name || existingScanned?.scannedByUser?.email
+        }, { status: 400 })
+      }
+      
+      // Si es otro error de BD, re-lanzar para el catch general
+      throw dbError
+    }
 
   } catch (error: any) {
     console.error('Error scanning package:', error)
