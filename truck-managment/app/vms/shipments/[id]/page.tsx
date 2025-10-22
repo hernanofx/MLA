@@ -213,7 +213,8 @@ export default function ShipmentDetailPage() {
 
   const getTotalPackages = () => {
     if (!stats) return 0
-    return stats.totalScanned + stats.faltantes + stats.fueraCobertura + stats.previo + stats.sobrante
+    // No contar PREVIO en el total
+    return stats.totalScanned + stats.faltantes + stats.fueraCobertura + stats.sobrante
   }
 
   // Get filtered items based on selected tab
@@ -511,10 +512,10 @@ export default function ShipmentDetailPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-4 text-white">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-4 text-white opacity-75">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium opacity-90 truncate">Previos</p>
+                  <p className="text-xs font-medium opacity-90 truncate">Previos (no cuenta)</p>
                   <p className="text-lg sm:text-2xl font-bold">{stats.previo}</p>
                 </div>
                 <Clock className="h-6 w-6 sm:h-8 sm:w-8 opacity-90 flex-shrink-0 ml-2" />

@@ -11,7 +11,7 @@ interface VerificacionStepProps {
 
 interface ScanResult {
   trackingNumber: string
-  status: 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO'
+  status: 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO' | 'YA_ESCANEADO' | 'NO_MLA'
   timestamp: string
   details?: any
 }
@@ -70,6 +70,32 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
 
       if (!response.ok) {
         const error = await response.json()
+        
+        // Manejar errores especiales con mensajes full screen
+        if (error.error === 'PAQUETE_YA_ESCANEADO') {
+          const scanResult: ScanResult = {
+            trackingNumber: trackingNumber.trim(),
+            status: 'YA_ESCANEADO',
+            timestamp: getArgentinaDate().toISOString(),
+          }
+          setLastScanResult(scanResult)
+          setShowFlash(true)
+          setCurrentScan('')
+          return
+        }
+        
+        if (error.error === 'PAQUETE_NO_MLA') {
+          const scanResult: ScanResult = {
+            trackingNumber: trackingNumber.trim(),
+            status: 'NO_MLA',
+            timestamp: getArgentinaDate().toISOString(),
+          }
+          setLastScanResult(scanResult)
+          setShowFlash(true)
+          setCurrentScan('')
+          return
+        }
+        
         throw new Error(error.error || 'Error al escanear')
       }
 
@@ -85,11 +111,18 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
       
       setScannedPackages(prev => [scanResult, ...prev])
       
-      // Actualizar estadísticas
-      setStats(prev => ({
-        ...prev,
-        [result.status.toLowerCase()]: prev[result.status.toLowerCase() as keyof typeof prev] + 1,
-      }))
+      // Actualizar estadísticas (no contar PREVIO en el total)
+      if (result.status !== 'PREVIO') {
+        setStats(prev => ({
+          ...prev,
+          [result.status.toLowerCase()]: prev[result.status.toLowerCase() as keyof typeof prev] + 1,
+        }))
+      } else {
+        setStats(prev => ({
+          ...prev,
+          previo: prev.previo + 1,
+        }))
+      }
 
       // Mostrar mensaje flash grande persistente
       setLastScanResult(scanResult)
@@ -186,6 +219,8 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
             lastScanResult.status === 'OK' ? 'text-green-400' :
             lastScanResult.status === 'SOBRANTE' ? 'text-red-400' :
             lastScanResult.status === 'FUERA_COBERTURA' ? 'text-yellow-400' :
+            lastScanResult.status === 'YA_ESCANEADO' ? 'text-orange-400' :
+            lastScanResult.status === 'NO_MLA' ? 'text-purple-400' :
             'text-blue-400'
           }`}>
             <div className="mb-8">
@@ -193,20 +228,28 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
               {lastScanResult.status === 'SOBRANTE' && <XCircle className="h-48 w-48 mx-auto" />}
               {lastScanResult.status === 'FUERA_COBERTURA' && <AlertTriangle className="h-48 w-48 mx-auto" />}
               {lastScanResult.status === 'PREVIO' && <Clock className="h-48 w-48 mx-auto" />}
+              {lastScanResult.status === 'YA_ESCANEADO' && <AlertTriangle className="h-48 w-48 mx-auto" />}
+              {lastScanResult.status === 'NO_MLA' && <XCircle className="h-48 w-48 mx-auto" />}
             </div>
             <h1 className="text-8xl font-bold mb-6">
-              {lastScanResult.status}
+              {lastScanResult.status === 'YA_ESCANEADO' ? 'PAQUETE YA ESCANEADO' :
+               lastScanResult.status === 'NO_MLA' ? 'PAQUETE NO DE MLA' :
+               lastScanResult.status}
             </h1>
             <p className="text-4xl font-semibold mb-4">
               {lastScanResult.trackingNumber}
             </p>
-            {lastScanResult.details && (
-              <div className="text-2xl text-white space-y-2 mt-8">
-                {lastScanResult.details.preAlerta && (
-                  <p>📦 {lastScanResult.details.preAlerta.buyer}</p>
-                )}
+            {lastScanResult.status === 'OK' && lastScanResult.details && (
+              <div className="text-2xl text-white space-y-4 mt-8">
                 {lastScanResult.details.preRuteo && (
-                  <p>🚚 Ruta: {lastScanResult.details.preRuteo.ruta || 'N/A'} - {lastScanResult.details.preRuteo.chofer}</p>
+                  <p className="text-6xl font-bold text-yellow-300">
+                    � RUTA: {lastScanResult.details.preRuteo.ruta || 'N/A'}
+                  </p>
+                )}
+                {lastScanResult.details.preRuteo && lastScanResult.details.preRuteo.chofer && (
+                  <p className="text-3xl">
+                    Chofer: {lastScanResult.details.preRuteo.chofer}
+                  </p>
                 )}
               </div>
             )}
@@ -291,10 +334,10 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
           </div>
         </div>
 
-        <div className="bg-white border-2 border-blue-200 rounded-lg p-4">
+        <div className="bg-white border-2 border-blue-200 rounded-lg p-4 opacity-75">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Previos</p>
+              <p className="text-xs font-medium text-gray-500">Previos (no cuenta)</p>
               <p className="text-2xl font-bold text-blue-600">{stats.previo}</p>
             </div>
             <Clock className="h-8 w-8 text-blue-400" />
@@ -388,7 +431,9 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
           <li><strong>OK:</strong> El paquete está en ambos archivos (Pre-Alerta y Pre-Ruteo)</li>
           <li><strong>Sobrante:</strong> No está en ninguno de los dos archivos</li>
           <li><strong>Fuera de Cobertura:</strong> Está en Pre-Alerta pero NO en Pre-Ruteo</li>
-          <li><strong>Previo:</strong> Está en Pre-Ruteo pero NO en Pre-Alerta (paquete anterior)</li>
+          <li><strong>Previo:</strong> Está en Pre-Ruteo pero NO en Pre-Alerta (no se cuenta en el total)</li>
+          <li className="mt-2"><strong className="text-orange-700">Paquetes duplicados:</strong> Ya fueron escaneados en este lote</li>
+          <li><strong className="text-purple-700">Paquetes no MLA:</strong> Solo se aceptan paquetes MLAR, SEKA o RR</li>
         </ul>
       </div>
     </div>

@@ -21,6 +21,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Faltan datos requeridos' }, { status: 400 })
     }
 
+    // Validar que el tracking number comience con los prefijos válidos
+    const trimmedTracking = trackingNumber.trim().toUpperCase()
+    const validPrefixes = ['MLAR', 'SEKA', 'RR']
+    const hasValidPrefix = validPrefixes.some(prefix => trimmedTracking.startsWith(prefix))
+    
+    if (!hasValidPrefix) {
+      return NextResponse.json({ 
+        error: 'PAQUETE_NO_MLA',
+        message: 'PAQUETE NO DE MLA' 
+      }, { status: 400 })
+    }
+
     // Verificar que el shipment pertenece al proveedor
     const shipment = await prisma.shipment.findUnique({
       where: { id: shipmentId },
@@ -33,6 +45,22 @@ export async function POST(request: NextRequest) {
 
     // Verificar acceso al shipment
     verifyProviderAccess(shipment.providerId, providerId)
+
+    // Verificar si el paquete ya fue escaneado
+    const existingScanned = await prisma.scannedPackage.findFirst({
+      where: {
+        shipmentId,
+        trackingNumber: trackingNumber.trim()
+      }
+    })
+
+    if (existingScanned) {
+      return NextResponse.json({ 
+        error: 'PAQUETE_YA_ESCANEADO',
+        message: 'PAQUETE YA ESCANEADO',
+        scannedAt: existingScanned.scanTimestamp
+      }, { status: 400 })
+    }
 
     // Buscar en pre-alerta
     const preAlerta = await prisma.preAlerta.findFirst({

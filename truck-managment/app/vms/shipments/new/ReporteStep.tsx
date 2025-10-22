@@ -87,8 +87,9 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
   }
 
   const getPercentage = (value: number) => {
-    // Calcular el total de paquetes únicos (OK + Faltantes + Sobrante + Fuera Cobertura + Previo)
-    const totalPackages = report.ok + report.faltantes + report.sobrante + report.fueraCobertura + report.previo
+    // Calcular el total de paquetes únicos SIN contar PREVIO
+    // (OK + Faltantes + Sobrante + Fuera Cobertura)
+    const totalPackages = report.ok + report.faltantes + report.sobrante + report.fueraCobertura
     if (totalPackages === 0) return 0
     return ((value / totalPackages) * 100).toFixed(1)
   }
@@ -192,15 +193,15 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
               <Clock className="h-6 w-6 text-blue-600" />
             </div>
             <span className="text-sm font-medium text-blue-600">
-              {getPercentage(report.previo)}%
+              (No cuenta)
             </span>
           </div>
           <p className="text-2xl font-bold text-gray-900">{report.previo}</p>
           <p className="text-sm text-gray-600">Paquetes Previos</p>
           <div className="mt-2 w-full bg-blue-100 rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{ width: `${getPercentage(report.previo)}%` }}
+              className="bg-blue-400 h-2 rounded-full transition-all opacity-50"
+              style={{ width: '100%' }}
             />
           </div>
         </div>
@@ -304,10 +305,10 @@ export default function ReporteStep({ shipmentId }: ReporteStepProps) {
                   {report.previo}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {getPercentage(report.previo)}%
+                  (No cuenta en total)
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  En Pre-Ruteo pero no en Pre-Alerta (paquetes anteriores)
+                  En Pre-Ruteo pero no en Pre-Alerta (paquetes anteriores - no se cuentan)
                 </td>
               </tr>
             </tbody>
