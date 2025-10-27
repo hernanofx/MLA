@@ -49,6 +49,7 @@ export default function LoadsPage() {
   const [selectedTruck, setSelectedTruck] = useState('')
   const [selectedProviderName, setSelectedProviderName] = useState('')
   const [selectedTruckName, setSelectedTruckName] = useState('')
+  const [selectedContainer, setSelectedContainer] = useState('')
   const [selectedWeek, setSelectedWeek] = useState('')
   const [selectedMonth, setSelectedMonth] = useState('')
   const [availableWeeks, setAvailableWeeks] = useState<number[]>([])
@@ -70,6 +71,7 @@ export default function LoadsPage() {
 
       if (selectedProvider) params.append('providerId', selectedProvider)
       if (selectedTruck) params.append('truckId', selectedTruck)
+      if (selectedContainer) params.append('container', selectedContainer)
       if (selectedWeek) params.append('week', selectedWeek)
       if (selectedMonth) params.append('month', selectedMonth)
 
@@ -125,6 +127,7 @@ export default function LoadsPage() {
     setSelectedTruck('')
     setSelectedProviderName('')
     setSelectedTruckName('')
+    setSelectedContainer('')
     setSelectedWeek('')
     setSelectedMonth('')
     setCurrentPage(1)
@@ -170,7 +173,7 @@ export default function LoadsPage() {
 
   useEffect(() => {
     fetchLoads(currentPage)
-  }, [currentPage, selectedProvider, selectedTruck, selectedWeek, selectedMonth, limit])
+  }, [currentPage, selectedProvider, selectedTruck, selectedContainer, selectedWeek, selectedMonth, limit])
 
   if (loading) {
     return (
@@ -206,7 +209,7 @@ export default function LoadsPage() {
         
         {/* Filters */}
         <div className="mt-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label htmlFor="provider-filter" className="block text-sm font-medium text-gray-700 mb-1">
                 Proveedor
@@ -245,6 +248,20 @@ export default function LoadsPage() {
                   <option key={truck.id} value={truck.licensePlate} />
                 ))}
               </datalist>
+            </div>
+
+            <div>
+              <label htmlFor="container-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Contenedora
+              </label>
+              <input
+                type="text"
+                id="container-filter"
+                value={selectedContainer}
+                onChange={(e) => setSelectedContainer(e.target.value)}
+                placeholder="Buscar contenedora..."
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+              />
             </div>
 
             <div>
@@ -414,16 +431,17 @@ export default function LoadsPage() {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => {
-                const params = new URLSearchParams()
-                if (selectedProvider) params.append('providerId', selectedProvider)
-                if (selectedTruck) params.append('truckId', selectedTruck)
-                if (selectedWeek) params.append('week', selectedWeek)
-                if (selectedMonth) params.append('month', selectedMonth)
-                const url = `/api/loads/export?${params}`
-                window.open(url, '_blank')
-              }}
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams()
+                  if (selectedProvider) params.append('providerId', selectedProvider)
+                  if (selectedTruck) params.append('truckId', selectedTruck)
+                  if (selectedContainer) params.append('container', selectedContainer)
+                  if (selectedWeek) params.append('week', selectedWeek)
+                  if (selectedMonth) params.append('month', selectedMonth)
+                  const url = `/api/loads/export?${params}`
+                  window.open(url, '_blank')
+                }}
               className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               title="Exportar a Excel"
             >

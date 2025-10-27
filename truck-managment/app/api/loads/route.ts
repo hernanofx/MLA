@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     // Filter parameters
     const providerId = searchParams.get('providerId')
     const truckId = searchParams.get('truckId')
+    const container = searchParams.get('container')
     const week = searchParams.get('week')
     const month = searchParams.get('month')
 
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
     const where: any = {}
     if (providerId) where.providerId = providerId
     if (truckId) where.truckId = truckId
+    if (container) where.container = { contains: container, mode: 'insensitive' }
     if (week) where.week = parseInt(week)
     if (month) where.month = parseInt(month)
 
