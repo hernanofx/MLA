@@ -15,7 +15,7 @@ interface Truck {
   licensePlate: string
 }
 
-interface Load {
+interface LoadData {
   id: string
   providerId: string
   truckId: string
@@ -31,7 +31,7 @@ interface Load {
 }
 
 export default function EditLoadPage() {
-  const [load, setLoad] = useState<Load | null>(null)
+  const [load, setLoad] = useState<LoadData | null>(null)
   const [providers, setProviders] = useState<Provider[]>([])
   const [trucks, setTrucks] = useState<Truck[]>([])
   const [selectedProvider, setSelectedProvider] = useState('')
@@ -77,7 +77,7 @@ export default function EditLoadPage() {
     try {
       const response = await fetch(`/api/loads/${id}`)
       if (response.ok) {
-        const loadData: Load = await response.json()
+        const loadData: LoadData = await response.json()
         setLoad(loadData)
         setSelectedProvider(loadData.providerId)
         setSelectedTruck(loadData.truck.licensePlate)

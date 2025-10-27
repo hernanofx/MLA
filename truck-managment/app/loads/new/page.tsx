@@ -52,14 +52,9 @@ export default function NewLoadPage() {
     )
   }
 
-  if (!session || session.user.role !== 'admin') {
+  if (!session || (session.user.role !== 'admin' && session.user.role !== 'operario')) {
     return null
   }
-
-  useEffect(() => {
-    fetchProviders()
-    fetchTrucks()
-  }, [])
 
   useEffect(() => {
     if (arrivalTime && departureTime) {
