@@ -119,9 +119,11 @@ export default function NewLoadPage() {
     setError('')
 
     try {
-      // Find or create truck by license plate
+      // Find truck by license plate
       let truck = trucks.find(t => t.licensePlate === selectedTruck)
-      if (!truck) {
+      
+      // Solo los admins pueden crear trucks nuevos
+      if (!truck && session?.user?.role === 'admin') {
         // Create new truck
         const createResponse = await fetch('/api/trucks', {
           method: 'POST',
@@ -139,6 +141,11 @@ export default function NewLoadPage() {
         } else {
           throw new Error('Error creating truck')
         }
+      } else if (!truck) {
+        // Los operarios no pueden crear trucks nuevos
+        setError('El camión debe existir en el sistema. Solicita a un administrador que lo cree.')
+        setLoading(false)
+        return
       }
 
       if (!truck) {
