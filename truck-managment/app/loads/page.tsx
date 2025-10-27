@@ -17,6 +17,7 @@ interface Load {
   durationMinutes: number | null
   quantity: string | null
   container: string | null
+  precinto: string | null
   createdAt: string
   provider: { name: string }
   truck: { licensePlate: string }
@@ -342,6 +343,9 @@ export default function LoadsPage() {
                         Contenedora
                       </th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
+                        Precinto
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
                         Semana
                       </th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
@@ -352,7 +356,7 @@ export default function LoadsPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {loads.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="py-4 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6 md:col-span-8 lg:col-span-9 xl:col-span-9">
+                        <td colSpan={10} className="py-4 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6 md:col-span-9 lg:col-span-10 xl:col-span-10">
                           No hay cargas registradas
                         </td>
                       </tr>
@@ -383,6 +387,9 @@ export default function LoadsPage() {
                           </td>
                           <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             {load.container || 'N/A'}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                            {load.precinto || 'N/A'}
                           </td>
                           <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             {load.week}

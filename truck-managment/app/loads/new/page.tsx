@@ -27,6 +27,7 @@ export default function NewLoadPage() {
   const [duration, setDuration] = useState<number | null>(null)
   const [quantity, setQuantity] = useState('')
   const [container, setContainer] = useState('')
+  const [precinto, setPrecinto] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -42,6 +43,17 @@ export default function NewLoadPage() {
     fetchTrucks()
   }, [session, status, router])
 
+  useEffect(() => {
+    if (arrivalTime && departureTime) {
+      const arrival = new Date(arrivalTime)
+      const departure = new Date(departureTime)
+      const diffMinutes = Math.round((departure.getTime() - arrival.getTime()) / (1000 * 60))
+      setDuration(diffMinutes > 0 ? diffMinutes : 0)
+    } else {
+      setDuration(null)
+    }
+  }, [arrivalTime, departureTime])
+
   if (status === 'loading') {
     return (
       <AppLayout>
@@ -55,17 +67,6 @@ export default function NewLoadPage() {
   if (!session || (session.user.role !== 'admin' && session.user.role !== 'operario')) {
     return null
   }
-
-  useEffect(() => {
-    if (arrivalTime && departureTime) {
-      const arrival = new Date(arrivalTime)
-      const departure = new Date(departureTime)
-      const diffMinutes = Math.round((departure.getTime() - arrival.getTime()) / (1000 * 60))
-      setDuration(diffMinutes > 0 ? diffMinutes : 0)
-    } else {
-      setDuration(null)
-    }
-  }, [arrivalTime, departureTime])
 
   const fetchProviders = async () => {
     try {
@@ -163,7 +164,8 @@ export default function NewLoadPage() {
           arrivalTime,
           departureTime,
           quantity: quantity || null,
-          container: container || null
+          container: container || null,
+          precinto: precinto || null
         })
       })
 
@@ -262,6 +264,20 @@ export default function NewLoadPage() {
                   }
                 }}
                 placeholder="Ej: ABC123, CONT-456"
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="precinto" className="block text-sm font-medium text-gray-700 mb-2">
+                Precinto
+              </label>
+              <input
+                id="precinto"
+                type="text"
+                value={precinto}
+                onChange={(e) => setPrecinto(e.target.value)}
+                placeholder="Ej: PREC-123"
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
               />
             </div>

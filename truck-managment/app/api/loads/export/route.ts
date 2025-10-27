@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
       'Duración (min)': load.durationMinutes || 'N/A',
       'Cantidad': load.quantity || 'N/A',
       'Contenedora': load.container || 'N/A',
+      'Precinto': load.precinto || 'N/A',
       'Semana': load.week,
       'Mes': load.month,
       'Fecha de Creación': new Date(load.createdAt).toLocaleString('es-ES')
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest) {
       { wch: 15 }, // Duración
       { wch: 12 }, // Cantidad
       { wch: 15 }, // Contenedora
+      { wch: 12 }, // Precinto
       { wch: 8 },  // Semana
       { wch: 8 },  // Mes
       { wch: 20 }  // Fecha de Creación

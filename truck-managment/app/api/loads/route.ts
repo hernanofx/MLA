@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { providerId, truckId, arrivalTime, departureTime, quantity, container } = await request.json()
+    const { providerId, truckId, arrivalTime, departureTime, quantity, container, precinto } = await request.json()
 
     if (!providerId || !truckId) {
       return NextResponse.json({ error: 'Provider and truck are required' }, { status: 400 })
@@ -97,7 +97,8 @@ export async function POST(request: NextRequest) {
         month,
         durationMinutes,
         quantity,
-        container
+        container,
+        precinto
       },
       include: {
         provider: true,

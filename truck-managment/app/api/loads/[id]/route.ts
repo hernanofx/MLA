@@ -48,7 +48,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { providerId, truckId, arrivalTime, departureTime, quantity, container } = await request.json()
+    const { providerId, truckId, arrivalTime, departureTime, quantity, container, precinto } = await request.json()
     const { id } = await params
 
     if (!providerId || !truckId) {
@@ -86,7 +86,8 @@ export async function PUT(
         month,
         durationMinutes,
         quantity,
-        container
+        container,
+        precinto
       },
       include: {
         provider: true,
