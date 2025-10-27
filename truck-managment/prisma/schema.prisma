@@ -43,7 +43,7 @@ model User {
   email     String     @unique
   password  String
   name      String?
-  role      String     @default("user")
+  role      String     @default("user")  // admin, user, vms, operario
   providerId String?
   vmsProvider Provider? @relation("VMSUsers", fields: [providerId], references: [id])
   createdAt DateTime   @default(now())

@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react'
 import AppLayout from '@/app/components/AppLayout'
 import ActionMenu from '@/app/components/ActionMenu'
 import { useRouter } from 'next/navigation'
-import { UserPlus, Edit, Trash2, Shield, User, Search, Filter, Users as UsersIcon, AlertTriangle, Truck } from 'lucide-react'
+import { UserPlus, Edit, Trash2, Shield, User, Search, Filter, Users as UsersIcon, AlertTriangle, Truck, Wrench } from 'lucide-react'
 
 interface User {
   id: string
   name: string
   email: string
-  role: 'admin' | 'user' | 'vms'
+  role: 'admin' | 'user' | 'vms' | 'operario'
   createdAt: string
 }
 
@@ -21,7 +21,7 @@ export default function UsersPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user' | 'vms'>('all')
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user' | 'vms' | 'operario'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [usersPerPage] = useState(10)
   const router = useRouter()
@@ -116,6 +116,7 @@ export default function UsersPage() {
   const adminUsers = users.filter(u => u.role === 'admin').length
   const regularUsers = users.filter(u => u.role === 'user').length
   const vmsUsers = users.filter(u => u.role === 'vms').length
+  const operarioUsers = users.filter(u => u.role === 'operario').length
 
   if (loading) {
     return (
@@ -229,6 +230,26 @@ export default function UsersPage() {
               </div>
             </div>
           </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Wrench className="h-6 w-6 text-orange-400" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Operarios
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {operarioUsers}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
@@ -253,13 +274,14 @@ export default function UsersPage() {
               <Filter className="h-5 w-5 text-gray-400" />
               <select
                 value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value as 'all' | 'admin' | 'user' | 'vms')}
+                onChange={(e) => setRoleFilter(e.target.value as 'all' | 'admin' | 'user' | 'vms' | 'operario')}
                 className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
               >
                 <option value="all">Todos los roles</option>
                 <option value="admin">Administradores</option>
                 <option value="user">Usuarios</option>
                 <option value="vms">VMS</option>
+                <option value="operario">Operarios</option>
               </select>
             </div>
           </div>
@@ -309,7 +331,7 @@ export default function UsersPage() {
                                 <div className="font-medium text-gray-900">{user.name}</div>
                                 <div className="text-gray-500 sm:hidden">{user.email}</div>
                                 <div className="text-gray-400 text-xs sm:hidden mt-1">
-                                  {user.role === 'admin' ? 'Administrador' : user.role === 'vms' ? 'VMS' : 'Usuario'}
+                                  {user.role === 'admin' ? 'Administrador' : user.role === 'vms' ? 'VMS' : user.role === 'operario' ? 'Operario' : 'Usuario'}
                                 </div>
                               </div>
                             </div>
@@ -323,16 +345,20 @@ export default function UsersPage() {
                                 ? 'bg-purple-100 text-purple-800'
                                 : user.role === 'vms'
                                 ? 'bg-blue-100 text-blue-800'
+                                : user.role === 'operario'
+                                ? 'bg-orange-100 text-orange-800'
                                 : 'bg-green-100 text-green-800'
                             }`}>
                               {user.role === 'admin' ? (
                                 <Shield className="h-3 w-3 mr-1" />
                               ) : user.role === 'vms' ? (
                                 <Truck className="h-3 w-3 mr-1" />
+                              ) : user.role === 'operario' ? (
+                                <Wrench className="h-3 w-3 mr-1" />
                               ) : (
                                 <User className="h-3 w-3 mr-1" />
                               )}
-                              {user.role === 'admin' ? 'Administrador' : user.role === 'vms' ? 'VMS' : 'Usuario'}
+                              {user.role === 'admin' ? 'Administrador' : user.role === 'vms' ? 'VMS' : user.role === 'operario' ? 'Operario' : 'Usuario'}
                             </span>
                           </td>
                           <td className="px-3 py-4 text-sm text-gray-500 hidden lg:table-cell">
@@ -640,15 +666,16 @@ function UserForm({ user, onClose, onSuccess }: UserFormProps) {
               <select
                 id="role"
                 value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'user' | 'vms' })}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'user' | 'vms' | 'operario' })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
               >
                 <option value="user">Usuario Regular</option>
+                <option value="operario">Operario</option>
                 <option value="vms">VMS</option>
                 <option value="admin">Administrador</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                Los administradores tienen acceso completo. Los usuarios VMS tienen acceso limitado al sistema VMS.
+                Los administradores tienen acceso completo. Los usuarios VMS tienen acceso limitado al sistema VMS. Los operarios solo ven cargas.
               </p>
             </div>
 

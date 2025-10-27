@@ -193,7 +193,7 @@ export default function LoadsPage() {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            {session?.user?.role === 'admin' && (
+            {(session?.user?.role === 'admin' || session?.user?.role === 'operario') && (
               <Link
                 href="/loads/new"
                 className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -374,7 +374,7 @@ export default function LoadsPage() {
                             {load.month}
                           </td>
                           <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            {session?.user?.role === 'admin' && (
+                            {(session?.user?.role === 'admin' || session?.user?.role === 'operario') && (
                               <ActionMenu
                                 editHref={`/loads/${load.id}/edit`}
                                 onDelete={() => deleteLoad(load.id)}

@@ -1,6 +1,12 @@
 # Network Management Argentina (NMA)
 ## Sistema Integral de Gestión Logística y Control de Operaciones
 
+
+### El backend y el frontend están desarrollados en Next.js 15.5.4, un framework full-stack de React que permite:
+
+### Frontend: Componentes de UI en React 19.1.0 con TypeScript, Tailwind CSS y Server-Side Rendering (SSR).
+### Backend: API Routes serverless para endpoints REST, con Prisma ORM y PostgreSQL como base de datos
+
 ---
 
 # 📋 REPORTE TÉCNICO EJECUTIVO

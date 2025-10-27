@@ -12,6 +12,8 @@ export default async function RedirectPage() {
   // Redirect based on user role
   if (session.user?.role === 'vms') {
     redirect("/vms")
+  } else if (session.user?.role === 'operario') {
+    redirect("/loads")
   } else {
     redirect("/dashboard")
   }

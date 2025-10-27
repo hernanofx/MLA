@@ -53,7 +53,7 @@ export default function EditLoadPage() {
 
   useEffect(() => {
     if (status === 'loading') return
-    if (!session || session.user.role !== 'admin') {
+    if (!session || (session.user.role !== 'admin' && session.user.role !== 'operario')) {
       router.push('/loads')
       return
     }
