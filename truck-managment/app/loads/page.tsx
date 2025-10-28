@@ -483,24 +483,24 @@ export default function LoadsPage() {
                           <td className="px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">
                             {load.truck.licensePlate}
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden md:table-cell">
+                          <td className="px-3 py-4 text-xs text-gray-500 hidden md:table-cell">
                             {load.arrivalTime ? new Date(load.arrivalTime).toLocaleString() : 'No registrada'}
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden md:table-cell">
+                          <td className="px-3 py-4 text-xs text-gray-500 hidden md:table-cell">
                             {load.departureTime ? new Date(load.departureTime).toLocaleString() : 'No registrada'}
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden lg:table-cell">
+                          <td className="px-3 py-4 text-xs text-gray-500 hidden lg:table-cell">
                             {load.durationMinutes ? `${load.durationMinutes} min` : 'N/A'}
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                          <td className="px-3 py-4 text-xs text-gray-500 hidden xl:table-cell">
                             {load.quantity || 'N/A'}
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                          <td className="px-3 py-4 text-xs text-gray-500 hidden xl:table-cell">
                             <div className="truncate" title={load.container || 'N/A'}>
                               {load.container ? load.container.replace(/\s+/g, ' ').trim() : 'N/A'}
                             </div>
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
+                          <td className="px-3 py-4 text-xs text-gray-500 hidden xl:table-cell">
                             <div className="truncate" title={load.precinto || 'N/A'}>
                               {load.precinto ? load.precinto.replace(/\s+/g, ' ').trim() : 'N/A'}
                             </div>
@@ -534,8 +534,8 @@ export default function LoadsPage() {
 
         {/* Detail Modal */}
         {showDetailModal && selectedLoad && (
-          <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div className="fixed inset-0 z-[9999] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
               {/* Background overlay */}
               <div 
                 className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
@@ -544,10 +544,8 @@ export default function LoadsPage() {
               ></div>
 
               {/* Center modal */}
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
-                <div className="absolute top-0 right-0 pt-4 pr-4">
+              <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+                <div className="absolute top-0 right-0 pt-4 pr-4 z-10">
                   <button
                     type="button"
                     className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -560,8 +558,8 @@ export default function LoadsPage() {
                   </button>
                 </div>
 
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                <div className="w-full">
+                  <div className="mt-3 text-left w-full">
                     <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
                       Detalle de Carga
                     </h3>
