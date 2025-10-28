@@ -342,8 +342,23 @@ export default function LoadsPage() {
         <div className="mt-8 flex flex-col">
           <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-              <div className="shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
+              <div className="shadow ring-1 ring-black ring-opacity-5 md:rounded-lg overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-300 table-fixed"
+                  style={{ width: '100%' }}
+                >
+                  <colgroup>
+                    <col style={{ width: '12%' }} /> {/* Proveedor */}
+                    <col className="hidden sm:table-column" style={{ width: '10%' }} /> {/* Camión */}
+                    <col className="hidden md:table-column" style={{ width: '10%' }} /> {/* Llegada */}
+                    <col className="hidden md:table-column" style={{ width: '10%' }} /> {/* Salida */}
+                    <col className="hidden lg:table-column" style={{ width: '8%' }} /> {/* Duración */}
+                    <col className="hidden xl:table-column" style={{ width: '6%' }} /> {/* Cantidad */}
+                    <col className="hidden xl:table-column" style={{ width: '18%' }} /> {/* Contenedora */}
+                    <col className="hidden xl:table-column" style={{ width: '12%' }} /> {/* Precinto */}
+                    <col className="hidden xl:table-column" style={{ width: '6%' }} /> {/* Semana */}
+                    <col className="hidden xl:table-column" style={{ width: '6%' }} /> {/* Mes */}
+                    <col style={{ width: '2%' }} /> {/* Actions */}
+                  </colgroup>
                   <thead className="bg-gray-50">
                     <tr>
                       <th 
@@ -466,12 +481,12 @@ export default function LoadsPage() {
                           <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             {load.quantity || 'N/A'}
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell max-w-xs">
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             <div className="truncate" title={load.container || 'N/A'}>
                               {load.container ? load.container.replace(/\s+/g, ' ').trim() : 'N/A'}
                             </div>
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell max-w-xs">
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             <div className="truncate" title={load.precinto || 'N/A'}>
                               {load.precinto ? load.precinto.replace(/\s+/g, ' ').trim() : 'N/A'}
                             </div>
