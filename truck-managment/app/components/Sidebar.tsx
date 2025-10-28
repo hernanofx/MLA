@@ -106,7 +106,8 @@ export default function Sidebar() {
   const baseNavigation = session?.user?.role === 'vms' ? [
     { name: 'VMS', href: '/vms', icon: Truck },
   ] : session?.user?.role === 'operario' ? [
-    { name: 'Cargas', href: '/loads', icon: Package }
+    { name: 'Cargas', href: '/loads', icon: Package },
+    { name: 'Stock', href: '/stocks', icon: Warehouse }
   ] : [
     {
       name: 'Dashboard',

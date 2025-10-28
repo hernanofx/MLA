@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import WarehousesTab from './WarehousesTab';
 import InventoryTab from './InventoryTab';
 import LocationsTab from './LocationsTab';
@@ -9,14 +10,18 @@ import LabelsTab from './LabelsTab';
 
 export default function StocksClient() {
   const [activeTab, setActiveTab] = useState('inventory');
+  const { data: session } = useSession();
 
-  const tabs = [
+  const allTabs = [
     { id: 'inventory', label: 'Devoluciones' },
     { id: 'packages', label: 'Paquetes' },
     { id: 'locations', label: 'Ubicaciones' },
     { id: 'warehouses', label: 'Almacenes' },
     { id: 'labels', label: 'Etiquetas' },
   ];
+
+  const operarioTabs = ['inventory', 'packages', 'locations'];
+  const tabs = session?.user?.role === 'operario' ? allTabs.filter(tab => operarioTabs.includes(tab.id)) : allTabs;
 
   return (
     <div className="px-4 py-6 sm:px-0">
