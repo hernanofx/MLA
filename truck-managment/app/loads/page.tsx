@@ -59,6 +59,10 @@ export default function LoadsPage() {
   // Sorting states
   const [sortField, setSortField] = useState<string>('arrivalTime')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  
+  // Modal state
+  const [selectedLoad, setSelectedLoad] = useState<Load | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   const filteredProviders = providers.filter(p => 
     p.name.toLowerCase().includes(selectedProviderName.toLowerCase())
@@ -353,11 +357,11 @@ export default function LoadsPage() {
                     <col className="hidden md:table-column" style={{ width: '10%' }} /> {/* Salida */}
                     <col className="hidden lg:table-column" style={{ width: '8%' }} /> {/* Duración */}
                     <col className="hidden xl:table-column" style={{ width: '6%' }} /> {/* Cantidad */}
-                    <col className="hidden xl:table-column" style={{ width: '18%' }} /> {/* Contenedora */}
-                    <col className="hidden xl:table-column" style={{ width: '12%' }} /> {/* Precinto */}
+                    <col className="hidden xl:table-column" style={{ width: '16%' }} /> {/* Contenedora */}
+                    <col className="hidden xl:table-column" style={{ width: '10%' }} /> {/* Precinto */}
                     <col className="hidden xl:table-column" style={{ width: '6%' }} /> {/* Semana */}
                     <col className="hidden xl:table-column" style={{ width: '6%' }} /> {/* Mes */}
-                    <col style={{ width: '2%' }} /> {/* Actions */}
+                    <col style={{ width: '6%' }} /> {/* Actions */}
                   </colgroup>
                   <thead className="bg-gray-50">
                     <tr>
@@ -447,6 +451,9 @@ export default function LoadsPage() {
                           <SortIcon field="month" />
                         </div>
                       </th>
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                        <span className="sr-only">Acciones</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -458,7 +465,14 @@ export default function LoadsPage() {
                       </tr>
                     ) : (
                       loads.map((load) => (
-                        <tr key={load.id}>
+                        <tr 
+                          key={load.id} 
+                          className="hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => {
+                            setSelectedLoad(load)
+                            setShowDetailModal(true)
+                          }}
+                        >
                           <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <div className="font-medium text-gray-900">{load.provider.name}</div>
                             <div className="text-gray-500 sm:hidden">{load.truck.licensePlate}</div>
@@ -497,7 +511,10 @@ export default function LoadsPage() {
                           <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             {load.month}
                           </td>
-                          <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <td 
+                            className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {(session?.user?.role === 'admin' || session?.user?.role === 'operario') && (
                               <ActionMenu
                                 editHref={`/loads/${load.id}/edit`}
@@ -514,6 +531,137 @@ export default function LoadsPage() {
             </div>
           </div>
         </div>
+
+        {/* Detail Modal */}
+        {showDetailModal && selectedLoad && (
+          <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              {/* Background overlay */}
+              <div 
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+                aria-hidden="true"
+                onClick={() => setShowDetailModal(false)}
+              ></div>
+
+              {/* Center modal */}
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+                <div className="absolute top-0 right-0 pt-4 pr-4">
+                  <button
+                    type="button"
+                    className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    onClick={() => setShowDetailModal(false)}
+                  >
+                    <span className="sr-only">Cerrar</span>
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                      Detalle de Carga
+                    </h3>
+                    
+                    <div className="mt-4 border-t border-gray-200">
+                      <dl className="divide-y divide-gray-200">
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Proveedor</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{selectedLoad.provider.name}</dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Camión</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{selectedLoad.truck.licensePlate}</dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Llegada</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {selectedLoad.arrivalTime ? new Date(selectedLoad.arrivalTime).toLocaleString('es-AR') : 'No registrada'}
+                          </dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Salida</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {selectedLoad.departureTime ? new Date(selectedLoad.departureTime).toLocaleString('es-AR') : 'No registrada'}
+                          </dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Duración</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {selectedLoad.durationMinutes ? `${selectedLoad.durationMinutes} minutos` : 'N/A'}
+                          </dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Cantidad</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{selectedLoad.quantity || 'N/A'}</dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Contenedora</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 break-words">
+                            {selectedLoad.container ? selectedLoad.container.replace(/\s+/g, ' ').trim() : 'N/A'}
+                          </dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Precinto</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 break-words">
+                            {selectedLoad.precinto ? selectedLoad.precinto.replace(/\s+/g, ' ').trim() : 'N/A'}
+                          </dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Semana</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">Semana {selectedLoad.week}</dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Mes</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {new Date(2024, selectedLoad.month - 1).toLocaleString('es-ES', { month: 'long' })}
+                          </dd>
+                        </div>
+                        
+                        <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                          <dt className="text-sm font-medium text-gray-500">Fecha de registro</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {new Date(selectedLoad.createdAt).toLocaleString('es-AR')}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+
+                    {(session?.user?.role === 'admin' || session?.user?.role === 'operario') && (
+                      <div className="mt-6 flex justify-end space-x-3">
+                        <button
+                          type="button"
+                          className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                          onClick={() => setShowDetailModal(false)}
+                        >
+                          Cerrar
+                        </button>
+                        <Link
+                          href={`/loads/${selectedLoad.id}/edit`}
+                          className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                        >
+                          Editar
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Pagination */}
         <div className="mt-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
