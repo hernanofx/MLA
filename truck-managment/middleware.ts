@@ -9,7 +9,7 @@ export default withAuth(
     // Si es operario, solo permite acceso a /loads
     if (token?.role === 'operario') {
       // Permitir acceso a /loads y sus subrutas
-      if (pathname.startsWith('/loads') || pathname === '/profile' || pathname === '/notifications') {
+      if (pathname.startsWith('/loads') || pathname.startsWith('/stocks') || pathname === '/profile' || pathname === '/notifications') {
         return NextResponse.next()
       }
       // Bloquear acceso a otras rutas
