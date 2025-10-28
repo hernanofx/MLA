@@ -20,7 +20,7 @@ export default function StocksClient() {
     { id: 'labels', label: 'Etiquetas' },
   ];
 
-  const operarioTabs = ['inventory', 'packages', 'locations'];
+  const operarioTabs = ['inventory', 'packages', 'locations', 'labels'];
   const tabs = session?.user?.role === 'operario' ? allTabs.filter(tab => operarioTabs.includes(tab.id)) : allTabs;
 
   return (
