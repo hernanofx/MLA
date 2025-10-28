@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import ActionMenu from '@/app/components/ActionMenu';
+import SearchableLocationSelect from '@/app/components/SearchableLocationSelect';
 import { FileSpreadsheet } from 'lucide-react';
 
 interface Inventory {
@@ -274,19 +275,13 @@ export default function InventoryTab() {
               <label htmlFor="filterLocation" className="block text-sm font-medium text-gray-700">
                 Ubicación
               </label>
-              <select
+              <SearchableLocationSelect
                 id="filterLocation"
+                locations={locations}
                 value={filters.locationId}
-                onChange={(e) => setFilters({ ...filters, locationId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-                <option value="">Todas las ubicaciones</option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.warehouse.name} - {location.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFilters({ ...filters, locationId: value })}
+                placeholder="Buscar ubicación..."
+              />
             </div>
             <div>
               <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700">
@@ -349,20 +344,14 @@ export default function InventoryTab() {
                   <label htmlFor="locationId" className="block text-sm font-medium text-gray-700">
                     Ubicación
                   </label>
-                  <select
+                  <SearchableLocationSelect
                     id="locationId"
+                    locations={locations}
                     value={formData.locationId}
-                    onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    onChange={(value) => setFormData({ ...formData, locationId: value })}
+                    placeholder="Seleccionar ubicación..."
                     required
-                  >
-                    <option value="">Seleccionar Ubicación</option>
-                    {locations.map((location) => (
-                      <option key={location.id} value={location.id}>
-                        {location.warehouse.name} - {location.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div>
                   <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">

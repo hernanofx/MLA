@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'operario')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -99,14 +99,6 @@ export async function POST(request: NextRequest) {
     if (!providerName) {
       return NextResponse.json(
         { error: 'Nombre del proveedor es requerido' },
-        { status: 400 }
-      )
-    }
-
-    // Validar que el proveedor sea Urbano u Ocasa
-    if (!['Urbano', 'Ocasa'].includes(providerName)) {
-      return NextResponse.json(
-        { error: 'Proveedor debe ser Urbano u Ocasa' },
         { status: 400 }
       )
     }

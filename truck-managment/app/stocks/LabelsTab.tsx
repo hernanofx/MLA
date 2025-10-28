@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import ActionMenu from '@/app/components/ActionMenu';
 import Barcode from 'react-barcode';
 import { FileSpreadsheet, Printer, Calendar } from 'lucide-react';
 
@@ -19,8 +20,14 @@ interface CountByProvider {
   count: number;
 }
 
+interface Provider {
+  id: string;
+  name: string;
+}
+
 export default function LabelsTab() {
   const [labels, setLabels] = useState<Label[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,6 +52,24 @@ export default function LabelsTab() {
     fetchLabels(1);
     setCurrentPage(1);
   }, [filters.providerName, filters.startDate, filters.endDate]);
+
+  useEffect(() => {
+    fetchProviders();
+  }, []);
+
+  const fetchProviders = async () => {
+    try {
+      const res = await fetch('/api/providers');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setProviders(data.providers || []);
+    } catch (error) {
+      console.error('Failed to fetch providers:', error);
+      setProviders([]);
+    }
+  };
 
   const fetchLabels = async (page: number = 1) => {
     try {
@@ -93,6 +118,25 @@ export default function LabelsTab() {
     } catch (error) {
       console.error('Failed to create label:', error);
       alert('Error al crear etiqueta');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta etiqueta?')) return;
+
+    try {
+      const res = await fetch(`/api/labels/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        fetchLabels(currentPage);
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Error al eliminar etiqueta');
+      }
+    } catch (error) {
+      console.error('Failed to delete label:', error);
+      alert('Error al eliminar etiqueta');
     }
   };
 
@@ -167,8 +211,11 @@ export default function LabelsTab() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="">Todos los proveedores</option>
-                <option value="Urbano">Urbano</option>
-                <option value="Ocasa">Ocasa</option>
+                {providers.map((provider) => (
+                  <option key={provider.id} value={provider.name}>
+                    {provider.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -217,8 +264,11 @@ export default function LabelsTab() {
                     required
                   >
                     <option value="">Seleccionar Proveedor</option>
-                    <option value="Urbano">Urbano</option>
-                    <option value="Ocasa">Ocasa</option>
+                    {providers.map((provider) => (
+                      <option key={provider.id} value={provider.name}>
+                        {provider.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -306,13 +356,20 @@ export default function LabelsTab() {
                       {label.description || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handlePrint(label)}
-                        className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
-                      >
-                        <Printer className="h-4 w-4 mr-1" />
-                        Imprimir
-                      </button>
+                      <div className="flex items-center justify-end space-x-3">
+                        <button
+                          onClick={() => handlePrint(label)}
+                          className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
+                        >
+                          <Printer className="h-4 w-4 mr-1" />
+                          Imprimir
+                        </button>
+                        {session?.user?.role === 'admin' && (
+                          <ActionMenu
+                            onDelete={() => handleDelete(label.id)}
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
