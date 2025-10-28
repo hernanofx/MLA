@@ -55,6 +55,10 @@ export default function LoadsPage() {
   const [selectedMonth, setSelectedMonth] = useState('')
   const [availableWeeks, setAvailableWeeks] = useState<number[]>([])
   const [availableMonths, setAvailableMonths] = useState<number[]>([])
+  
+  // Sorting states
+  const [sortField, setSortField] = useState<string>('arrivalTime')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const filteredProviders = providers.filter(p => 
     p.name.toLowerCase().includes(selectedProviderName.toLowerCase())
@@ -75,6 +79,8 @@ export default function LoadsPage() {
       if (selectedContainer) params.append('container', selectedContainer)
       if (selectedWeek) params.append('week', selectedWeek)
       if (selectedMonth) params.append('month', selectedMonth)
+      if (sortField) params.append('sortBy', sortField)
+      if (sortOrder) params.append('sortOrder', sortOrder)
 
       const response = await fetch(`/api/loads?${params}`)
       if (response.ok) {
@@ -139,6 +145,25 @@ export default function LoadsPage() {
     setLimit(newLimit)
     setCurrentPage(1)
   }
+  
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle sort order
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New field, default to ascending
+      setSortField(field)
+      setSortOrder('asc')
+    }
+    setCurrentPage(1)
+  }
+  
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) {
+      return <span className="ml-1 text-gray-400">↕</span>
+    }
+    return <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+  }
 
   const deleteLoad = async (id: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar esta carga? Esta acción no se puede deshacer.')) return
@@ -174,7 +199,7 @@ export default function LoadsPage() {
 
   useEffect(() => {
     fetchLoads(currentPage)
-  }, [currentPage, selectedProvider, selectedTruck, selectedContainer, selectedWeek, selectedMonth, limit])
+  }, [currentPage, selectedProvider, selectedTruck, selectedContainer, selectedWeek, selectedMonth, limit, sortField, sortOrder])
 
   if (loading) {
     return (
@@ -321,23 +346,65 @@ export default function LoadsPage() {
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                        Proveedor
+                      <th 
+                        scope="col" 
+                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('provider')}
+                      >
+                        <div className="flex items-center">
+                          Proveedor
+                          <SortIcon field="provider" />
+                        </div>
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">
-                        Camión
+                      <th 
+                        scope="col" 
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('truck')}
+                      >
+                        <div className="flex items-center">
+                          Camión
+                          <SortIcon field="truck" />
+                        </div>
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">
-                        Llegada
+                      <th 
+                        scope="col" 
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('arrivalTime')}
+                      >
+                        <div className="flex items-center">
+                          Llegada
+                          <SortIcon field="arrivalTime" />
+                        </div>
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">
-                        Salida
+                      <th 
+                        scope="col" 
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('departureTime')}
+                      >
+                        <div className="flex items-center">
+                          Salida
+                          <SortIcon field="departureTime" />
+                        </div>
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:table-cell">
-                        Duración
+                      <th 
+                        scope="col" 
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:table-cell cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('durationMinutes')}
+                      >
+                        <div className="flex items-center">
+                          Duración
+                          <SortIcon field="durationMinutes" />
+                        </div>
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
-                        Cantidad
+                      <th 
+                        scope="col" 
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('quantity')}
+                      >
+                        <div className="flex items-center">
+                          Cantidad
+                          <SortIcon field="quantity" />
+                        </div>
                       </th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
                         Contenedora
@@ -345,11 +412,25 @@ export default function LoadsPage() {
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
                         Precinto
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
-                        Semana
+                      <th 
+                        scope="col" 
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('week')}
+                      >
+                        <div className="flex items-center">
+                          Semana
+                          <SortIcon field="week" />
+                        </div>
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell">
-                        Mes
+                      <th 
+                        scope="col" 
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden xl:table-cell cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('month')}
+                      >
+                        <div className="flex items-center">
+                          Mes
+                          <SortIcon field="month" />
+                        </div>
                       </th>
                     </tr>
                   </thead>
@@ -385,11 +466,15 @@ export default function LoadsPage() {
                           <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             {load.quantity || 'N/A'}
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
-                            {load.container || 'N/A'}
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell max-w-xs">
+                            <div className="truncate" title={load.container || 'N/A'}>
+                              {load.container ? load.container.replace(/\s+/g, ' ').trim() : 'N/A'}
+                            </div>
                           </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
-                            {load.precinto || 'N/A'}
+                          <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell max-w-xs">
+                            <div className="truncate" title={load.precinto || 'N/A'}>
+                              {load.precinto ? load.precinto.replace(/\s+/g, ' ').trim() : 'N/A'}
+                            </div>
                           </td>
                           <td className="px-3 py-4 text-sm text-gray-500 hidden xl:table-cell">
                             {load.week}

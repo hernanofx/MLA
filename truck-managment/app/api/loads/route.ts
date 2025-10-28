@@ -22,6 +22,10 @@ export async function GET(request: NextRequest) {
     const container = searchParams.get('container')
     const week = searchParams.get('week')
     const month = searchParams.get('month')
+    
+    // Sort parameters
+    const sortBy = searchParams.get('sortBy') || 'arrivalTime'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
 
     // Build where clause
     const where: any = {}
@@ -30,6 +34,27 @@ export async function GET(request: NextRequest) {
     if (container) where.container = { contains: container, mode: 'insensitive' }
     if (week) where.week = parseInt(week)
     if (month) where.month = parseInt(month)
+    
+    // Build orderBy clause
+    let orderBy: any = { createdAt: 'desc' }
+    
+    if (sortBy === 'provider') {
+      orderBy = { provider: { name: sortOrder } }
+    } else if (sortBy === 'truck') {
+      orderBy = { truck: { licensePlate: sortOrder } }
+    } else if (sortBy === 'arrivalTime') {
+      orderBy = { arrivalTime: sortOrder }
+    } else if (sortBy === 'departureTime') {
+      orderBy = { departureTime: sortOrder }
+    } else if (sortBy === 'durationMinutes') {
+      orderBy = { durationMinutes: sortOrder }
+    } else if (sortBy === 'quantity') {
+      orderBy = { quantity: sortOrder }
+    } else if (sortBy === 'week') {
+      orderBy = { week: sortOrder }
+    } else if (sortBy === 'month') {
+      orderBy = { month: sortOrder }
+    }
 
     const [loads, total] = await Promise.all([
       prisma.load.findMany({
@@ -38,7 +63,7 @@ export async function GET(request: NextRequest) {
           provider: true,
           truck: true
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit
       }),
