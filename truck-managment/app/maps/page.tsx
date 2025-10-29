@@ -46,6 +46,7 @@ export default function MapsPage() {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [selectedProviderId, setSelectedProviderId] = useState<string>('');
+  const [filterByProviderId, setFilterByProviderId] = useState<string>(''); // Nuevo: filtro por proveedor
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
@@ -97,14 +98,27 @@ export default function MapsPage() {
   };
 
   useEffect(() => {
-    // Filter zones based on search term
-    const filtered = zones.filter(zone =>
-      zone.locality.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zone.postalCodes.some(cp => cp.includes(searchTerm)) ||
-      zone.province.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter zones based on search term and provider filter
+    let filtered = zones;
+    
+    // Filtrar por proveedor si hay uno seleccionado
+    if (filterByProviderId) {
+      filtered = filtered.filter(zone =>
+        zone.coverages.some(coverage => coverage.provider.id === filterByProviderId)
+      );
+    }
+    
+    // Filtrar por término de búsqueda
+    if (searchTerm) {
+      filtered = filtered.filter(zone =>
+        zone.locality.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        zone.postalCodes.some(cp => cp.includes(searchTerm)) ||
+        zone.province.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
     setFilteredZones(filtered);
-  }, [zones, searchTerm]);
+  }, [zones, searchTerm, filterByProviderId]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -217,7 +231,12 @@ export default function MapsPage() {
   };
 
   const handleZoneSelect = (zone: Zone) => {
-    setSelectedZone(zone);
+    // Si es la misma zona, la deseleccionamos
+    if (selectedZone?.id === zone.id) {
+      setSelectedZone(null);
+    } else {
+      setSelectedZone(zone);
+    }
   };
 
   const handleDrawCreated = (geoJson: any) => {
@@ -526,8 +545,77 @@ export default function MapsPage() {
                   </button>
                 )}
               </div>
+              
+              {/* Provider Filter */}
+              <div className="mt-3">
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10 pointer-events-none" />
+                  <select
+                    className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white appearance-none cursor-pointer transition-all hover:border-blue-300"
+                    value={filterByProviderId}
+                    onChange={(e) => {
+                      setFilterByProviderId(e.target.value);
+                      setSelectedZone(null); // Limpiar selección al cambiar filtro
+                    }}
+                    aria-label="Filtrar por proveedor"
+                  >
+                    <option value="">🌍 Todos los proveedores</option>
+                    {providers.map((provider) => {
+                      const zonesCount = zones.filter(z => 
+                        z.coverages.some(c => c.provider.id === provider.id)
+                      ).length;
+                      return (
+                        <option key={provider.id} value={provider.id}>
+                          {provider.name} ({zonesCount} {zonesCount === 1 ? 'zona' : 'zonas'})
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {filterByProviderId && (
+                    <button
+                      onClick={() => {
+                        setFilterByProviderId('');
+                        setSelectedZone(null);
+                      }}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                      aria-label="Limpiar filtro de proveedor"
+                      title="Limpiar filtro"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                  <div className="absolute right-10 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Active Filter Badge */}
+                {filterByProviderId && (
+                  <div className="mt-2 flex items-center gap-2 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium text-blue-900">
+                        Filtrando por: <span className="font-bold">{providers.find(p => p.id === filterByProviderId)?.name}</span>
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setFilterByProviderId('');
+                        setSelectedZone(null);
+                      }}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      title="Quitar filtro"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              
               {/* Search Results Counter */}
-              {searchTerm && (
+              {(searchTerm || filterByProviderId) && (
                 <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                   <Info className="h-3 w-3" />
                   Mostrando {filteredZones.length} de {zones.length} zonas
