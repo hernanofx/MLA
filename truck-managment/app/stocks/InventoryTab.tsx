@@ -86,6 +86,7 @@ export default function InventoryTab() {
   useEffect(() => {
     fetchProviders();
     fetchWarehouses();
+    fetchLocations(); // Cargar todas las ubicaciones al inicio
   }, []);
 
   const fetchInventories = async (page: number = 1) => {
@@ -134,6 +135,8 @@ export default function InventoryTab() {
     try {
       const params = new URLSearchParams();
       if (warehouseId) params.append('warehouseId', warehouseId);
+      // Obtener todas las ubicaciones (limit alto para selectores)
+      params.append('limit', '1000');
       const res = await fetch(`/api/locations?${params}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
