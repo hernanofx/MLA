@@ -10,19 +10,25 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get available weeks
+    // Get available weeks from both Entry and Load tables
     const availableWeeks = await prisma.$queryRaw`
       SELECT DISTINCT week
-      FROM "Entry"
-      WHERE week IS NOT NULL
+      FROM (
+        SELECT week FROM "Entry" WHERE week IS NOT NULL
+        UNION
+        SELECT week FROM "Load" WHERE week IS NOT NULL
+      ) AS combined_weeks
       ORDER BY week
     ` as { week: number }[]
 
-    // Get available months
+    // Get available months from both Entry and Load tables
     const availableMonths = await prisma.$queryRaw`
       SELECT DISTINCT month
-      FROM "Entry"
-      WHERE month IS NOT NULL
+      FROM (
+        SELECT month FROM "Entry" WHERE month IS NOT NULL
+        UNION
+        SELECT month FROM "Load" WHERE month IS NOT NULL
+      ) AS combined_months
       ORDER BY month
     ` as { month: number }[]
 

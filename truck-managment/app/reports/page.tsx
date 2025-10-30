@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import AppLayout from "@/app/components/AppLayout"
 import { BarChart3, Users, Clock, Filter, Truck, Package, X } from "lucide-react"
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from "chart.js"
-import { Bar, Pie } from "react-chartjs-2"
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, ArcElement } from "chart.js"
+import { Bar, Pie, Line } from "react-chartjs-2"
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, ArcElement)
 
 interface Stats {
   entriesByMonth: { month: number; count: number }[]
@@ -17,6 +17,8 @@ interface Stats {
   trucksByMonthLoads: { month: number; count: number }[]
   avgDuration: number | null
   avgDurationLoads: number | null
+  avgDurationByProvider: { provider: string; avgDuration: number }[]
+  avgDurationTrendByProvider: { provider: string; monthlyData: { month: number; avgDuration: number }[] }[]
 }
 
 interface FilterOptions {
@@ -453,6 +455,17 @@ export default function ReportsPage() {
           bottom: 20,
         },
       },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((acc: number, val: number) => acc + val, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
     },
   };
 
@@ -712,6 +725,213 @@ export default function ReportsPage() {
             </div>
           </div>
         </div>
+
+        {stats.avgDurationByProvider && stats.avgDurationByProvider.length > 0 && (
+          <div className="rounded-xl border border-gray-200/60 bg-white p-6 shadow-sm mb-8">
+            <Bar
+              data={{
+                labels: stats.avgDurationByProvider.map((item) => item.provider),
+                datasets: [
+                  {
+                    label: "Tiempo Promedio de Carga (minutos)",
+                    data: stats.avgDurationByProvider.map((item) => Math.round(item.avgDuration)),
+                    backgroundColor: "rgba(99, 102, 241, 0.9)",
+                    borderColor: "rgba(99, 102, 241, 1)",
+                    borderWidth: 0,
+                    borderRadius: 6,
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                  legend: {
+                    position: "top" as const,
+                    labels: {
+                      font: {
+                        size: 13,
+                        weight: 500,
+                      },
+                      color: "#374151",
+                      padding: 16,
+                      usePointStyle: true,
+                      pointStyle: "circle",
+                    },
+                  },
+                  title: {
+                    display: true,
+                    text: "Tiempo Promedio de Carga por Proveedor",
+                    font: {
+                      size: 15,
+                      weight: 600,
+                    },
+                    color: "#111827",
+                    padding: {
+                      top: 10,
+                      bottom: 20,
+                    },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context: any) {
+                        return `Tiempo promedio: ${context.parsed.y} minutos`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: 'Minutos',
+                      font: {
+                        size: 12,
+                        weight: 500,
+                      },
+                      color: "#6B7280",
+                    },
+                    ticks: {
+                      color: "#6B7280",
+                      font: {
+                        size: 12,
+                      },
+                    },
+                    grid: {
+                      color: "#F3F4F6",
+                    },
+                  },
+                  x: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      color: "#6B7280",
+                      font: {
+                        size: 12,
+                      },
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+        )}
+
+        {stats.avgDurationTrendByProvider && stats.avgDurationTrendByProvider.length > 0 && (
+          <div className="rounded-xl border border-gray-200/60 bg-white p-6 shadow-sm mb-8">
+            <Line
+              data={{
+                labels: monthNames,
+                datasets: stats.avgDurationTrendByProvider.map((providerData, index) => {
+                  const colors = [
+                    { bg: "rgba(239, 68, 68, 0.2)", border: "rgba(239, 68, 68, 1)" },
+                    { bg: "rgba(59, 130, 246, 0.2)", border: "rgba(59, 130, 246, 1)" },
+                    { bg: "rgba(251, 191, 36, 0.2)", border: "rgba(251, 191, 36, 1)" },
+                    { bg: "rgba(16, 185, 129, 0.2)", border: "rgba(16, 185, 129, 1)" },
+                    { bg: "rgba(139, 92, 246, 0.2)", border: "rgba(139, 92, 246, 1)" },
+                    { bg: "rgba(249, 115, 22, 0.2)", border: "rgba(249, 115, 22, 1)" },
+                  ];
+                  const color = colors[index % colors.length];
+                  
+                  // Create data array with null for missing months
+                  const dataArray = new Array(12).fill(null);
+                  providerData.monthlyData.forEach(item => {
+                    dataArray[item.month - 1] = Math.round(item.avgDuration);
+                  });
+
+                  return {
+                    label: providerData.provider,
+                    data: dataArray,
+                    borderColor: color.border,
+                    backgroundColor: color.bg,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                  };
+                }),
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                  legend: {
+                    position: "top" as const,
+                    labels: {
+                      font: {
+                        size: 13,
+                        weight: 500,
+                      },
+                      color: "#374151",
+                      padding: 16,
+                      usePointStyle: true,
+                      pointStyle: "circle",
+                    },
+                  },
+                  title: {
+                    display: true,
+                    text: "Tendencia de Tiempo de Carga por Proveedor (Mensual)",
+                    font: {
+                      size: 15,
+                      weight: 600,
+                    },
+                    color: "#111827",
+                    padding: {
+                      top: 10,
+                      bottom: 20,
+                    },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context: any) {
+                        const label = context.dataset.label || '';
+                        const value = context.parsed.y;
+                        if (value === null) return '';
+                        return `${label}: ${value} minutos`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: 'Tiempo Promedio (minutos)',
+                      font: {
+                        size: 12,
+                        weight: 500,
+                      },
+                      color: "#6B7280",
+                    },
+                    ticks: {
+                      color: "#6B7280",
+                      font: {
+                        size: 12,
+                      },
+                    },
+                    grid: {
+                      color: "#F3F4F6",
+                    },
+                  },
+                  x: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      color: "#6B7280",
+                      font: {
+                        size: 12,
+                      },
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+        )}
       </div>
     </AppLayout>
   )

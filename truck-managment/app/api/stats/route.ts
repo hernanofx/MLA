@@ -114,6 +114,90 @@ export async function GET(request: Request) {
       _avg: { durationMinutes: true }
     })
 
+    // Average duration by provider for loads (for new chart)
+    const loadsByProviderWithDuration = await prisma.load.findMany({
+      where: avgDurationWhere,
+      select: {
+        providerId: true,
+        durationMinutes: true,
+        provider: {
+          select: {
+            name: true
+          }
+        }
+      }
+    })
+
+    // Calculate average duration per provider
+    const providerDurationMap = new Map<string, { name: string; durations: number[] }>()
+    loadsByProviderWithDuration.forEach(load => {
+      if (load.durationMinutes) {
+        const key = load.providerId
+        if (!providerDurationMap.has(key)) {
+          providerDurationMap.set(key, { name: load.provider.name, durations: [] })
+        }
+        providerDurationMap.get(key)!.durations.push(load.durationMinutes)
+      }
+    })
+
+    const avgDurationByProvider = Array.from(providerDurationMap.entries())
+      .map(([providerId, data]) => ({
+        provider: data.name,
+        avgDuration: data.durations.reduce((sum, d) => sum + d, 0) / data.durations.length
+      }))
+      .sort((a, b) => b.avgDuration - a.avgDuration)
+
+    // Average duration trend by provider and month (for trend line)
+    const loadsByProviderMonth = await prisma.load.findMany({
+      where: {
+        durationMinutes: { not: null },
+        ...(providerId && { providerId })
+      },
+      select: {
+        providerId: true,
+        month: true,
+        durationMinutes: true,
+        provider: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        month: 'asc'
+      }
+    })
+
+    // Group by provider and month
+    const providerMonthMap = new Map<string, Map<number, number[]>>()
+    loadsByProviderMonth.forEach(load => {
+      if (load.durationMinutes) {
+        const providerKey = `${load.providerId}:${load.provider.name}`
+        if (!providerMonthMap.has(providerKey)) {
+          providerMonthMap.set(providerKey, new Map())
+        }
+        const monthMap = providerMonthMap.get(providerKey)!
+        if (!monthMap.has(load.month!)) {
+          monthMap.set(load.month!, [])
+        }
+        monthMap.get(load.month!)!.push(load.durationMinutes)
+      }
+    })
+
+    // Calculate averages per provider per month
+    const avgDurationTrendByProvider = Array.from(providerMonthMap.entries()).map(([providerKey, monthMap]) => {
+      const [providerId, providerName] = providerKey.split(':')
+      const monthlyAvgs = Array.from(monthMap.entries()).map(([month, durations]) => ({
+        month,
+        avgDuration: durations.reduce((sum, d) => sum + d, 0) / durations.length
+      })).sort((a, b) => a.month - b.month)
+
+      return {
+        provider: providerName,
+        monthlyData: monthlyAvgs
+      }
+    })
+
     return NextResponse.json({
       entriesByMonth: entriesByMonth.map(item => ({ month: item.month, count: item._count })),
       loadsByMonth: loadsByMonth.map(item => ({ month: item.month, count: item._count })),
@@ -128,7 +212,9 @@ export async function GET(request: Request) {
       trucksByMonth: trucksByMonth.map(item => ({ month: item.month, count: item._count })),
       trucksByMonthLoads: trucksByMonthLoads.map(item => ({ month: item.month, count: item._count })),
       avgDuration: avgDuration._avg.durationMinutes,
-      avgDurationLoads: avgDurationLoads._avg.durationMinutes
+      avgDurationLoads: avgDurationLoads._avg.durationMinutes,
+      avgDurationByProvider,
+      avgDurationTrendByProvider
     })
   } catch (error) {
     console.error('Error in stats API:', error)
