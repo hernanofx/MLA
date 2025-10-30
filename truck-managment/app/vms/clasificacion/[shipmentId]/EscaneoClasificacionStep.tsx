@@ -171,12 +171,12 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId }
               {lastScanResult.trackingNumber}
             </p>
             {lastScanResult.status === 'CLASIFICADO' && (
-              <div className="mt-8 space-y-4 bg-white bg-opacity-20 rounded-xl p-6 backdrop-blur-sm">
-                <div className="flex items-center justify-center text-3xl font-bold">
+              <div className="mt-8 space-y-4 bg-green-800 bg-opacity-40 rounded-xl p-6 backdrop-blur-sm border-2 border-white">
+                <div className="flex items-center justify-center text-3xl font-bold text-white drop-shadow-lg">
                   <Truck className="h-10 w-10 mr-4" />
                   <span>Vehículo: {lastScanResult.vehiculo}</span>
                 </div>
-                <div className="flex items-center justify-center text-3xl font-bold">
+                <div className="flex items-center justify-center text-3xl font-bold text-white drop-shadow-lg">
                   <MapPin className="h-10 w-10 mr-4" />
                   <span>Orden: #{lastScanResult.ordenNumerico}</span>
                 </div>
