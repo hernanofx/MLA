@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/app/components/AppLayout'
-import { Package, TrendingUp, CheckCircle2, AlertTriangle, Plus, FileText, Trash2 } from 'lucide-react'
+import { Package, TrendingUp, CheckCircle2, AlertTriangle, Plus, FileText, Trash2, ListOrdered } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatArgentinaDate } from '@/lib/date-utils'
 
@@ -328,6 +328,16 @@ export default function VMSDashboard() {
                       }`}>
                         {getStatusLabel(shipment.status)}
                       </span>
+                      {shipment.status === 'FINALIZADO' && (
+                        <button
+                          onClick={() => router.push(`/vms/clasificacion/${shipment.id}`)}
+                          className="inline-flex items-center px-3 py-1.5 border border-orange-600 shadow-sm text-xs font-medium rounded-md text-orange-600 bg-white hover:bg-orange-50 transition-colors"
+                          title="Clasificar paquetes por vehículo"
+                        >
+                          <ListOrdered className="h-3.5 w-3.5 mr-1" />
+                          Clasificar
+                        </button>
+                      )}
                       <button
                         onClick={() => router.push(`/vms/shipments/${shipment.id}`)}
                         className="text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-colors"
