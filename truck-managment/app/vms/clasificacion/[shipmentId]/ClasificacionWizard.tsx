@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Upload, ScanLine, Package, ArrowLeft } from 'lucide-react'
 import UploadClasificacionStep from './UploadClasificacionStep'
@@ -30,6 +30,30 @@ export default function ClasificacionWizard() {
   
   const [currentStep, setCurrentStep] = useState<Step>('upload')
   const [clasificacionId, setClasificacionId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isReadOnly, setIsReadOnly] = useState(false)
+
+  useEffect(() => {
+    checkExistingClasificacion()
+  }, [])
+
+  const checkExistingClasificacion = async () => {
+    try {
+      const response = await fetch(`/api/vms/shipments/${shipmentId}/clasificacion`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.clasificacion) {
+          setClasificacionId(data.clasificacion.id)
+          setCurrentStep('escaneo')
+          setIsReadOnly(data.clasificacion.finalizado)
+        }
+      }
+    } catch (error) {
+      console.error('Error checking clasificacion:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleUploadComplete = (id: string) => {
     setClasificacionId(id)
@@ -58,16 +82,25 @@ export default function ClasificacionWizard() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             {currentStep === 'upload' ? 'Volver a VMS' : 'Paso anterior'}
           </button>
-          <div className="flex items-center">
-            <Package className="h-10 w-10 mr-4 text-orange-600" />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Clasificación de Paquetes
-              </h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Organiza la entrega de paquetes por vehículo y orden de visita
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Package className="h-10 w-10 mr-4 text-orange-600" />
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {isReadOnly ? 'Ver Clasificación de Paquetes' : 'Clasificación de Paquetes'}
+                </h1>
+                <p className="mt-1 text-sm text-gray-600">
+                  {isReadOnly 
+                    ? 'Visualización de clasificación finalizada' 
+                    : 'Organiza la entrega de paquetes por vehículo y orden de visita'}
+                </p>
+              </div>
             </div>
+            {isReadOnly && (
+              <span className="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 text-green-800 border-2 border-green-500 font-semibold">
+                ✓ Finalizado
+              </span>
+            )}
           </div>
         </div>
 
@@ -122,17 +155,27 @@ export default function ClasificacionWizard() {
 
         {/* Step Content */}
         <div className="bg-white shadow-lg rounded-lg border border-gray-200">
-          {currentStep === 'upload' && (
-            <UploadClasificacionStep 
-              shipmentId={shipmentId}
-              onComplete={handleUploadComplete}
-            />
-          )}
-          {currentStep === 'escaneo' && clasificacionId && (
-            <EscaneoClasificacionStep 
-              clasificacionId={clasificacionId}
-              shipmentId={shipmentId}
-            />
+          {loading ? (
+            <div className="p-12 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Cargando...</p>
+            </div>
+          ) : (
+            <>
+              {currentStep === 'upload' && !isReadOnly && (
+                <UploadClasificacionStep 
+                  shipmentId={shipmentId}
+                  onComplete={handleUploadComplete}
+                />
+              )}
+              {currentStep === 'escaneo' && clasificacionId && (
+                <EscaneoClasificacionStep 
+                  clasificacionId={clasificacionId}
+                  shipmentId={shipmentId}
+                  isReadOnly={isReadOnly}
+                />
+              )}
+            </>
           )}
         </div>
 

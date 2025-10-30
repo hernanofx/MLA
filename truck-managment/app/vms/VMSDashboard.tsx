@@ -53,7 +53,26 @@ export default function VMSDashboard() {
       const response = await fetch('/api/vms/shipments')
       if (response.ok) {
         const data = await response.json()
-        setRecentShipments(data.shipments || [])
+        
+        // Agregar información de clasificación a cada shipment
+        const shipmentsWithClasificacion = await Promise.all(
+          data.shipments.map(async (shipment: any) => {
+            if (shipment.status === 'FINALIZADO') {
+              try {
+                const clasifResponse = await fetch(`/api/vms/shipments/${shipment.id}/clasificacion`)
+                if (clasifResponse.ok) {
+                  const clasifData = await clasifResponse.json()
+                  return { ...shipment, clasificacion: clasifData.clasificacion }
+                }
+              } catch (err) {
+                console.error('Error fetching clasificacion:', err)
+              }
+            }
+            return shipment
+          })
+        )
+        
+        setRecentShipments(shipmentsWithClasificacion || [])
         
         // Calcular estadísticas
         const statsData: DashboardStats = {
@@ -331,11 +350,15 @@ export default function VMSDashboard() {
                       {shipment.status === 'FINALIZADO' && (
                         <button
                           onClick={() => router.push(`/vms/clasificacion/${shipment.id}`)}
-                          className="inline-flex items-center px-3 py-1.5 border border-orange-600 shadow-sm text-xs font-medium rounded-md text-orange-600 bg-white hover:bg-orange-50 transition-colors"
-                          title="Clasificar paquetes por vehículo"
+                          className={`inline-flex items-center px-3 py-1.5 border shadow-sm text-xs font-medium rounded-md transition-colors ${
+                            shipment.clasificacion?.finalizado
+                              ? 'border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100'
+                              : 'border-orange-600 text-orange-600 bg-white hover:bg-orange-50'
+                          }`}
+                          title={shipment.clasificacion?.finalizado ? 'Ver clasificación finalizada' : 'Clasificar paquetes por vehículo'}
                         >
                           <ListOrdered className="h-3.5 w-3.5 mr-1" />
-                          Clasificar
+                          {shipment.clasificacion?.finalizado ? 'Ver Clasificación' : 'Clasificar'}
                         </button>
                       )}
                       <button
