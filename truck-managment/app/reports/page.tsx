@@ -823,35 +823,97 @@ export default function ReportsPage() {
           <div className="rounded-xl border border-gray-200/60 bg-white p-6 shadow-sm mb-8">
             <Line
               data={{
-                labels: monthNames,
-                datasets: stats.avgDurationTrendByProvider.map((providerData, index) => {
-                  const colors = [
-                    { bg: "rgba(239, 68, 68, 0.2)", border: "rgba(239, 68, 68, 1)" },
-                    { bg: "rgba(59, 130, 246, 0.2)", border: "rgba(59, 130, 246, 1)" },
-                    { bg: "rgba(251, 191, 36, 0.2)", border: "rgba(251, 191, 36, 1)" },
-                    { bg: "rgba(16, 185, 129, 0.2)", border: "rgba(16, 185, 129, 1)" },
-                    { bg: "rgba(139, 92, 246, 0.2)", border: "rgba(139, 92, 246, 1)" },
-                    { bg: "rgba(249, 115, 22, 0.2)", border: "rgba(249, 115, 22, 1)" },
-                  ];
-                  const color = colors[index % colors.length];
-                  
-                  // Create data array with null for missing months
-                  const dataArray = new Array(12).fill(null);
-                  providerData.monthlyData.forEach(item => {
-                    dataArray[item.month - 1] = Math.round(item.avgDuration);
-                  });
+                labels: ["Ago 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Ene 2026", "Feb 2026", "Mar 2026", "Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026"],
+                datasets: [
+                  // Línea consolidada (primera en el array para que sea la primera en la leyenda)
+                  (() => {
+                    // Calculate consolidated data (average of all providers per month)
+                    const consolidatedData = new Array(13).fill(null);
+                    const monthsMap = new Map<number, number[]>();
+                    
+                    // Collect all durations per month
+                    stats.avgDurationTrendByProvider.forEach(providerData => {
+                      providerData.monthlyData.forEach(item => {
+                        if (!monthsMap.has(item.month)) {
+                          monthsMap.set(item.month, []);
+                        }
+                        monthsMap.get(item.month)!.push(item.avgDuration);
+                      });
+                    });
+                    
+                    // Calculate average for each month
+                    monthsMap.forEach((durations, month) => {
+                      const avg = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+                      // Map months to the new timeline (Aug 2025 = month 8, etc.)
+                      let position = -1;
+                      if (month >= 8) {
+                        // Aug-Dec 2025 (months 8-12)
+                        position = month - 8;
+                      } else {
+                        // Jan-Aug 2026 (months 1-8)
+                        position = month + 4;
+                      }
+                      if (position >= 0 && position < 13) {
+                        consolidatedData[position] = Math.round(avg);
+                      }
+                    });
 
-                  return {
-                    label: providerData.provider,
-                    data: dataArray,
-                    borderColor: color.border,
-                    backgroundColor: color.bg,
-                    borderWidth: 2,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                  };
-                }),
+                    return {
+                      label: "⭐ CONSOLIDADO GENERAL",
+                      data: consolidatedData,
+                      borderColor: "rgba(0, 0, 0, 1)",
+                      backgroundColor: "rgba(0, 0, 0, 0.1)",
+                      borderWidth: 4,
+                      tension: 0.4,
+                      pointRadius: 6,
+                      pointHoverRadius: 8,
+                      pointBackgroundColor: "rgba(0, 0, 0, 1)",
+                      pointBorderColor: "#fff",
+                      pointBorderWidth: 2,
+                      borderDash: [],
+                    };
+                  })(),
+                  // Individual provider lines
+                  ...stats.avgDurationTrendByProvider.map((providerData, index) => {
+                    const colors = [
+                      { bg: "rgba(239, 68, 68, 0.2)", border: "rgba(239, 68, 68, 1)" },
+                      { bg: "rgba(59, 130, 246, 0.2)", border: "rgba(59, 130, 246, 1)" },
+                      { bg: "rgba(251, 191, 36, 0.2)", border: "rgba(251, 191, 36, 1)" },
+                      { bg: "rgba(16, 185, 129, 0.2)", border: "rgba(16, 185, 129, 1)" },
+                      { bg: "rgba(139, 92, 246, 0.2)", border: "rgba(139, 92, 246, 1)" },
+                      { bg: "rgba(249, 115, 22, 0.2)", border: "rgba(249, 115, 22, 1)" },
+                    ];
+                    const color = colors[index % colors.length];
+                    
+                    // Create data array with null for missing months (13 months: Aug 2025 - Aug 2026)
+                    const dataArray = new Array(13).fill(null);
+                    providerData.monthlyData.forEach(item => {
+                      // Map months to the new timeline
+                      let position = -1;
+                      if (item.month >= 8) {
+                        // Aug-Dec 2025 (months 8-12)
+                        position = item.month - 8; // 8->0, 9->1, 10->2, 11->3, 12->4
+                      } else {
+                        // Jan-Aug 2026 (months 1-8)
+                        position = item.month + 4; // 1->5, 2->6, 3->7, 4->8, 5->9, 6->10, 7->11, 8->12
+                      }
+                      if (position >= 0 && position < 13) {
+                        dataArray[position] = Math.round(item.avgDuration);
+                      }
+                    });
+
+                    return {
+                      label: providerData.provider,
+                      data: dataArray,
+                      borderColor: color.border,
+                      backgroundColor: color.bg,
+                      borderWidth: 2,
+                      tension: 0.4,
+                      pointRadius: 4,
+                      pointHoverRadius: 6,
+                    };
+                  }),
+                ],
               }}
               options={{
                 responsive: true,
@@ -872,7 +934,7 @@ export default function ReportsPage() {
                   },
                   title: {
                     display: true,
-                    text: "Tendencia de Tiempo de Carga por Proveedor (Mensual)",
+                    text: "Tendencia de Tiempo de Carga por Proveedor (Ago 2025 - Ago 2026)",
                     font: {
                       size: 15,
                       weight: 600,
@@ -923,7 +985,7 @@ export default function ReportsPage() {
                     ticks: {
                       color: "#6B7280",
                       font: {
-                        size: 12,
+                        size: 11,
                       },
                     },
                   },
