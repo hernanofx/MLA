@@ -823,12 +823,12 @@ export default function ReportsPage() {
           <div className="rounded-xl border border-gray-200/60 bg-white p-6 shadow-sm mb-8">
             <Line
               data={{
-                labels: ["Ago 2025", "Sep 2025", "Oct 2025", "Nov 2025", "Dec 2025", "Ene 2026", "Feb 2026", "Mar 2026", "Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026"],
+                labels: monthNames,
                 datasets: [
                   // Línea consolidada (primera en el array para que sea la primera en la leyenda)
                   (() => {
                     // Calculate consolidated data (average of all providers per month)
-                    const consolidatedData = new Array(13).fill(null);
+                    const consolidatedData = new Array(12).fill(null);
                     const monthsMap = new Map<number, number[]>();
                     
                     // Collect all durations per month
@@ -844,18 +844,7 @@ export default function ReportsPage() {
                     // Calculate average for each month
                     monthsMap.forEach((durations, month) => {
                       const avg = durations.reduce((sum, d) => sum + d, 0) / durations.length;
-                      // Map months to the new timeline (Aug 2025 = month 8, etc.)
-                      let position = -1;
-                      if (month >= 8) {
-                        // Aug-Dec 2025 (months 8-12)
-                        position = month - 8;
-                      } else {
-                        // Jan-Aug 2026 (months 1-8)
-                        position = month + 4;
-                      }
-                      if (position >= 0 && position < 13) {
-                        consolidatedData[position] = Math.round(avg);
-                      }
+                      consolidatedData[month - 1] = Math.round(avg);
                     });
 
                     return {
@@ -885,21 +874,10 @@ export default function ReportsPage() {
                     ];
                     const color = colors[index % colors.length];
                     
-                    // Create data array with null for missing months (13 months: Aug 2025 - Aug 2026)
-                    const dataArray = new Array(13).fill(null);
+                    // Create data array with null for missing months
+                    const dataArray = new Array(12).fill(null);
                     providerData.monthlyData.forEach(item => {
-                      // Map months to the new timeline
-                      let position = -1;
-                      if (item.month >= 8) {
-                        // Aug-Dec 2025 (months 8-12)
-                        position = item.month - 8; // 8->0, 9->1, 10->2, 11->3, 12->4
-                      } else {
-                        // Jan-Aug 2026 (months 1-8)
-                        position = item.month + 4; // 1->5, 2->6, 3->7, 4->8, 5->9, 6->10, 7->11, 8->12
-                      }
-                      if (position >= 0 && position < 13) {
-                        dataArray[position] = Math.round(item.avgDuration);
-                      }
+                      dataArray[item.month - 1] = Math.round(item.avgDuration);
                     });
 
                     return {
@@ -934,7 +912,7 @@ export default function ReportsPage() {
                   },
                   title: {
                     display: true,
-                    text: "Tendencia de Tiempo de Carga por Proveedor (Ago 2025 - Ago 2026)",
+                    text: "Tendencia de Tiempo de Carga por Proveedor",
                     font: {
                       size: 15,
                       weight: 600,
@@ -985,7 +963,7 @@ export default function ReportsPage() {
                     ticks: {
                       color: "#6B7280",
                       font: {
-                        size: 11,
+                        size: 12,
                       },
                     },
                   },
