@@ -310,6 +310,7 @@ model Shipment {
   preAlertas        PreAlerta[]
   preRuteos         PreRuteo[]
   scannedPackages   ScannedPackage[]
+  clasificaciones   ClasificacionArchivo[]
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -423,4 +424,49 @@ model Label {
   
   @@index([providerName])
   @@index([issueDate])
+}
+
+// Modelos de Clasificación VMS
+model ClasificacionArchivo {
+  id                String   @id @default(cuid())
+  shipmentId        String
+  shipment          Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  providerId        String   // Para multi-tenancy
+  
+  uploadedAt        DateTime @default(now())
+  totalRows         Int
+  uploadedBy        String
+  
+  paquetes          PaqueteClasificacion[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([shipmentId])
+  @@index([providerId])
+}
+
+model PaqueteClasificacion {
+  id                String   @id @default(cuid())
+  clasificacionId   String
+  clasificacion     ClasificacionArchivo @relation(fields: [clasificacionId], references: [id], onDelete: Cascade)
+  
+  trackingNumber    String   // Columna B del archivo orden.xls
+  vehiculo          String   // Columna F del archivo orden.xls
+  ordenVisita       String   // Columna AF del archivo orden.xls (valor original: "-", "1", etc)
+  ordenNumerico     Int      // Calculado: 1 para "-", luego +1 secuencial por vehículo
+  
+  // Datos del escaneo
+  escaneado         Boolean  @default(false)
+  escaneadoAt       DateTime?
+  escaneadoPor      String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([clasificacionId, trackingNumber])
+  @@index([clasificacionId])
+  @@index([trackingNumber])
+  @@index([escaneado])
+  @@index([vehiculo])
 }
