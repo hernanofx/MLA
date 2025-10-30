@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ScanLine, Truck, MapPin, CheckCircle, XCircle, AlertTriangle, Download, Play, Pause } from 'lucide-react'
+import { ScanLine, Truck, MapPin, CheckCircle, XCircle, AlertTriangle, Download, Play, Pause, CheckSquare } from 'lucide-react'
 
 interface EscaneoClasificacionStepProps {
   clasificacionId: string
   shipmentId: string
+  isReadOnly?: boolean
 }
 
 interface ScanResult {
@@ -25,7 +26,7 @@ interface Stats {
   porcentaje: number
 }
 
-export default function EscaneoClasificacionStep({ clasificacionId, shipmentId }: EscaneoClasificacionStepProps) {
+export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, isReadOnly = false }: EscaneoClasificacionStepProps) {
   const router = useRouter()
   const [scanning, setScanning] = useState(false)
   const [scannedPackages, setScannedPackages] = useState<ScanResult[]>([])
@@ -36,6 +37,7 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId }
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [finalizing, setFinalizing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -143,6 +145,32 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId }
     }
   }
 
+  const handleFinalize = async () => {
+    if (!confirm('¿Finalizar la clasificación? No podrás escanear más paquetes después de esto.')) {
+      return
+    }
+
+    setFinalizing(true)
+    try {
+      const response = await fetch(`/api/vms/clasificacion/${clasificacionId}/finalize`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al finalizar')
+      }
+
+      const result = await response.json()
+      alert(`Clasificación finalizada correctamente!\n\nEscaneados: ${result.stats.escaneados} de ${result.stats.totalPaquetes} (${result.stats.porcentaje}%)`)
+      router.push('/vms')
+    } catch (err: any) {
+      alert('Error al finalizar: ' + err.message)
+    } finally {
+      setFinalizing(false)
+    }
+  }
+
   const clasificados = scannedPackages.filter(p => p.status === 'CLASIFICADO').length
   const yaEscaneados = scannedPackages.filter(p => p.status === 'YA_ESCANEADO').length
   const noEncontrados = scannedPackages.filter(p => p.status === 'NO_ENCONTRADO').length
@@ -190,10 +218,12 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId }
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              Escaneo de Clasificación
+              {isReadOnly ? 'Clasificación Finalizada' : 'Escaneo de Clasificación'}
             </h2>
             <p className="text-gray-600 mt-1">
-              Escanea los paquetes para confirmar vehículo y orden de entrega
+              {isReadOnly 
+                ? 'Visualiza los paquetes clasificados y exporta el reporte'
+                : 'Escanea los paquetes para confirmar vehículo y orden de entrega'}
             </p>
           </div>
           
@@ -220,10 +250,16 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId }
         {!scanning ? (
           <button
             onClick={() => setScanning(true)}
-            className="w-full py-16 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl shadow-2xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            disabled={isReadOnly}
+            className="w-full py-16 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl shadow-2xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <Play className="h-20 w-20 mx-auto mb-4" />
-            <span className="text-3xl font-bold">INICIAR ESCANEO</span>
+            <span className="text-3xl font-bold">
+              {isReadOnly ? 'CLASIFICACIÓN FINALIZADA' : 'INICIAR ESCANEO'}
+            </span>
+            {isReadOnly && (
+              <p className="text-lg mt-2 opacity-90">No se pueden escanear más paquetes</p>
+            )}
           </button>
         ) : (
           <div className="space-y-6">
@@ -312,6 +348,18 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId }
               <Pause className="h-5 w-5 mr-2" />
               Pausar Escaneo
             </button>
+
+            {/* Finalize Button */}
+            {!isReadOnly && (
+              <button
+                onClick={handleFinalize}
+                disabled={finalizing}
+                className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <CheckSquare className="h-5 w-5 mr-2" />
+                {finalizing ? 'Finalizando...' : 'Finalizar Clasificación'}
+              </button>
+            )}
 
             {/* History */}
             <div className="bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">

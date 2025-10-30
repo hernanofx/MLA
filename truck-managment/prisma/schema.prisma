@@ -437,6 +437,10 @@ model ClasificacionArchivo {
   totalRows         Int
   uploadedBy        String
   
+  finalizado        Boolean  @default(false)
+  finalizadoAt      DateTime?
+  finalizadoPor     String?
+  
   paquetes          PaqueteClasificacion[]
   
   createdAt         DateTime @default(now())
@@ -444,6 +448,7 @@ model ClasificacionArchivo {
   
   @@index([shipmentId])
   @@index([providerId])
+  @@index([finalizado])
 }
 
 model PaqueteClasificacion {
