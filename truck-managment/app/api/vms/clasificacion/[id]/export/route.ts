@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,6 +17,7 @@ export async function GET(
 
     // Obtener providerId del usuario (multi-tenant)
     const providerId = await getVMSProviderId(session)
+    const params = await context.params
     const clasificacionId = params.id
 
     // Verificar que la clasificación existe y el usuario tiene acceso
