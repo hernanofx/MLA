@@ -179,16 +179,17 @@ Se ha implementado exitosamente el módulo de **Clasificación de Paquetes** par
 | AF | Orden de Visita | - (primera) o número |
 
 ### Lógica de Orden Numérico
-1. Primera visita de vehículo (`-`) → Orden 1
-2. Siguientes visitas → Incremento secuencial (+1)
-3. Agrupado por vehículo
+1. Si el valor en columna AF es `-` → Orden = 1
+2. Si el valor es un número (ej: `2`, `3`, `4`) → Orden = valor + 1
+3. Si el valor no es válido → Orden = 1 (por defecto)
 
 **Ejemplo:**
-- VH-001, `-` → Orden 1
-- VH-001, `2` → Orden 2
-- VH-001, `3` → Orden 3
-- VH-002, `-` → Orden 1
-- VH-002, `2` → Orden 2
+- Columna AF: `-` → Orden Numérico: 1
+- Columna AF: `1` → Orden Numérico: 2
+- Columna AF: `2` → Orden Numérico: 3
+- Columna AF: `3` → Orden Numérico: 4
+
+**Nota:** El orden es independiente por paquete, no acumulativo por vehículo.
 
 ---
 

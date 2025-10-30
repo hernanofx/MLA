@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
 
     const paquetesClasificacion: any[] = []
     const trackingsOK = new Set(shipment.scannedPackages.map(p => p.trackingNumber))
-    const vehiculosMap = new Map<string, number>() // Para tracking de orden por vehículo
     
     let totalProcessed = 0
     let skippedNotOK = 0
@@ -105,14 +104,17 @@ export async function POST(request: NextRequest) {
       let ordenNumerico = 1
       
       if (ordenVisita === '-') {
-        // Primera visita del vehículo
+        // Primera visita: "-" se reemplaza por 1
         ordenNumerico = 1
-        vehiculosMap.set(vehiculo, 1)
       } else {
-        // Incrementar contador del vehículo
-        const currentOrden = vehiculosMap.get(vehiculo) || 0
-        ordenNumerico = currentOrden + 1
-        vehiculosMap.set(vehiculo, ordenNumerico)
+        // Para otros valores: tomar el valor y sumarle 1
+        const valorOrden = parseInt(ordenVisita, 10)
+        if (!isNaN(valorOrden)) {
+          ordenNumerico = valorOrden + 1
+        } else {
+          // Si no es un número válido, tratarlo como "-"
+          ordenNumerico = 1
+        }
       }
 
       paquetesClasificacion.push({
