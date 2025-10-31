@@ -111,6 +111,7 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
             trackingNumber: trackingNumber.trim(),
             status: 'YA_ESCANEADO',
             timestamp: getArgentinaDate().toISOString(),
+            details: error.details // Incluir los datos del paquete ya escaneado
           }
           setLastScanResult(scanResult)
           setShowFlash(true)
@@ -273,11 +274,12 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
             <p className="text-4xl font-semibold mb-4">
               {lastScanResult.trackingNumber}
             </p>
-            {lastScanResult.status === 'OK' && lastScanResult.details && (
+            {/* Mostrar datos de ruta tanto para OK como para YA_ESCANEADO */}
+            {(lastScanResult.status === 'OK' || lastScanResult.status === 'YA_ESCANEADO') && lastScanResult.details && (
               <div className="text-2xl text-white space-y-4 mt-8">
                 {lastScanResult.details.preRuteo && (
                   <p className="text-6xl font-bold text-yellow-300">
-                    � RUTA: {lastScanResult.details.preRuteo.ruta || 'N/A'}
+                    🚛 RUTA: {lastScanResult.details.preRuteo.ruta || 'N/A'}
                   </p>
                 )}
                 {lastScanResult.details.preRuteo && lastScanResult.details.preRuteo.chofer && (

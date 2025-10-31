@@ -50,10 +50,27 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
     }
   }, [scanning])
 
+  // Event listeners para ocultar el flash con teclado o mouse
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showFlash) {
+        setShowFlash(false)
+      }
+    }
+
+    const handleClick = (e: MouseEvent) => {
+      if (showFlash) {
+        setShowFlash(false)
+      }
+    }
+
     if (showFlash) {
-      const timer = setTimeout(() => setShowFlash(false), 2000)
-      return () => clearTimeout(timer)
+      document.addEventListener('keydown', handleKeyDown)
+      document.addEventListener('click', handleClick)
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown)
+        document.removeEventListener('click', handleClick)
+      }
     }
   }, [showFlash])
 
@@ -74,6 +91,8 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
   const handleScan = async (trackingNumber: string) => {
     if (!trackingNumber.trim()) return
 
+    // Ocultar flash del escaneo anterior
+    setShowFlash(false)
     setError('')
 
     try {
@@ -198,15 +217,22 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             <p className="text-4xl font-semibold mb-4 font-mono">
               {lastScanResult.trackingNumber}
             </p>
-            {lastScanResult.status === 'CLASIFICADO' && (
-              <div className="mt-8 space-y-4 bg-green-800 bg-opacity-40 rounded-xl p-6 backdrop-blur-sm border-2 border-white">
-                <div className="flex items-center justify-center text-3xl font-bold text-white drop-shadow-lg">
-                  <Truck className="h-10 w-10 mr-4" />
+            {(lastScanResult.status === 'CLASIFICADO' || lastScanResult.status === 'YA_ESCANEADO') && (
+              <div className={`mt-8 space-y-6 rounded-xl p-8 backdrop-blur-sm border-2 border-white ${
+                lastScanResult.status === 'CLASIFICADO' ? 'bg-green-800 bg-opacity-40' : 'bg-yellow-800 bg-opacity-40'
+              }`}>
+                <div className="flex items-center justify-center text-4xl font-bold text-white drop-shadow-lg">
+                  <Truck className="h-12 w-12 mr-4" />
                   <span>Vehículo: {lastScanResult.vehiculo}</span>
                 </div>
-                <div className="flex items-center justify-center text-3xl font-bold text-white drop-shadow-lg">
-                  <MapPin className="h-10 w-10 mr-4" />
-                  <span>Orden: #{lastScanResult.ordenNumerico}</span>
+                <div className="flex flex-col items-center justify-center space-y-2">
+                  <div className="flex items-center text-3xl font-bold text-white drop-shadow-lg">
+                    <MapPin className="h-10 w-10 mr-4" />
+                    <span>Orden de Visita:</span>
+                  </div>
+                  <p className="text-9xl font-black text-yellow-300 drop-shadow-2xl">
+                    #{lastScanResult.ordenNumerico}
+                  </p>
                 </div>
               </div>
             )}
