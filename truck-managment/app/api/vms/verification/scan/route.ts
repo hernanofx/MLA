@@ -154,7 +154,9 @@ export async function POST(request: NextRequest) {
           include: {
             scannedByUser: {
               select: { name: true, email: true }
-            }
+            },
+            preAlerta: true,
+            preRuteo: true
           }
         })
 
@@ -162,7 +164,21 @@ export async function POST(request: NextRequest) {
           error: 'PAQUETE_YA_ESCANEADO',
           message: 'PAQUETE YA ESCANEADO',
           scannedAt: existingScanned?.scanTimestamp,
-          scannedBy: existingScanned?.scannedByUser?.name || existingScanned?.scannedByUser?.email
+          scannedBy: existingScanned?.scannedByUser?.name || existingScanned?.scannedByUser?.email,
+          status: existingScanned?.status,
+          details: {
+            preAlerta: existingScanned?.preAlerta ? {
+              buyer: existingScanned.preAlerta.buyer,
+              city: existingScanned.preAlerta.buyerCity,
+              weight: existingScanned.preAlerta.weight,
+            } : null,
+            preRuteo: existingScanned?.preRuteo ? {
+              ruta: existingScanned.preRuteo.ruta,
+              razonSocial: existingScanned.preRuteo.razonSocial,
+              domicilio: existingScanned.preRuteo.domicilio,
+              chofer: existingScanned.preRuteo.chofer,
+            } : null,
+          }
         }, { status: 400 })
       }
       
