@@ -40,10 +40,41 @@ export async function POST(request: NextRequest) {
     const buffer = await file.arrayBuffer()
     const workbook = XLSX.read(buffer)
     const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet)
+    
+    // El archivo prerruteo tiene:
+    // - Las primeras 4 filas vacías (logo/imagen)
+    // - Headers en la fila 4 (índice 4)
+    // - Columna A vacía, datos reales empiezan en columna B
+    // - Datos empiezan en fila 5 (índice 5)
+    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as any[][]
+    
+    if (rawData.length < 6) {
+      return NextResponse.json({ error: 'El archivo está vacío o no tiene suficientes datos' }, { status: 400 })
+    }
+
+    // Obtener headers de la fila 4, saltando la columna A vacía
+    const headerRow = rawData[4]
+    const headers = headerRow.slice(1).filter((h: any) => h && String(h).trim())
+    
+    // Obtener datos desde la fila 5, saltando la columna A vacía
+    const dataRows = rawData.slice(5).filter((row: any[]) => {
+      // Filtrar filas completamente vacías
+      const hasData = row.slice(1).some((cell: any) => cell !== '' && cell !== null && cell !== undefined)
+      return hasData
+    })
+
+    // Convertir a objetos usando los headers
+    const jsonData = dataRows.map((row: any[]) => {
+      const obj: any = {}
+      const dataRow = row.slice(1) // Saltar columna A
+      headers.forEach((header: string, index: number) => {
+        obj[header.trim()] = dataRow[index]
+      })
+      return obj
+    })
 
     if (jsonData.length === 0) {
-      return NextResponse.json({ error: 'El archivo está vacío' }, { status: 400 })
+      return NextResponse.json({ error: 'No se encontraron datos válidos en el archivo' }, { status: 400 })
     }
 
     // Función para parsear fechas de Excel
