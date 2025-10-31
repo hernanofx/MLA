@@ -74,7 +74,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'admin') {
+    // Permitir acceso a admin y operario
+    if (session.user.role !== 'admin' && session.user.role !== 'operario') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

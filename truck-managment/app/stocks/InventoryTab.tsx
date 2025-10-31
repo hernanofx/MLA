@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import ActionMenu from '@/app/components/ActionMenu';
 import SearchableLocationSelect from '@/app/components/SearchableLocationSelect';
-import { FileSpreadsheet } from 'lucide-react';
+import { FileSpreadsheet, Package, CheckCircle } from 'lucide-react';
 
 interface Inventory {
   id: string;
@@ -73,6 +73,13 @@ export default function InventoryTab() {
   const [total, setTotal] = useState(0);
   const [limit] = useState(25);
   const { data: session } = useSession();
+  
+  // Estados para el escaneo de códigos de barras
+  const [scannedCodes, setScannedCodes] = useState<string[]>([]);
+  const [currentBarcode, setCurrentBarcode] = useState('');
+  const [showBarcodeFlash, setShowBarcodeFlash] = useState(false);
+  const [lastScannedCode, setLastScannedCode] = useState('');
+  const trackingInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchInventories(1);
@@ -177,6 +184,97 @@ export default function InventoryTab() {
     }
   };
 
+  // Ocultar flash con cualquier tecla o click
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showBarcodeFlash) {
+        setShowBarcodeFlash(false);
+      }
+    };
+
+    const handleClick = () => {
+      if (showBarcodeFlash) {
+        setShowBarcodeFlash(false);
+      }
+    };
+
+    if (showBarcodeFlash) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('click', handleClick);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('click', handleClick);
+      };
+    }
+  }, [showBarcodeFlash]);
+
+  // Manejar el escaneo de códigos de barras
+  const handleBarcodeScan = (barcode: string) => {
+    const cleanBarcode = barcode.trim();
+    if (!cleanBarcode) return;
+
+    // Agregar a la lista de códigos escaneados
+    setScannedCodes(prev => [...prev, cleanBarcode]);
+    
+    // Incrementar la cantidad
+    setFormData(prev => ({
+      ...prev,
+      quantity: prev.quantity + 1,
+      trackingNumbers: prev.trackingNumbers ? `${prev.trackingNumbers}, ${cleanBarcode}` : cleanBarcode
+    }));
+
+    // Mostrar flash en pantalla completa
+    setLastScannedCode(cleanBarcode);
+    setShowBarcodeFlash(true);
+    
+    // Limpiar el input
+    setCurrentBarcode('');
+    
+    // Volver a enfocar el input para el siguiente escaneo
+    setTimeout(() => {
+      if (trackingInputRef.current) {
+        trackingInputRef.current.focus();
+      }
+    }, 100);
+  };
+
+  const handleBarcodeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCurrentBarcode(value);
+    
+    // Si detecta un salto de línea (Enter automático del scanner)
+    if (value.includes('\n') || value.includes('\r')) {
+      const cleanValue = value.replace(/[\n\r]/g, '').trim();
+      if (cleanValue) {
+        handleBarcodeScan(cleanValue);
+      }
+    }
+  };
+
+  const handleBarcodeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleBarcodeScan(currentBarcode);
+    }
+  };
+
+  const removeScannedCode = (index: number) => {
+    const newCodes = scannedCodes.filter((_, i) => i !== index);
+    setScannedCodes(newCodes);
+    setFormData(prev => ({
+      ...prev,
+      quantity: newCodes.length + 1,
+      trackingNumbers: newCodes.join(', ')
+    }));
+  };
+
+  const resetForm = () => {
+    setFormData({ providerId: '', locationId: '', quantity: 1, status: 'stored', trackingNumbers: '' });
+    setScannedCodes([]);
+    setCurrentBarcode('');
+    setShowForm(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -186,12 +284,15 @@ export default function InventoryTab() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
-        setFormData({ providerId: '', locationId: '', quantity: 1, status: 'stored', trackingNumbers: '' });
-        setShowForm(false);
+        resetForm();
         fetchInventories(currentPage);
+      } else {
+        const error = await res.json();
+        alert(`Error al crear la devolución: ${error.error || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('Failed to create devolución:', error);
+      alert('Error al crear la devolución. Por favor, intenta nuevamente.');
     }
   };
 
@@ -216,6 +317,27 @@ export default function InventoryTab() {
 
   return (
     <div>
+      {/* Flash de código escaneado en pantalla completa */}
+      {showBarcodeFlash && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-pulse">
+          <div className="text-center px-8">
+            <div className="mb-8">
+              <CheckCircle className="h-32 w-32 text-green-400 mx-auto animate-bounce" />
+            </div>
+            <div className="text-white">
+              <p className="text-2xl font-medium mb-4">Código Escaneado</p>
+              <p className="text-6xl font-mono font-bold mb-8 tracking-wider">{lastScannedCode}</p>
+              <p className="text-3xl font-semibold">
+                Paquete #{scannedCodes.length}
+              </p>
+              <p className="text-lg text-gray-300 mt-4">
+                Presiona cualquier tecla para continuar...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Ingreso de devoluciones</h2>
@@ -357,20 +479,6 @@ export default function InventoryTab() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                    Cantidad
-                  </label>
-                  <input
-                    type="number"
-                    id="quantity"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    min="1"
-                    required
-                  />
-                </div>
-                <div>
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700">
                     Estado
                   </label>
@@ -384,30 +492,76 @@ export default function InventoryTab() {
                     <option value="shipped">En Tránsito</option>
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="trackingNumbers" className="block text-sm font-medium text-gray-700">
-                    Tracking Numbers
+              </div>
+
+              {/* Sección de Escaneo de Códigos de Barras */}
+              <div className="mt-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-6 border-2 border-indigo-200">
+                <div className="flex items-center mb-4">
+                  <Package className="h-6 w-6 text-indigo-600 mr-2" />
+                  <h4 className="text-lg font-medium text-gray-900">Escaneo de Códigos de Barras</h4>
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="barcodeInput" className="block text-sm font-medium text-gray-700 mb-2">
+                    Tracking Number (Escanea con pistola o ingresa manualmente)
                   </label>
                   <input
+                    ref={trackingInputRef}
                     type="text"
-                    id="trackingNumbers"
-                    value={formData.trackingNumbers}
-                    onChange={(e) => setFormData({ ...formData, trackingNumbers: e.target.value })}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        setFormData({ ...formData, trackingNumbers: formData.trackingNumbers + ' ' });
-                      }
-                    }}
-                    placeholder="Ingrese tracking numbers separados por coma"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    id="barcodeInput"
+                    value={currentBarcode}
+                    onChange={handleBarcodeInputChange}
+                    onKeyDown={handleBarcodeKeyDown}
+                    placeholder="Escanea el código de barras aquí..."
+                    className="w-full px-4 py-3 text-2xl border-2 border-indigo-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono"
+                    autoFocus
                   />
+                  <p className="text-xs text-gray-600 mt-2">
+                    Cada escaneo incrementa automáticamente la cantidad y agrega el tracking number a la lista
+                  </p>
                 </div>
+
+                {/* Contador de paquetes escaneados */}
+                <div className="bg-white rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Paquetes escaneados:</span>
+                    <span className="text-2xl font-bold text-indigo-600">{scannedCodes.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-sm font-medium text-gray-700">Cantidad total:</span>
+                    <span className="text-xl font-semibold text-gray-900">{formData.quantity}</span>
+                  </div>
+                </div>
+
+                {/* Lista de códigos escaneados */}
+                {scannedCodes.length > 0 && (
+                  <div className="bg-white rounded-lg p-4 max-h-60 overflow-y-auto">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Códigos escaneados:</h5>
+                    <div className="space-y-2">
+                      {scannedCodes.map((code, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
+                          <span className="font-mono text-sm">{code}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeScannedCode(index)}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Campo oculto para tracking numbers (para compatibilidad) */}
+              <input type="hidden" value={formData.trackingNumbers} />
+              
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={resetForm}
                   className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   Cancelar

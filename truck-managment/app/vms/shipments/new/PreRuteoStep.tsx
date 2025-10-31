@@ -62,14 +62,19 @@ export default function PreRuteoStep({ shipmentId, onComplete }: PreRuteoStepPro
       const data = await selectedFile.arrayBuffer()
       const workbook = XLSX.read(data)
       const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' })
       
-      if (jsonData.length < 2) {
-        setErrors(['El archivo está vacío o no tiene datos'])
+      if (jsonData.length < 6) {
+        setErrors(['El archivo está vacío o no tiene suficientes datos'])
         return
       }
 
-      const headers = jsonData[0] as string[]
+      // En el archivo prerruteo, los headers están en la fila 4 (índice 4)
+      // y la columna A está vacía, los datos reales empiezan en la columna B
+      const headerRow = jsonData[4] as string[]
+      
+      // Filtrar headers vacíos (columna A) y limpiar espacios
+      const headers = headerRow.filter(h => h && h.trim()).map(h => h.trim())
       const columnErrors = validateColumns(headers)
       
       if (columnErrors.length > 0) {
@@ -78,10 +83,17 @@ export default function PreRuteoStep({ shipmentId, onComplete }: PreRuteoStepPro
         return
       }
 
-      const rows = jsonData.slice(1, 6).map((row: any) => {
+      // Los datos comienzan en la fila 5 (índice 5)
+      // Tomamos las primeras 5 filas de datos para la vista previa
+      const dataRows = jsonData.slice(5, 10)
+      
+      const rows = dataRows.map((row: any) => {
         const obj: any = {}
+        // Saltamos la primera columna (índice 0) ya que está vacía
+        const dataRow = row.slice(1)
+        
         headers.forEach((header, index) => {
-          let value = row[index]
+          let value = dataRow[index]
           if ((header === 'Fecha de Reparto' || header === 'Fecha De Pedido' || header === 'Arribo' || header === 'Partida') && typeof value === 'number') {
             value = parseExcelDateToString(value)
           }
