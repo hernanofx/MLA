@@ -15,10 +15,10 @@ export default function PreAlertaStep({ onComplete }: PreAlertaStepProps) {
   const [errors, setErrors] = useState<string[]>([])
 
   const requiredColumns = [
-    'Client', 'Country', 'Tracking Number', 'Weight', 'Value',
-    'Buyer Normalized ID', 'Buyer', 'Buyer Address1', 
+    'Client', 'Country', 'Tracking Number', 'Weight', 'FOB',
+    'Buyer ID', 'Buyer', 'Buyer Address1', 
     'Buyer Address1 Number', 'Buyer Address2', 'Buyer City',
-    'Buyer State', 'Buyer Lcation', 'Buyer ZIP', 
+    'Buyer State', 'Buyer Location', 'Buyer ZIP', 
     'Buyer Phone', 'Buyer Email'
   ]
 
@@ -215,7 +215,7 @@ export default function PreAlertaStep({ onComplete }: PreAlertaStepProps) {
                     <td className="px-2 py-2 text-green-900">{row['Buyer']}</td>
                     <td className="px-2 py-2 text-green-900">{row['Buyer City']}</td>
                     <td className="px-2 py-2 text-green-900">{row['Weight']}</td>
-                    <td className="px-2 py-2 text-green-900">{row['Value']}</td>
+                    <td className="px-2 py-2 text-green-900">{row['FOB']}</td>
                   </tr>
                 ))}
               </tbody>

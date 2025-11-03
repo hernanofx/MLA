@@ -135,11 +135,8 @@ Cuando se escanea un paquete:
 
 ### Pre-Alerta (16 columnas):
 ```
-Client | Country | Tracking Number | Weight | Value | 
-Buyer Normalized ID | Buyer | Buyer Address1 | 
-Buyer Address1 Number | Buyer Address2 | Buyer City | 
-Buyer State | Buyer Lcation | Buyer ZIP | 
-Buyer Phone | Buyer Email
+Client | Country | Tracking Number | Weight | FOB | 
+Buyer ID | Buyer | Buyer Address1 |
 ```
 
 ### Pre-Ruteo (16 columnas):

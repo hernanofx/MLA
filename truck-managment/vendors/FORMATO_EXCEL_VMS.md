@@ -10,15 +10,15 @@ Este documento describe el formato exacto de los archivos Excel que deben cargar
 2. **Country** - País
 3. **Tracking Number** - Número de seguimiento único
 4. **Weight** - Peso del paquete
-5. **Value** - Valor del paquete
-6. **Buyer Normalized ID** - ID normalizado del comprador
+5. **FOB** - Valor del paquete
+6. **Buyer ID** - ID del comprador
 7. **Buyer** - Nombre del comprador
 8. **Buyer Address1** - Dirección principal
 9. **Buyer Address1 Number** - Número de dirección
 10. **Buyer Address2** - Dirección secundaria (opcional)
 11. **Buyer City** - Ciudad
 12. **Buyer State** - Provincia/Estado
-13. **Buyer Lcation** - Localidad (nota: tiene typo en el nombre)
+13. **Buyer Location** - Localidad
 14. **Buyer ZIP** - Código postal
 15. **Buyer Phone** - Teléfono
 16. **Buyer Email** - Email
@@ -26,7 +26,7 @@ Este documento describe el formato exacto de los archivos Excel que deben cargar
 ### Ejemplo de Datos:
 
 ```
-Client          | Country | Tracking Number | Weight | Value | Buyer Normalized ID | Buyer      | Buyer Address1 | Buyer Address1 Number | Buyer Address2 | Buyer City     | Buyer State      | Buyer Lcation | Buyer ZIP | Buyer Phone    | Buyer Email
+Client          | Country | Tracking Number | Weight | FOB | Buyer ID | Buyer      | Buyer Address1 | Buyer Address1 Number | Buyer Address2 | Buyer City     | Buyer State      | Buyer Location | Buyer ZIP | Buyer Phone    | Buyer Email
 ----------------|---------|-----------------|--------|-------|---------------------|------------|----------------|----------------------|---------------|----------------|------------------|---------------|-----------|----------------|------------------
 MercadoLibre    | AR      | ML123456789     | 2.5    | 1500  | 12345678           | Juan Perez | Av Corrientes  | 1234                 |               | Buenos Aires   | Ciudad Autonoma  | Palermo       | 1414      | 1145678901     | juan@email.com
 MercadoLibre    | AR      | ML987654321     | 1.2    | 800   | 87654321           | Ana Garcia | Calle Falsa    | 567                  | Piso 2        | Cordoba        | Cordoba          | Centro        | 5000      | 3514567890     | ana@email.com
