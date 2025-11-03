@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ScanLine, Truck, MapPin, CheckCircle, XCircle, AlertTriangle, Download, Play, Pause, CheckSquare, Package } from 'lucide-react'
+import Pagination from '@/app/components/Pagination'
+import TableFilters from '@/app/components/TableFilters'
+import ClasificacionStats from '@/app/components/ClasificacionStats'
 
 interface EscaneoClasificacionStepProps {
   clasificacionId: string
@@ -30,6 +33,36 @@ interface PaqueteClasificado {
   escaneadoPor: string | null
 }
 
+interface VehicleStats {
+  vehiculo: string
+  total: number
+  escaneados: number
+  pendientes: number
+  porcentaje: number
+}
+
+interface PaginationInfo {
+  page: number
+  limit: number
+  totalPages: number
+  totalItems: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
+interface ClasificacionStats {
+  totalPaquetes: number
+  paquetesEscaneados: number
+  paquetesPendientes: number
+  vehiculos: VehicleStats[]
+}
+
+interface FilterOption {
+  value: string
+  label: string
+  count?: number
+}
+
 interface Stats {
   total: number
   escaneados: number
@@ -51,14 +84,25 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
   const [exporting, setExporting] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
   const [paquetesClasificados, setPaquetesClasificados] = useState<PaqueteClasificado[]>([])
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const [clasificacionStats, setClasificacionStats] = useState<ClasificacionStats | null>(null)
+  const [vehicleOptions, setVehicleOptions] = useState<FilterOption[]>([])
+  const [scannedOptions, setScannedOptions] = useState<FilterOption[]>([])
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [vehicleFilter, setVehicleFilter] = useState('')
+  const [scannedFilter, setScannedFilter] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(50) // Fixed page size for better performance
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchStats()
     if (isReadOnly) {
-      fetchPaquetesClasificados()
+      fetchPaquetesClasificados(currentPage, searchTerm, vehicleFilter, scannedFilter)
     }
-  }, [])
+  }, [isReadOnly, currentPage, searchTerm, vehicleFilter, scannedFilter])
 
   useEffect(() => {
     if (scanning && inputRef.current) {
@@ -104,13 +148,37 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
     }
   }
 
-  const fetchPaquetesClasificados = async () => {
+  const fetchPaquetesClasificados = async (page = 1, search = '', vehicle = '', scanned = '') => {
     setLoadingPaquetes(true)
     try {
-      const response = await fetch(`/api/vms/clasificacion/${clasificacionId}/paquetes`)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pageSize.toString(),
+        ...(search && { search }),
+        ...(vehicle && { vehicle }),
+        ...(scanned && { scanned })
+      })
+
+      const response = await fetch(`/api/vms/clasificacion/${clasificacionId}/paquetes?${params}`)
       if (response.ok) {
         const data = await response.json()
         setPaquetesClasificados(data.paquetes)
+        setPagination(data.pagination)
+        setClasificacionStats(data.stats)
+
+        // Update filter options
+        const vehicleOpts = data.stats.vehiculos.map((v: VehicleStats) => ({
+          value: v.vehiculo,
+          label: v.vehiculo,
+          count: v.total
+        }))
+        setVehicleOptions(vehicleOpts)
+
+        const scannedOpts = [
+          { value: 'true', label: 'Escaneado', count: data.stats.paquetesEscaneados },
+          { value: 'false', label: 'Pendiente', count: data.stats.paquetesPendientes }
+        ]
+        setScannedOptions(scannedOpts)
       }
     } catch (err) {
       console.error('Error fetching paquetes clasificados:', err)
@@ -193,6 +261,25 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
     } finally {
       setExporting(false)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1) // Reset to first page when searching
+  }
+
+  const handleVehicleFilterChange = (value: string) => {
+    setVehicleFilter(value)
+    setCurrentPage(1) // Reset to first page when filtering
+  }
+
+  const handleScannedFilterChange = (value: string) => {
+    setScannedFilter(value)
+    setCurrentPage(1) // Reset to first page when filtering
   }
 
   const handleFinalize = async () => {
@@ -305,97 +392,136 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
 
         {/* Tabla de Detalle de Escaneo */}
         {isReadOnly && (
-          <div className="mt-8 bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900 flex items-center">
-                <span className="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
-                  {paquetesClasificados.length}
-                </span>
-                Detalle de Escaneo
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Paquetes clasificados en este lote</p>
-            </div>
-            
-            <div className="overflow-x-auto">
-              {loadingPaquetes ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-600">Cargando paquetes...</p>
-                </div>
-              ) : (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Vehículo
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Orden
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tracking Number
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Escaneado
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Fecha Escaneo
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Escaneado Por
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {paquetesClasificados.map((paquete) => (
-                      <tr key={paquete.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {paquete.vehiculo}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          #{paquete.ordenNumerico}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                          {paquete.trackingNumber}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            paquete.escaneado 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {paquete.escaneado ? 'SÍ' : 'NO'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {paquete.escaneadoAt 
-                            ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
-                                timeZone: 'America/Argentina/Buenos_Aires',
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })
-                            : '-'
-                          }
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {paquete.escaneadoPor || '-'}
-                        </td>
+          <div className="mt-8 space-y-6">
+            {/* Estadísticas */}
+            {clasificacionStats && (
+              <ClasificacionStats
+                totalPaquetes={clasificacionStats.totalPaquetes}
+                paquetesEscaneados={clasificacionStats.paquetesEscaneados}
+                paquetesPendientes={clasificacionStats.paquetesPendientes}
+                vehiculos={clasificacionStats.vehiculos}
+              />
+            )}
+
+            {/* Tabla */}
+            <div className="bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <h3 className="font-semibold text-gray-900 flex items-center">
+                  <span className="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
+                    {pagination?.totalItems || 0}
+                  </span>
+                  Detalle de Escaneo
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">Paquetes clasificados en este lote</p>
+              </div>
+
+              {/* Filtros */}
+              <TableFilters
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                vehicleFilter={vehicleFilter}
+                onVehicleFilterChange={handleVehicleFilterChange}
+                scannedFilter={scannedFilter}
+                onScannedFilterChange={handleScannedFilterChange}
+                vehicleOptions={vehicleOptions}
+                scannedOptions={scannedOptions}
+                totalResults={pagination?.totalItems || 0}
+              />
+
+              {/* Tabla */}
+              <div className="overflow-x-auto">
+                {loadingPaquetes ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Cargando paquetes...</p>
+                  </div>
+                ) : paquetesClasificados.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p>No se encontraron paquetes con los filtros aplicados</p>
+                    {(searchTerm || vehicleFilter || scannedFilter) && (
+                      <p className="text-sm mt-1">Intenta ajustar los filtros de búsqueda</p>
+                    )}
+                  </div>
+                ) : (
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Vehículo
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Orden
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Tracking Number
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Escaneado
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Fecha Escaneo
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Escaneado Por
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paquetesClasificados.map((paquete) => (
+                        <tr key={paquete.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {paquete.vehiculo}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            #{paquete.ordenNumerico}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                            {paquete.trackingNumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              paquete.escaneado 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {paquete.escaneado ? 'SÍ' : 'NO'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {paquete.escaneadoAt 
+                              ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
+                                  timeZone: 'America/Argentina/Buenos_Aires',
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : '-'
+                            }
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {paquete.escaneadoPor || '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* Paginación */}
+              {pagination && pagination.totalPages > 1 && (
+                <Pagination
+                  currentPage={pagination.page}
+                  totalPages={pagination.totalPages}
+                  totalItems={pagination.totalItems}
+                  itemsPerPage={pagination.limit}
+                  onPageChange={handlePageChange}
+                />
               )}
             </div>
-            
-            {paquetesClasificados.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p>No hay paquetes clasificados</p>
-              </div>
-            )}
           </div>
         )}
 
