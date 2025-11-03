@@ -47,6 +47,7 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
   const [showFlash, setShowFlash] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadingPaquetes, setLoadingPaquetes] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
   const [paquetesClasificados, setPaquetesClasificados] = useState<PaqueteClasificado[]>([])
@@ -104,6 +105,7 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
   }
 
   const fetchPaquetesClasificados = async () => {
+    setLoadingPaquetes(true)
     try {
       const response = await fetch(`/api/vms/clasificacion/${clasificacionId}/paquetes`)
       if (response.ok) {
@@ -112,6 +114,8 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
       }
     } catch (err) {
       console.error('Error fetching paquetes clasificados:', err)
+    } finally {
+      setLoadingPaquetes(false)
     }
   }
 
@@ -313,70 +317,77 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             </div>
             
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Vehículo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Orden
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tracking Number
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Escaneado
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha Escaneo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Escaneado Por
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paquetesClasificados.map((paquete) => (
-                    <tr key={paquete.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {paquete.vehiculo}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        #{paquete.ordenNumerico}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                        {paquete.trackingNumber}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          paquete.escaneado 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {paquete.escaneado ? 'SÍ' : 'NO'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {paquete.escaneadoAt 
-                          ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
-                              timeZone: 'America/Argentina/Buenos_Aires',
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          : '-'
-                        }
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {paquete.escaneadoPor || '-'}
-                      </td>
+              {loadingPaquetes ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Cargando paquetes...</p>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Vehículo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Orden
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tracking Number
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Escaneado
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha Escaneo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Escaneado Por
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paquetesClasificados.map((paquete) => (
+                      <tr key={paquete.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {paquete.vehiculo}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          #{paquete.ordenNumerico}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                          {paquete.trackingNumber}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            paquete.escaneado 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {paquete.escaneado ? 'SÍ' : 'NO'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {paquete.escaneadoAt 
+                            ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
+                                timeZone: 'America/Argentina/Buenos_Aires',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            : '-'
+                          }
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {paquete.escaneadoPor || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
             
             {paquetesClasificados.length === 0 && (
