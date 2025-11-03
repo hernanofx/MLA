@@ -120,10 +120,10 @@ Password: password123
 
 ### Pre-Alerta (16 columnas):
 ```
-Client | Country | Tracking Number | Weight | Value | 
-Buyer Normalized ID | Buyer | Buyer Address1 | 
+Client | Country | Tracking Number | Weight | FOB | 
+Buyer ID | Buyer | Buyer Address1 | 
 Buyer Address1 Number | Buyer Address2 | Buyer City | 
-Buyer State | Buyer Lcation | Buyer ZIP | 
+Buyer State | Buyer Location | Buyer ZIP | 
 Buyer Phone | Buyer Email
 ```
 
