@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ScanLine, Truck, MapPin, CheckCircle, XCircle, AlertTriangle, Download, Play, Pause, CheckSquare } from 'lucide-react'
+import { ScanLine, Truck, MapPin, CheckCircle, XCircle, AlertTriangle, Download, Play, Pause, CheckSquare, Package } from 'lucide-react'
 
 interface EscaneoClasificacionStepProps {
   clasificacionId: string
@@ -17,6 +17,17 @@ interface ScanResult {
   vehiculo?: string
   ordenVisita?: string
   ordenNumerico?: number
+}
+
+interface PaqueteClasificado {
+  id: string
+  trackingNumber: string
+  vehiculo: string
+  ordenNumerico: number
+  ordenVisita: string
+  escaneado: boolean
+  escaneadoAt: string | null
+  escaneadoPor: string | null
 }
 
 interface Stats {
@@ -36,12 +47,17 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
   const [showFlash, setShowFlash] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadingPaquetes, setLoadingPaquetes] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
+  const [paquetesClasificados, setPaquetesClasificados] = useState<PaqueteClasificado[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchStats()
+    if (isReadOnly) {
+      fetchPaquetesClasificados()
+    }
   }, [])
 
   useEffect(() => {
@@ -85,6 +101,21 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
       console.error('Error fetching stats:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchPaquetesClasificados = async () => {
+    setLoadingPaquetes(true)
+    try {
+      const response = await fetch(`/api/vms/clasificacion/${clasificacionId}/paquetes`)
+      if (response.ok) {
+        const data = await response.json()
+        setPaquetesClasificados(data.paquetes)
+      }
+    } catch (err) {
+      console.error('Error fetching paquetes clasificados:', err)
+    } finally {
+      setLoadingPaquetes(false)
     }
   }
 
@@ -271,6 +302,102 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             </button>
           </div>
         </div>
+
+        {/* Tabla de Detalle de Escaneo */}
+        {isReadOnly && (
+          <div className="mt-8 bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900 flex items-center">
+                <span className="bg-orange-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
+                  {paquetesClasificados.length}
+                </span>
+                Detalle de Escaneo
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">Paquetes clasificados en este lote</p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              {loadingPaquetes ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Cargando paquetes...</p>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Vehículo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Orden
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tracking Number
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Escaneado
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha Escaneo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Escaneado Por
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paquetesClasificados.map((paquete) => (
+                      <tr key={paquete.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {paquete.vehiculo}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          #{paquete.ordenNumerico}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                          {paquete.trackingNumber}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            paquete.escaneado 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {paquete.escaneado ? 'SÍ' : 'NO'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {paquete.escaneadoAt 
+                            ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
+                                timeZone: 'America/Argentina/Buenos_Aires',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            : '-'
+                          }
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {paquete.escaneadoPor || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            
+            {paquetesClasificados.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p>No hay paquetes clasificados</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Start/Stop Scanning */}
         {!scanning ? (
