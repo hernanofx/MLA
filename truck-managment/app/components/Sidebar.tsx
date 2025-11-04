@@ -134,7 +134,8 @@ export default function Sidebar() {
       subItems: [
         { name: 'Camiones', href: '/trucks', icon: Truck },
         { name: 'Entradas/Salidas', href: '/entries', icon: ClipboardList },
-        { name: 'Cargas/Descargas', href: '/loads', icon: Package }
+        { name: 'Cargas/Descargas', href: '/loads', icon: Package },
+        { name: 'Activacion', href: '/activacion' }
       ]
     },
     { name: 'Stock', href: '/stocks', icon: Warehouse },

@@ -21,17 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Faltan datos requeridos' }, { status: 400 })
     }
 
-    // Validar que el tracking number comience con los prefijos válidos
     const trimmedTracking = trackingNumber.trim().toUpperCase()
-    const validPrefixes = ['MLAR', 'SEKA', 'RR']
-    const hasValidPrefix = validPrefixes.some(prefix => trimmedTracking.startsWith(prefix))
-    
-    if (!hasValidPrefix) {
-      return NextResponse.json({ 
-        error: 'PAQUETE_NO_MLA',
-        message: 'PAQUETE NO DE MLA' 
-      }, { status: 400 })
-    }
 
     // Verificar que el shipment pertenece al proveedor
     const shipment = await prisma.shipment.findUnique({
@@ -46,8 +36,8 @@ export async function POST(request: NextRequest) {
     // Verificar acceso al shipment
     verifyProviderAccess(shipment.providerId, providerId)
 
-    // Buscar en pre-alerta y pre-ruteo en paralelo
-    const [preAlerta, preRuteo] = await Promise.all([
+    // Buscar en pre-alerta, pre-ruteo y clasificacion en paralelo
+    const [preAlerta, preRuteo, clasificacion] = await Promise.all([
       prisma.preAlerta.findFirst({
         where: {
           shipmentId,
@@ -59,8 +49,26 @@ export async function POST(request: NextRequest) {
           shipmentId,
           codigoPedido: trimmedTracking
         }
+      }),
+      prisma.paqueteClasificacion.findFirst({
+        where: {
+          clasificacion: {
+            shipmentId
+          },
+          trackingNumber: trimmedTracking
+        }
       })
     ])
+
+    // Verificar si el paquete existe en alguna de las tablas
+    const existsInTables = preAlerta || preRuteo || clasificacion
+
+    if (!existsInTables) {
+      return NextResponse.json({ 
+        error: 'PAQUETE_NO_MLA',
+        message: 'PAQUETE NO DE MLA' 
+      }, { status: 400 })
+    }
 
     // Determinar el estado según la lógica de negocio
     let status: 'OK' | 'SOBRANTE' | 'FUERA_COBERTURA' | 'PREVIO'

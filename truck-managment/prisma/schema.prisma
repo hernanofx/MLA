@@ -53,6 +53,7 @@ model User {
   preferences UserNotificationPreferences?
   shipments Shipment[]
   scannedPackages ScannedPackage[]
+  activaciones Activacion[]
 }
 
 model Provider {
@@ -72,6 +73,7 @@ model Provider {
   packagesTo    PackageMovement[] @relation("ToProvider")
   currentPackages Package[]
   shipments     Shipment[]
+  activaciones  Activacion[]
 }
 
 model Contact {
@@ -474,4 +476,22 @@ model PaqueteClasificacion {
   @@index([trackingNumber])
   @@index([escaneado])
   @@index([vehiculo])
+}
+
+model Activacion {
+  id              String   @id @default(cuid())
+  trackingNumber  String
+  providerId      String
+  provider        Provider @relation(fields: [providerId], references: [id])
+  etapa           String
+  responsableId   String
+  responsable     User    @relation(fields: [responsableId], references: [id])
+  notas           String?
+  verificado      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([trackingNumber])
+  @@index([providerId])
+  @@index([responsableId])
 }
