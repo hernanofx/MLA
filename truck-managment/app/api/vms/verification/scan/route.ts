@@ -36,18 +36,29 @@ export async function POST(request: NextRequest) {
     // Verificar acceso al shipment
     verifyProviderAccess(shipment.providerId, providerId)
 
-    // Buscar en pre-alerta, pre-ruteo y clasificacion en paralelo
+    // Buscar en pre-alerta, pre-ruteo y clasificacion en paralelo.
+    // Aceptar coincidencias aunque el prefijo difiera: intentamos igualdad exacta y
+    // también buscar registros cuyo tracking/codigo termine o empiece con el valor
+    // escaneado (esto cubre variantes con/sin prefijo).
     const [preAlerta, preRuteo, clasificacion] = await Promise.all([
       prisma.preAlerta.findFirst({
         where: {
           shipmentId,
-          trackingNumber: trimmedTracking
+          OR: [
+            { trackingNumber: trimmedTracking },
+            { trackingNumber: { endsWith: trimmedTracking } },
+            { trackingNumber: { startsWith: trimmedTracking } }
+          ]
         }
       }),
       prisma.preRuteo.findFirst({
         where: {
           shipmentId,
-          codigoPedido: trimmedTracking
+          OR: [
+            { codigoPedido: trimmedTracking },
+            { codigoPedido: { endsWith: trimmedTracking } },
+            { codigoPedido: { startsWith: trimmedTracking } }
+          ]
         }
       }),
       prisma.paqueteClasificacion.findFirst({
@@ -55,7 +66,11 @@ export async function POST(request: NextRequest) {
           clasificacion: {
             shipmentId
           },
-          trackingNumber: trimmedTracking
+          OR: [
+            { trackingNumber: trimmedTracking },
+            { trackingNumber: { endsWith: trimmedTracking } },
+            { trackingNumber: { startsWith: trimmedTracking } }
+          ]
         }
       })
     ])
@@ -169,8 +184,8 @@ export async function POST(request: NextRequest) {
         })
 
         return NextResponse.json({ 
-          error: 'PAQUETE_YA_ESCANEADO',
-          message: 'PAQUETE YA ESCANEADO',
+          error: 'PAQUETE_REPETIDO',
+          message: 'PAQUETE REPETIDO - YA FUE ESCANEADO ANTERIORMENTE',
           scannedAt: existingScanned?.scanTimestamp,
           scannedBy: existingScanned?.scannedByUser?.name || existingScanned?.scannedByUser?.email,
           status: existingScanned?.status,
