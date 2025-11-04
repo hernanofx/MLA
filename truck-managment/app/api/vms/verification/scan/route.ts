@@ -168,12 +168,12 @@ export async function POST(request: NextRequest) {
           }
         })
 
-        return NextResponse.json({ 
-          error: 'PAQUETE_YA_ESCANEADO',
-          message: 'PAQUETE YA ESCANEADO',
+        // En lugar de error, devolver como SOBRANTE para contar en el detalle final
+        return NextResponse.json({
+          status: 'SOBRANTE',
+          message: 'PAQUETE YA ESCANEADO - CONTADO COMO SOBRANTE',
           scannedAt: existingScanned?.scanTimestamp,
           scannedBy: existingScanned?.scannedByUser?.name || existingScanned?.scannedByUser?.email,
-          status: existingScanned?.status,
           details: {
             preAlerta: existingScanned?.preAlerta ? {
               buyer: existingScanned.preAlerta.buyer,
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
               chofer: existingScanned.preRuteo.chofer,
             } : null,
           }
-        }, { status: 400 })
+        })
       }
       
       // Si es otro error de BD, re-lanzar para el catch general
