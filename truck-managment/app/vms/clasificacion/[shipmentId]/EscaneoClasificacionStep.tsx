@@ -6,6 +6,7 @@ import { ScanLine, Truck, MapPin, CheckCircle, XCircle, AlertTriangle, Download,
 import Pagination from '@/app/components/Pagination'
 import TableFilters from '@/app/components/TableFilters'
 import ClasificacionStats from '@/app/components/ClasificacionStats'
+import VehicleProgressTracker from '@/app/components/VehicleProgressTracker'
 
 interface EscaneoClasificacionStepProps {
   clasificacionId: string
@@ -70,6 +71,12 @@ interface Stats {
   porcentaje: number
 }
 
+interface StatsResponse {
+  stats: Stats
+  vehiculos: VehicleStats[]
+  totalVehiculos: number
+}
+
 export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, isReadOnly = false }: EscaneoClasificacionStepProps) {
   const router = useRouter()
   const [scanning, setScanning] = useState(false)
@@ -79,6 +86,7 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
   const [lastScanResult, setLastScanResult] = useState<ScanResult | null>(null)
   const [showFlash, setShowFlash] = useState(false)
   const [stats, setStats] = useState<Stats | null>(null)
+  const [vehicleStats, setVehicleStats] = useState<VehicleStats[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingPaquetes, setLoadingPaquetes] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -138,8 +146,9 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
     try {
       const response = await fetch(`/api/vms/clasificacion/${clasificacionId}/stats`)
       if (response.ok) {
-        const data = await response.json()
+        const data: StatsResponse = await response.json()
         setStats(data.stats)
+        setVehicleStats(data.vehiculos)
       }
     } catch (err) {
       console.error('Error fetching stats:', err)
@@ -220,7 +229,7 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
       setShowFlash(true)
       setCurrentScan('')
 
-      // Actualizar estadísticas
+      // Actualizar estadísticas generales
       if (result.status === 'CLASIFICADO' && stats) {
         setStats({
           ...stats,
@@ -228,6 +237,25 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
           pendientes: stats.pendientes - 1,
           porcentaje: Math.round(((stats.escaneados + 1) / stats.total) * 100)
         })
+
+        // Actualizar estadísticas de vehículo
+        if (scanResult.vehiculo) {
+          setVehicleStats(prevVehicleStats => 
+            prevVehicleStats.map(v => {
+              if (v.vehiculo === scanResult.vehiculo) {
+                const newEscaneados = v.escaneados + 1
+                const newPendientes = v.pendientes - 1
+                return {
+                  ...v,
+                  escaneados: newEscaneados,
+                  pendientes: newPendientes,
+                  porcentaje: Math.round((newEscaneados / v.total) * 100)
+                }
+              }
+              return v
+            })
+          )
+        }
       }
 
     } catch (err: any) {
@@ -594,6 +622,11 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
                 </div>
               </div>
             </div>
+
+            {/* Vehicle Progress Tracker - Contador por vehículo */}
+            {vehicleStats.length > 0 && (
+              <VehicleProgressTracker vehiculos={vehicleStats} />
+            )}
 
             {/* Scan Input */}
             <div className="bg-white border-2 border-orange-500 rounded-xl p-6 shadow-lg">
