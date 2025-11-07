@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
 import { Package, TrendingUp, CheckCircle2, AlertTriangle, Eye } from 'lucide-react'
 import Link from 'next/link'
+import TrackingSearchWidget from '@/app/vms/TrackingSearchWidget'
 
 interface Shipment {
   id: string
@@ -91,6 +92,11 @@ export default function VMSMonitoringPage() {
           <p className="mt-2 text-sm text-gray-700">
             Vista general de las actividades de proveedores en el módulo VMS.
           </p>
+        </div>
+
+        {/* Buscador de Tracking Number */}
+        <div className="mb-8">
+          <TrackingSearchWidget />
         </div>
 
         {/* Estadísticas */}
