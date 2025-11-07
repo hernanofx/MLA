@@ -6,6 +6,7 @@ import AppLayout from '@/app/components/AppLayout'
 import { Package, TrendingUp, CheckCircle2, AlertTriangle, Plus, FileText, Trash2, ListOrdered } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatArgentinaDate } from '@/lib/date-utils'
+import TrackingSearchWidget from './TrackingSearchWidget'
 
 interface DashboardStats {
   totalShipments: number
@@ -272,6 +273,11 @@ export default function VMSDashboard() {
             </div>
           </div>
         ) : null}
+
+        {/* Buscador de Tracking Number */}
+        <div className="mb-8">
+          <TrackingSearchWidget />
+        </div>
 
         <div className="bg-white shadow-sm border border-gray-200 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
