@@ -336,9 +336,19 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
     }
   }
 
-  const clasificados = scannedPackages.filter(p => p.status === 'CLASIFICADO').length
-  const yaEscaneados = scannedPackages.filter(p => p.status === 'YA_ESCANEADO').length
-  const noEncontrados = scannedPackages.filter(p => p.status === 'NO_ENCONTRADO').length
+  // Contar solo tracking numbers únicos - cada uno cuenta una sola vez según su PRIMER estado
+  const trackingUnicos = scannedPackages.reduce((acc, scan) => {
+    // Solo agregar si este tracking number no ha sido procesado antes
+    if (!acc.has(scan.trackingNumber)) {
+      acc.set(scan.trackingNumber, scan)
+    }
+    return acc
+  }, new Map<string, ScanResult>())
+
+  const scansUnicos = Array.from(trackingUnicos.values())
+  const clasificados = scansUnicos.filter(p => p.status === 'CLASIFICADO').length
+  const yaEscaneados = scansUnicos.filter(p => p.status === 'YA_ESCANEADO').length
+  const noEncontrados = scansUnicos.filter(p => p.status === 'NO_ENCONTRADO').length
 
   return (
     <div className="p-8">
