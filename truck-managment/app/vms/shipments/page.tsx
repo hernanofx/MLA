@@ -13,7 +13,9 @@ import {
   Eye,
   FileText,
   Calendar,
-  ListOrdered
+  ListOrdered,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { 
   formatArgentinaDate, 
@@ -49,6 +51,8 @@ export default function ShipmentsListPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | Shipment['status']>('all')
   const [dateFilter, setDateFilter] = useState('')
   const [providerInfo, setProviderInfo] = useState<ProviderInfo | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
 
   useEffect(() => {
     fetchShipments()
@@ -57,6 +61,7 @@ export default function ShipmentsListPage() {
 
   useEffect(() => {
     filterShipments()
+    setCurrentPage(1) // Reset to first page when filters change
   }, [shipments, searchTerm, statusFilter, dateFilter])
 
   const fetchProviderInfo = async () => {
@@ -111,6 +116,16 @@ export default function ShipmentsListPage() {
     }
 
     setFilteredShipments(filtered)
+  }
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredShipments.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedShipments = filteredShipments.slice(startIndex, endIndex)
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
   }
 
   const getStatusBadge = (status: string) => {
@@ -354,7 +369,7 @@ export default function ShipmentsListPage() {
               {/* Vista móvil: tarjetas */}
               <div className="block md:hidden">
                 <div className="divide-y divide-gray-200">
-                  {filteredShipments.map((shipment) => (
+                  {paginatedShipments.map((shipment) => (
                     <div key={shipment.id} className="p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center">
@@ -455,7 +470,7 @@ export default function ShipmentsListPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredShipments.map((shipment) => (
+                    {paginatedShipments.map((shipment) => (
                       <tr key={shipment.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -528,7 +543,71 @@ export default function ShipmentsListPage() {
         {/* Results count */}
         {filteredShipments.length > 0 && (
           <div className="mt-4 text-sm text-gray-500 text-center">
-            Mostrando {filteredShipments.length} de {shipments.length} lotes
+            Mostrando {startIndex + 1}-{Math.min(endIndex, filteredShipments.length)} de {filteredShipments.length} lotes
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Siguiente
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                  <span className="font-medium">{Math.min(endIndex, filteredShipments.length)}</span> de{' '}
+                  <span className="font-medium">{filteredShipments.length}</span> resultados
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Anterior</span>
+                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        page === currentPage
+                          ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Siguiente</span>
+                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         )}
       </div>
