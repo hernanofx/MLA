@@ -285,12 +285,21 @@ export default function VMSDashboard() {
               <h2 className="text-lg font-semibold text-gray-900">
                 Lotes Recientes
               </h2>
-              <button
-                onClick={() => router.push('/vms/shipments')}
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
-              >
-                Ver todos →
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/vms/clasificaciones')}
+                  className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                >
+                  Ver todas las clasificaciones →
+                </button>
+                <span className="text-gray-400">|</span>
+                <button
+                  onClick={() => router.push('/vms/shipments')}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  Ver todos los lotes →
+                </button>
+              </div>
             </div>
 
             {loading ? (
@@ -371,7 +380,7 @@ export default function VMSDashboard() {
                         onClick={() => router.push(`/vms/shipments/${shipment.id}`)}
                         className="text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-colors"
                       >
-                        Ver →
+                        Ver Lote →
                       </button>
                       <button
                         onClick={() => handleDeleteShipment(shipment.id)}
