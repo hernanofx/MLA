@@ -158,11 +158,7 @@ export default function ShipmentDetailPage() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch(`/api/vms/reports/export`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shipmentId }),
-      })
+      const response = await fetch(`/api/vms/reports/export?shipmentId=${shipmentId}`)
 
       if (!response.ok) {
         throw new Error('Error al exportar')
