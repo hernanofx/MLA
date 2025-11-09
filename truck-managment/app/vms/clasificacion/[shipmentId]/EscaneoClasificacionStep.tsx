@@ -359,34 +359,34 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
           lastScanResult.status === 'YA_ESCANEADO' ? 'bg-yellow-500' :
           'bg-red-500'
         } bg-opacity-95 text-white`}>
-          <div className="text-center max-w-2xl px-8">
-            <div className="mb-6">
-              {lastScanResult.status === 'CLASIFICADO' && <CheckCircle className="h-40 w-40 mx-auto animate-bounce" />}
-              {lastScanResult.status === 'YA_ESCANEADO' && <AlertTriangle className="h-40 w-40 mx-auto animate-pulse" />}
-              {lastScanResult.status === 'NO_ENCONTRADO' && <XCircle className="h-40 w-40 mx-auto animate-pulse" />}
+          <div className="text-center max-w-2xl px-4 sm:px-8">
+            <div className="mb-4 sm:mb-6">
+              {lastScanResult.status === 'CLASIFICADO' && <CheckCircle className="h-24 w-24 sm:h-40 sm:w-40 mx-auto animate-bounce" />}
+              {lastScanResult.status === 'YA_ESCANEADO' && <AlertTriangle className="h-24 w-24 sm:h-40 sm:w-40 mx-auto animate-pulse" />}
+              {lastScanResult.status === 'NO_ENCONTRADO' && <XCircle className="h-24 w-24 sm:h-40 sm:w-40 mx-auto animate-pulse" />}
             </div>
-            <h1 className="text-7xl font-bold mb-6 drop-shadow-lg">
+            <h1 className="text-4xl sm:text-7xl font-bold mb-4 sm:mb-6 drop-shadow-lg">
               {lastScanResult.status === 'CLASIFICADO' ? 'CLASIFICADO ✓' :
                lastScanResult.status === 'YA_ESCANEADO' ? 'YA ESCANEADO' :
                'NO ENCONTRADO'}
             </h1>
-            <p className="text-4xl font-semibold mb-4 font-mono">
+            <p className="text-2xl sm:text-4xl font-semibold mb-4 font-mono">
               {lastScanResult.trackingNumber}
             </p>
             {(lastScanResult.status === 'CLASIFICADO' || lastScanResult.status === 'YA_ESCANEADO') && (
-              <div className={`mt-8 space-y-6 rounded-xl p-8 backdrop-blur-sm border-2 border-white ${
+              <div className={`mt-6 sm:mt-8 space-y-4 sm:space-y-6 rounded-xl p-4 sm:p-8 backdrop-blur-sm border-2 border-white ${
                 lastScanResult.status === 'CLASIFICADO' ? 'bg-green-800 bg-opacity-40' : 'bg-yellow-800 bg-opacity-40'
               }`}>
-                <div className="flex items-center justify-center text-4xl font-bold text-white drop-shadow-lg">
-                  <Truck className="h-12 w-12 mr-4" />
+                <div className="flex flex-col sm:flex-row items-center justify-center text-2xl sm:text-4xl font-bold text-white drop-shadow-lg">
+                  <Truck className="h-8 w-8 sm:h-12 sm:w-12 mb-2 sm:mb-0 sm:mr-4" />
                   <span>Vehículo: {lastScanResult.vehiculo}</span>
                 </div>
                 <div className="flex flex-col items-center justify-center space-y-2">
-                  <div className="flex items-center text-3xl font-bold text-white drop-shadow-lg">
-                    <MapPin className="h-10 w-10 mr-4" />
+                  <div className="flex flex-col sm:flex-row items-center text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
+                    <MapPin className="h-8 w-8 sm:h-10 sm:w-10 mb-2 sm:mb-0 sm:mr-4" />
                     <span>Orden de Visita:</span>
                   </div>
-                  <p className="text-9xl font-black text-yellow-300 drop-shadow-2xl">
+                  <p className="text-6xl sm:text-9xl font-black text-yellow-300 drop-shadow-2xl">
                     #{lastScanResult.ordenNumerico}
                   </p>
                 </div>
@@ -397,9 +397,9 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
       )}
 
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 space-y-4 lg:space-y-0">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
               {isReadOnly ? 'Clasificación Finalizada' : 'Escaneo de Clasificación'}
             </h2>
             <p className="text-gray-600 mt-1">
@@ -409,11 +409,11 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             </p>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 w-full sm:w-auto"
             >
               <Download className="h-4 w-4 mr-2" />
               {exporting ? 'Exportando...' : 'Exportar Excel'}
@@ -421,9 +421,10 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             
             <button
               onClick={() => router.push('/vms')}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors w-full sm:w-auto"
             >
-              Volver a VMS
+              <span className="hidden sm:inline">Volver a VMS</span>
+              <span className="sm:hidden">Volver</span>
             </button>
           </div>
         </div>
@@ -482,70 +483,128 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
                     )}
                   </div>
                 ) : (
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Vehículo
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Orden
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Tracking Number
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Escaneado
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Fecha Escaneo
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Escaneado Por
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                  <>
+                    {/* Vista móvil: tarjetas */}
+                    <div className="block md:hidden space-y-3">
                       {paquetesClasificados.map((paquete) => (
-                        <tr key={paquete.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {paquete.vehiculo}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            #{paquete.ordenNumerico}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                            {paquete.trackingNumber}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                        <div key={paquete.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-mono font-semibold text-lg text-gray-900 truncate">{paquete.trackingNumber}</p>
+                              <div className="flex items-center mt-2 space-x-2">
+                                <span className="inline-flex items-center bg-blue-100 px-2 py-1 rounded text-xs font-medium text-blue-800">
+                                  <Truck className="h-3 w-3 mr-1" />
+                                  {paquete.vehiculo}
+                                </span>
+                                <span className="inline-flex items-center bg-orange-100 px-2 py-1 rounded text-xs font-medium text-orange-800">
+                                  <MapPin className="h-3 w-3 mr-1" />
+                                  #{paquete.ordenNumerico}
+                                </span>
+                              </div>
+                            </div>
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               paquete.escaneado 
                                 ? 'bg-green-100 text-green-800' 
                                 : 'bg-red-100 text-red-800'
                             }`}>
-                              {paquete.escaneado ? 'SÍ' : 'NO'}
+                              {paquete.escaneado ? 'Escaneado' : 'Pendiente'}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {paquete.escaneadoAt 
-                              ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
-                                  timeZone: 'America/Argentina/Buenos_Aires',
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })
-                              : '-'
-                            }
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {paquete.escaneadoPor || '-'}
-                          </td>
-                        </tr>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div>
+                              <span className="font-medium">Fecha escaneo:</span>
+                              <p className="mt-1">
+                                {paquete.escaneadoAt 
+                                  ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
+                                      timeZone: 'America/Argentina/Buenos_Aires',
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })
+                                  : '-'
+                                }
+                              </p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Escaneado por:</span>
+                              <p className="mt-1">{paquete.escaneadoPor || '-'}</p>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+
+                    {/* Vista desktop: tabla */}
+                    <div className="hidden md:block">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Vehículo
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Orden
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Tracking Number
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Escaneado
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Fecha Escaneo
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Escaneado Por
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {paquetesClasificados.map((paquete) => (
+                            <tr key={paquete.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {paquete.vehiculo}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                #{paquete.ordenNumerico}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                                {paquete.trackingNumber}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  paquete.escaneado 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {paquete.escaneado ? 'SÍ' : 'NO'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {paquete.escaneadoAt 
+                                  ? new Date(paquete.escaneadoAt).toLocaleString('es-AR', { 
+                                      timeZone: 'America/Argentina/Buenos_Aires',
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })
+                                  : '-'
+                                }
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {paquete.escaneadoPor || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -568,14 +627,14 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
           <button
             onClick={() => setScanning(true)}
             disabled={isReadOnly}
-            className="w-full py-16 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl shadow-2xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full py-12 sm:py-16 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl shadow-2xl hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <Play className="h-20 w-20 mx-auto mb-4" />
-            <span className="text-3xl font-bold">
+            <Play className="h-16 w-16 sm:h-20 sm:w-20 mx-auto mb-4" />
+            <span className="text-2xl sm:text-3xl font-bold">
               {isReadOnly ? 'CLASIFICACIÓN FINALIZADA' : 'INICIAR ESCANEO'}
             </span>
             {isReadOnly && (
-              <p className="text-lg mt-2 opacity-90">No se pueden escanear más paquetes</p>
+              <p className="text-base sm:text-lg mt-2 opacity-90">No se pueden escanear más paquetes</p>
             )}
           </button>
         ) : (
@@ -601,34 +660,34 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             )}
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-500 rounded-xl p-6 shadow-md">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-500 rounded-xl p-4 sm:p-6 shadow-md">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-green-700">Clasificados</p>
-                    <p className="text-4xl font-bold text-green-800 mt-2">{clasificados}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-green-700 truncate">Clasificados</p>
+                    <p className="text-3xl sm:text-4xl font-bold text-green-800 mt-2">{clasificados}</p>
                   </div>
-                  <CheckCircle className="h-14 w-14 text-green-500 opacity-80" />
+                  <CheckCircle className="h-10 w-10 sm:h-14 sm:w-14 text-green-500 opacity-80 flex-shrink-0 ml-3" />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-500 rounded-xl p-6 shadow-md">
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-500 rounded-xl p-4 sm:p-6 shadow-md">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-yellow-700">Ya Escaneados</p>
-                    <p className="text-4xl font-bold text-yellow-800 mt-2">{yaEscaneados}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-yellow-700 truncate">Ya Escaneados</p>
+                    <p className="text-3xl sm:text-4xl font-bold text-yellow-800 mt-2">{yaEscaneados}</p>
                   </div>
-                  <AlertTriangle className="h-14 w-14 text-yellow-500 opacity-80" />
+                  <AlertTriangle className="h-10 w-10 sm:h-14 sm:w-14 text-yellow-500 opacity-80 flex-shrink-0 ml-3" />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-500 rounded-xl p-6 shadow-md">
+              <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-500 rounded-xl p-4 sm:p-6 shadow-md">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-red-700">No Encontrados</p>
-                    <p className="text-4xl font-bold text-red-800 mt-2">{noEncontrados}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-red-700 truncate">No Encontrados</p>
+                    <p className="text-3xl sm:text-4xl font-bold text-red-800 mt-2">{noEncontrados}</p>
                   </div>
-                  <XCircle className="h-14 w-14 text-red-500 opacity-80" />
+                  <XCircle className="h-10 w-10 sm:h-14 sm:w-14 text-red-500 opacity-80 flex-shrink-0 ml-3" />
                 </div>
               </div>
             </div>
@@ -639,10 +698,10 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             )}
 
             {/* Scan Input */}
-            <div className="bg-white border-2 border-orange-500 rounded-xl p-6 shadow-lg">
+            <div className="bg-white border-2 border-orange-500 rounded-xl p-4 sm:p-6 shadow-lg">
               <div className="flex items-center mb-4">
-                <ScanLine className="h-6 w-6 text-orange-600 mr-3" />
-                <h3 className="text-lg font-semibold text-gray-900">Escanear Código</h3>
+                <ScanLine className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 mr-3" />
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Escanear Código</h3>
               </div>
               <input
                 ref={inputRef}
@@ -651,7 +710,7 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
                 onChange={(e) => setCurrentScan(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Escanea el código de barras o ingresa manualmente..."
-                className="w-full text-2xl px-6 py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-orange-300 focus:border-orange-500 transition-all font-mono"
+                className="w-full text-lg sm:text-2xl px-4 sm:px-6 py-3 sm:py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-orange-300 focus:border-orange-500 transition-all font-mono"
                 autoFocus
               />
               {error && (
@@ -665,9 +724,9 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
             {/* Pause Button */}
             <button
               onClick={() => setScanning(false)}
-              className="w-full py-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center font-semibold"
+              className="w-full py-3 sm:py-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center font-semibold"
             >
-              <Pause className="h-5 w-5 mr-2" />
+              <Pause className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Pausar Escaneo
             </button>
 
@@ -676,9 +735,9 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
               <button
                 onClick={handleFinalize}
                 disabled={finalizing}
-                className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 sm:py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <CheckSquare className="h-5 w-5 mr-2" />
+                <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {finalizing ? 'Finalizando...' : 'Finalizar Clasificación'}
               </button>
             )}
@@ -704,28 +763,30 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
                 ) : (
                   <div className="divide-y divide-gray-200">
                     {scannedPackages.map((pkg, idx) => (
-                      <div key={idx} className={`p-4 hover:bg-gray-50 transition-colors border-l-4 ${
+                      <div key={idx} className={`p-3 sm:p-4 hover:bg-gray-50 transition-colors border-l-4 ${
                         pkg.status === 'CLASIFICADO' ? 'border-l-green-500 bg-green-50/30' :
                         pkg.status === 'YA_ESCANEADO' ? 'border-l-yellow-500 bg-yellow-50/30' :
                         'border-l-red-500 bg-red-50/30'
                       }`}>
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="font-mono font-semibold text-lg text-gray-900">{pkg.trackingNumber}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-mono font-semibold text-base sm:text-lg text-gray-900 truncate">{pkg.trackingNumber}</p>
                             {pkg.status === 'CLASIFICADO' && (
-                              <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-700">
-                                <span className="inline-flex items-center bg-white px-3 py-1 rounded-lg border border-gray-200">
-                                  <Truck className="h-4 w-4 mr-1.5 text-orange-600" />
-                                  Vehículo <strong className="ml-1">{pkg.vehiculo}</strong>
+                              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-700">
+                                <span className="inline-flex items-center bg-white px-2 py-1 rounded-lg border border-gray-200">
+                                  <Truck className="h-3 w-3 mr-1 text-orange-600" />
+                                  <span className="hidden sm:inline">Vehículo </span>
+                                  <strong className="ml-1">{pkg.vehiculo}</strong>
                                 </span>
-                                <span className="inline-flex items-center bg-white px-3 py-1 rounded-lg border border-gray-200">
-                                  <MapPin className="h-4 w-4 mr-1.5 text-orange-600" />
-                                  Orden <strong className="ml-1">#{pkg.ordenNumerico}</strong>
+                                <span className="inline-flex items-center bg-white px-2 py-1 rounded-lg border border-gray-200">
+                                  <MapPin className="h-3 w-3 mr-1 text-orange-600" />
+                                  <span className="hidden sm:inline">Orden </span>
+                                  <strong className="ml-1">#{pkg.ordenNumerico}</strong>
                                 </span>
                               </div>
                             )}
                           </div>
-                          <span className={`text-xs px-3 py-1.5 rounded-full font-semibold ${
+                          <span className={`text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0 ml-2 ${
                             pkg.status === 'CLASIFICADO' ? 'bg-green-200 text-green-900' :
                             pkg.status === 'YA_ESCANEADO' ? 'bg-yellow-200 text-yellow-900' :
                             'bg-red-200 text-red-900'

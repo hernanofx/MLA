@@ -140,49 +140,59 @@ export default function ClasificacionesListPage() {
         {/* Header mejorado con breadcrumbs */}
         <div className="bg-white shadow-sm border-b border-gray-200 mb-6">
           <div className="px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <nav className="flex mb-2" aria-label="Breadcrumb">
-                  <ol className="flex items-center space-x-2">
-                    <li>
-                      <button
-                        onClick={() => router.push('/vms')}
-                        className="text-gray-400 hover:text-gray-500 transition-colors"
-                      >
-                        Dashboard
-                      </button>
-                    </li>
-                    <li>
-                      <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </li>
-                    <li>
-                      <span className="text-gray-500">Todas las Clasificaciones</span>
-                    </li>
-                  </ol>
-                </nav>
-                <h1 className="mt-2 text-2xl font-bold text-gray-900">Clasificaciones de Paquetes</h1>
-                {providerInfo && (
-                  <p className="mt-1 text-sm text-gray-600">
-                    Proveedor: <span className="font-medium">{providerInfo.name}</span>
-                  </p>
-                )}
-                {session?.user?.role === 'admin' && (
-                  <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                    Vista de Administrador
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => router.push('/vms')}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Volver al Dashboard</span>
-                  <span className="sm:hidden">Volver</span>
-                </button>
+            <div className="flex flex-col space-y-4">
+              <nav className="flex" aria-label="Breadcrumb">
+                <ol className="flex items-center space-x-2 text-sm">
+                  <li>
+                    <button
+                      onClick={() => router.push('/vms')}
+                      className="text-gray-400 hover:text-gray-500 transition-colors"
+                    >
+                      Dashboard
+                    </button>
+                  </li>
+                  <li>
+                    <svg className="flex-shrink-0 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </li>
+                  <li>
+                    <span className="text-gray-500">Todas las Clasificaciones</span>
+                  </li>
+                </ol>
+              </nav>
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Clasificaciones de Paquetes</h1>
+                  {providerInfo && (
+                    <p className="mt-1 text-sm text-gray-600">
+                      Proveedor: <span className="font-medium">{providerInfo.name}</span>
+                    </p>
+                  )}
+                  {session?.user?.role === 'admin' && (
+                    <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                      Vista de Administrador
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                  <button
+                    onClick={() => router.push('/vms/shipments')}
+                    className="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors w-full sm:w-auto"
+                  >
+                    <Package className="h-4 w-4 mr-2" />
+                    <span className="hidden xs:inline">Ver todos los lotes</span>
+                    <span className="xs:hidden">Lotes</span>
+                  </button>
+                  <button
+                    onClick={() => router.push('/vms')}
+                    className="inline-flex items-center justify-center px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors w-full sm:w-auto"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Volver al Dashboard</span>
+                    <span className="sm:hidden">Volver</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -315,36 +325,15 @@ export default function ClasificacionesListPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Fecha del Lote
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Proveedor
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Estado
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Paquetes Clasificados
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Última Actualización
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+            <>
+              {/* Vista móvil: tarjetas */}
+              <div className="block md:hidden">
+                <div className="divide-y divide-gray-200">
                   {filteredClasificaciones.map((clasif) => (
-                    <tr key={clasif.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <div key={clasif.id} className="p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
+                      <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center">
-                          <Calendar className="h-5 w-5 text-indigo-500 mr-3" />
+                          <Calendar className="h-5 w-5 text-indigo-500 mr-2" />
                           <div>
                             <div className="text-sm font-semibold text-gray-900">
                               {formatArgentinaDateLong(clasif.shipment.shipmentDate)}
@@ -354,45 +343,135 @@ export default function ClasificacionesListPage() {
                             </div>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(clasif.finalizado)}`}>
+                          {getStatusLabel(clasif.finalizado)}
+                        </span>
+                      </div>
+
+                      <div className="mb-3">
                         <div className="flex items-center">
-                          <Truck className="h-5 w-5 text-blue-500 mr-2" />
+                          <Truck className="h-4 w-4 text-blue-500 mr-2" />
                           <span className="text-sm font-medium text-gray-900">
                             {clasif.shipment.provider.name}
                           </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(clasif.finalizado)}`}>
-                          {getStatusLabel(clasif.finalizado)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-3">
                         <div className="flex items-center">
-                          <Package className="h-5 w-5 text-green-500 mr-2" />
-                          <span className="text-sm font-semibold text-gray-900">
-                            {clasif._count?.paquetes || 0}
-                          </span>
+                          <Package className="h-4 w-4 text-green-500 mr-2" />
+                          <div>
+                            <div className="text-xs text-gray-500">Paquetes</div>
+                            <div className="text-sm font-semibold text-gray-900">
+                              {clasif._count?.paquetes || 0}
+                            </div>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatArgentinaDate(clasif.updatedAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center">
+                          <div className="h-4 w-4 text-purple-500 mr-2">📅</div>
+                          <div>
+                            <div className="text-xs text-gray-500">Actualizado</div>
+                            <div className="text-sm font-semibold text-gray-900">
+                              {formatArgentinaDate(clasif.updatedAt)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
                         <button
                           onClick={() => router.push(`/vms/clasificacion/${clasif.shipmentId}`)}
-                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 transition-all duration-200 transform hover:scale-105"
+                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 transition-all duration-200"
                         >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Clasificación
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver
                         </button>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              </div>
+
+              {/* Vista desktop: tabla */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Fecha del Lote
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Proveedor
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Estado
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Paquetes Clasificados
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Última Actualización
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredClasificaciones.map((clasif) => (
+                      <tr key={clasif.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors duration-200">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Calendar className="h-5 w-5 text-indigo-500 mr-3" />
+                            <div>
+                              <div className="text-sm font-semibold text-gray-900">
+                                {formatArgentinaDateLong(clasif.shipment.shipmentDate)}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {formatArgentinaTime(clasif.createdAt)}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Truck className="h-5 w-5 text-blue-500 mr-2" />
+                            <span className="text-sm font-medium text-gray-900">
+                              {clasif.shipment.provider.name}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(clasif.finalizado)}`}>
+                            {getStatusLabel(clasif.finalizado)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Package className="h-5 w-5 text-green-500 mr-2" />
+                            <span className="text-sm font-semibold text-gray-900">
+                              {clasif._count?.paquetes || 0}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatArgentinaDate(clasif.updatedAt)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => router.push(`/vms/clasificacion/${clasif.shipmentId}`)}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 transition-all duration-200 transform hover:scale-105"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver Clasificación
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
 
