@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import AppLayout from '@/app/components/AppLayout'
 import { Upload, ScanLine, Package, ArrowLeft } from 'lucide-react'
 import UploadClasificacionStep from './UploadClasificacionStep'
 import EscaneoClasificacionStep from './EscaneoClasificacionStep'
@@ -71,8 +72,8 @@ export default function ClasificacionWizard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout>
+      <div className="px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -192,6 +193,6 @@ export default function ClasificacionWizard() {
           </ul>
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }
