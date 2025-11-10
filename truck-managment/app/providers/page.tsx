@@ -36,6 +36,12 @@ interface User {
   email: string
 }
 
+interface Stats {
+  total: number
+  withResponsible: number
+  withoutResponsible: number
+}
+
 export default function ProvidersPage() {
   const [providers, setProviders] = useState<Provider[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,13 +55,19 @@ export default function ProvidersPage() {
   const [viewingContactsProvider, setViewingContactsProvider] = useState<Provider | null>(null)
   const [contacts, setContacts] = useState<Contact[]>([])
   const [contactsLoading, setContactsLoading] = useState(false)
+  const [stats, setStats] = useState<Stats>({ total: 0, withResponsible: 0, withoutResponsible: 0 })
+  const [search, setSearch] = useState('')
+  const [responsibleFilter, setResponsibleFilter] = useState('')
+  const [hasResponsibleFilter, setHasResponsibleFilter] = useState('')
+  const [orderBy, setOrderBy] = useState('name')
+  const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('asc')
   const router = useRouter()
   const { data: session } = useSession()
 
   useEffect(() => {
     fetchProviders(currentPage)
     fetchUsers()
-  }, [currentPage, limit])
+  }, [currentPage, limit, search, responsibleFilter, hasResponsibleFilter, orderBy, orderDirection])
 
   useEffect(() => {
     if (viewingContactsProvider) {
@@ -65,13 +77,24 @@ export default function ProvidersPage() {
 
   const fetchProviders = async (page: number = 1) => {
     try {
-      const response = await fetch(`/api/providers?page=${page}&limit=${limit}`)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        orderBy,
+        orderDirection
+      })
+      if (search) params.append('search', search)
+      if (responsibleFilter) params.append('responsibleId', responsibleFilter)
+      if (hasResponsibleFilter) params.append('hasResponsible', hasResponsibleFilter)
+
+      const response = await fetch(`/api/providers?${params}`)
       if (response.ok) {
         const data = await response.json()
         setProviders(data.providers)
         setTotalPages(data.pagination.totalPages)
         setTotal(data.pagination.total)
         setCurrentPage(page)
+        setStats(data.stats)
       }
     } catch (error) {
       console.error('Error fetching providers:', error)
@@ -209,6 +232,165 @@ export default function ProvidersPage() {
                 Nuevo Proveedor
               </Link>
             )}
+          </div>
+        </div>
+        <div className="mt-6 bg-white shadow rounded-lg p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            <div>
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+                Buscar por nombre
+              </label>
+              <input
+                type="text"
+                id="search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  setCurrentPage(1)
+                }}
+                placeholder="Buscar proveedores..."
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="responsible" className="block text-sm font-medium text-gray-700">
+                Filtrar por responsable
+              </label>
+              <select
+                id="responsible"
+                value={responsibleFilter}
+                onChange={(e) => {
+                  setResponsibleFilter(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">Todos</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="hasResponsible" className="block text-sm font-medium text-gray-700">
+                Estado de asignación
+              </label>
+              <select
+                id="hasResponsible"
+                value={hasResponsibleFilter}
+                onChange={(e) => {
+                  setHasResponsibleFilter(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">Todos</option>
+                <option value="true">Con responsable</option>
+                <option value="false">Sin responsable</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="orderBy" className="block text-sm font-medium text-gray-700">
+                Ordenar por
+              </label>
+              <select
+                id="orderBy"
+                value={orderBy}
+                onChange={(e) => {
+                  setOrderBy(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="name">Nombre</option>
+                <option value="createdAt">Fecha de creación</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="orderDirection" className="block text-sm font-medium text-gray-700">
+                Dirección
+              </label>
+              <select
+                id="orderDirection"
+                value={orderDirection}
+                onChange={(e) => {
+                  setOrderDirection(e.target.value as 'asc' | 'desc')
+                  setCurrentPage(1)
+                }}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="asc">Ascendente</option>
+                <option value="desc">Descendente</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setSearch('')
+                  setResponsibleFilter('')
+                  setHasResponsibleFilter('')
+                  setCurrentPage(1)
+                }}
+                className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Total Proveedores</dt>
+                    <dd className="text-lg font-medium text-gray-900">{stats.total}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Con Responsable</dt>
+                    <dd className="text-lg font-medium text-gray-900">{stats.withResponsible}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Sin Responsable</dt>
+                    <dd className="text-lg font-medium text-gray-900">{stats.withoutResponsible}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="mt-8 flex flex-col">
