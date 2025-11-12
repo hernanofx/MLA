@@ -360,33 +360,33 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
           'bg-red-500'
         } bg-opacity-95 text-white`}>
           <div className="text-center max-w-2xl px-4 sm:px-8">
-            <div className="mb-4 sm:mb-6">
-              {lastScanResult.status === 'CLASIFICADO' && <CheckCircle className="h-24 w-24 sm:h-40 sm:w-40 mx-auto animate-bounce" />}
-              {lastScanResult.status === 'YA_ESCANEADO' && <AlertTriangle className="h-24 w-24 sm:h-40 sm:w-40 mx-auto animate-pulse" />}
-              {lastScanResult.status === 'NO_ENCONTRADO' && <XCircle className="h-24 w-24 sm:h-40 sm:w-40 mx-auto animate-pulse" />}
+            <div className="mb-2 sm:mb-4 md:mb-6">
+              {lastScanResult.status === 'CLASIFICADO' && <CheckCircle className="h-16 w-16 sm:h-24 sm:w-24 md:h-40 md:w-40 mx-auto animate-bounce" />}
+              {lastScanResult.status === 'YA_ESCANEADO' && <AlertTriangle className="h-16 w-16 sm:h-24 sm:w-24 md:h-40 md:w-40 mx-auto animate-pulse" />}
+              {lastScanResult.status === 'NO_ENCONTRADO' && <XCircle className="h-16 w-16 sm:h-24 sm:w-24 md:h-40 md:w-40 mx-auto animate-pulse" />}
             </div>
-            <h1 className="text-4xl sm:text-7xl font-bold mb-4 sm:mb-6 drop-shadow-lg">
+            <h1 className="text-2xl sm:text-4xl md:text-7xl font-bold mb-2 sm:mb-4 md:mb-6 drop-shadow-lg">
               {lastScanResult.status === 'CLASIFICADO' ? 'CLASIFICADO ✓' :
                lastScanResult.status === 'YA_ESCANEADO' ? 'YA ESCANEADO' :
                'NO ENCONTRADO'}
             </h1>
-            <p className="text-2xl sm:text-4xl font-semibold mb-4 font-mono">
+            <p className="text-xl sm:text-2xl md:text-4xl font-semibold mb-2 sm:mb-4 font-mono">
               {lastScanResult.trackingNumber}
             </p>
             {(lastScanResult.status === 'CLASIFICADO' || lastScanResult.status === 'YA_ESCANEADO') && (
-              <div className={`mt-6 sm:mt-8 space-y-4 sm:space-y-6 rounded-xl p-4 sm:p-8 backdrop-blur-sm border-2 border-white ${
+              <div className={`mt-4 sm:mt-6 md:mt-8 space-y-2 sm:space-y-4 md:space-y-6 rounded-xl p-2 sm:p-4 md:p-8 backdrop-blur-sm border-2 border-white ${
                 lastScanResult.status === 'CLASIFICADO' ? 'bg-green-800 bg-opacity-40' : 'bg-yellow-800 bg-opacity-40'
               }`}>
-                <div className="flex flex-col sm:flex-row items-center justify-center text-2xl sm:text-4xl font-bold text-white drop-shadow-lg">
-                  <Truck className="h-8 w-8 sm:h-12 sm:w-12 mb-2 sm:mb-0 sm:mr-4" />
+                <div className="flex flex-col sm:flex-row items-center justify-center text-xl sm:text-2xl md:text-4xl font-bold text-white drop-shadow-lg">
+                  <Truck className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 mb-1 sm:mb-2 md:mb-0 sm:mr-2 md:mr-4" />
                   <span>Vehículo: {lastScanResult.vehiculo}</span>
                 </div>
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <div className="flex flex-col sm:flex-row items-center text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
-                    <MapPin className="h-8 w-8 sm:h-10 sm:w-10 mb-2 sm:mb-0 sm:mr-4" />
+                <div className="flex flex-col items-center justify-center space-y-1 sm:space-y-2">
+                  <div className="flex flex-col sm:flex-row items-center text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+                    <MapPin className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 mb-1 sm:mb-2 md:mb-0 sm:mr-2 md:mr-4" />
                     <span>Orden de Visita:</span>
                   </div>
-                  <p className="text-6xl sm:text-9xl font-black text-yellow-300 drop-shadow-2xl">
+                  <p className="text-3xl sm:text-6xl md:text-9xl font-black text-yellow-300 drop-shadow-2xl">
                     #{lastScanResult.ordenNumerico}
                   </p>
                 </div>
