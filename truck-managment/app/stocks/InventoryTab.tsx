@@ -320,17 +320,17 @@ export default function InventoryTab() {
       {/* Flash de código escaneado en pantalla completa */}
       {showBarcodeFlash && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-pulse">
-          <div className="text-center px-8">
-            <div className="mb-8">
-              <CheckCircle className="h-32 w-32 text-green-400 mx-auto animate-bounce" />
+          <div className="text-center px-4 sm:px-8">
+            <div className="mb-4 sm:mb-8">
+              <CheckCircle className="h-16 w-16 sm:h-24 sm:w-24 md:h-32 md:w-32 text-green-400 mx-auto animate-bounce" />
             </div>
             <div className="text-white">
-              <p className="text-2xl font-medium mb-4">Código Escaneado</p>
-              <p className="text-6xl font-mono font-bold mb-8 tracking-wider">{lastScannedCode}</p>
-              <p className="text-3xl font-semibold">
+              <p className="text-lg sm:text-xl md:text-2xl font-medium mb-2 sm:mb-4">Código Escaneado</p>
+              <p className="text-3xl sm:text-4xl md:text-6xl font-mono font-bold mb-4 sm:mb-6 md:mb-8 tracking-wider">{lastScannedCode}</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-semibold">
                 Paquete #{scannedCodes.length}
               </p>
-              <p className="text-lg text-gray-300 mt-4">
+              <p className="text-sm sm:text-base md:text-lg text-gray-300 mt-2 sm:mt-4">
                 Presiona cualquier tecla para continuar...
               </p>
             </div>

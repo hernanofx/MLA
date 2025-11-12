@@ -258,32 +258,32 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
             lastScanResult.status === 'NO_MLA' ? 'text-purple-400' :
             'text-blue-400'
           }`}>
-            <div className="mb-8">
-              {lastScanResult.status === 'OK' && <CheckCircle2 className="h-48 w-48 mx-auto" />}
-              {lastScanResult.status === 'SOBRANTE' && <XCircle className="h-48 w-48 mx-auto" />}
-              {lastScanResult.status === 'FUERA_COBERTURA' && <AlertTriangle className="h-48 w-48 mx-auto" />}
-              {lastScanResult.status === 'PREVIO' && <Clock className="h-48 w-48 mx-auto" />}
-              {lastScanResult.status === 'YA_ESCANEADO' && <AlertTriangle className="h-48 w-48 mx-auto" />}
-              {lastScanResult.status === 'NO_MLA' && <XCircle className="h-48 w-48 mx-auto" />}
+            <div className="mb-4 sm:mb-8">
+              {lastScanResult.status === 'OK' && <CheckCircle2 className="h-24 w-24 sm:h-48 sm:w-48 mx-auto" />}
+              {lastScanResult.status === 'SOBRANTE' && <XCircle className="h-24 w-24 sm:h-48 sm:w-48 mx-auto" />}
+              {lastScanResult.status === 'FUERA_COBERTURA' && <AlertTriangle className="h-24 w-24 sm:h-48 sm:w-48 mx-auto" />}
+              {lastScanResult.status === 'PREVIO' && <Clock className="h-24 w-24 sm:h-48 sm:w-48 mx-auto" />}
+              {lastScanResult.status === 'YA_ESCANEADO' && <AlertTriangle className="h-24 w-24 sm:h-48 sm:w-48 mx-auto" />}
+              {lastScanResult.status === 'NO_MLA' && <XCircle className="h-24 w-24 sm:h-48 sm:w-48 mx-auto" />}
             </div>
-            <h1 className="text-8xl font-bold mb-6">
+            <h1 className="text-4xl sm:text-8xl font-bold mb-3 sm:mb-6">
               {lastScanResult.status === 'YA_ESCANEADO' ? 'PAQUETE YA ESCANEADO' :
                lastScanResult.status === 'NO_MLA' ? 'PAQUETE NO DE MLA' :
                lastScanResult.status}
             </h1>
-            <p className="text-4xl font-semibold mb-4">
+            <p className="text-2xl sm:text-4xl font-semibold mb-2 sm:mb-4">
               {lastScanResult.trackingNumber}
             </p>
             {/* Mostrar datos de ruta tanto para OK como para YA_ESCANEADO */}
             {(lastScanResult.status === 'OK' || lastScanResult.status === 'YA_ESCANEADO') && lastScanResult.details && (
-              <div className="text-2xl text-white space-y-4 mt-8">
+              <div className="text-xl sm:text-2xl text-white space-y-2 sm:space-y-4 mt-4 sm:mt-8">
                 {lastScanResult.details.preRuteo && (
-                  <p className="text-6xl font-bold text-yellow-300">
+                  <p className="text-3xl sm:text-6xl font-bold text-yellow-300">
                     🚛 RUTA: {lastScanResult.details.preRuteo.ruta || 'N/A'}
                   </p>
                 )}
                 {lastScanResult.details.preRuteo && lastScanResult.details.preRuteo.chofer && (
-                  <p className="text-3xl">
+                  <p className="text-xl sm:text-3xl">
                     Chofer: {lastScanResult.details.preRuteo.chofer}
                   </p>
                 )}
