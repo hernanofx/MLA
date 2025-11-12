@@ -120,27 +120,58 @@ export default function EscaneoClasificacionStep({ clasificacionId, shipmentId, 
 
   // Event listeners para ocultar el flash con teclado o mouse
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showFlash) {
         setShowFlash(false)
+        setLastScanResult(null)
+        // Limpiar y enfocar input después de ocultar flash
+        setCurrentScan('')
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
       }
     }
 
     const handleClick = (e: MouseEvent) => {
       if (showFlash) {
         setShowFlash(false)
+        setLastScanResult(null)
+        // Limpiar y enfocar input después de ocultar flash
+        setCurrentScan('')
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
+      }
+    }
+
+    const handleAutoHide = () => {
+      if (showFlash) {
+        setShowFlash(false)
+        setLastScanResult(null)
+        // Limpiar y enfocar input después de ocultar flash
+        setCurrentScan('')
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
       }
     }
 
     if (showFlash) {
       document.addEventListener('keydown', handleKeyDown)
       document.addEventListener('click', handleClick)
+      // Auto-ocultar después de 3 segundos para errores
+      if (lastScanResult && (lastScanResult.status === 'YA_ESCANEADO' || lastScanResult.status === 'NO_ENCONTRADO')) {
+        timeoutId = setTimeout(handleAutoHide, 3000)
+      }
       return () => {
         document.removeEventListener('keydown', handleKeyDown)
         document.removeEventListener('click', handleClick)
+        if (timeoutId) clearTimeout(timeoutId)
       }
     }
-  }, [showFlash])
+  }, [showFlash, lastScanResult])
 
   const fetchStats = async () => {
     try {

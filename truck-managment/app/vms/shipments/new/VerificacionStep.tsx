@@ -74,18 +74,44 @@ export default function VerificacionStep({ shipmentId, onComplete }: Verificacio
 
   // Event listener para ocultar el fullscreen con cualquier tecla
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showFlash) {
         setShowFlash(false)
         setLastScanResult(null)
+        // Limpiar y enfocar input después de ocultar flash
+        setCurrentScan('')
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
+      }
+    }
+
+    const handleAutoHide = () => {
+      if (showFlash) {
+        setShowFlash(false)
+        setLastScanResult(null)
+        // Limpiar y enfocar input después de ocultar flash
+        setCurrentScan('')
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
       }
     }
 
     if (showFlash) {
       document.addEventListener('keydown', handleKeyDown)
-      return () => document.removeEventListener('keydown', handleKeyDown)
+      // Auto-ocultar después de 3 segundos para errores
+      if (lastScanResult && (lastScanResult.status === 'YA_ESCANEADO' || lastScanResult.status === 'NO_MLA')) {
+        timeoutId = setTimeout(handleAutoHide, 3000)
+      }
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown)
+        if (timeoutId) clearTimeout(timeoutId)
+      }
     }
-  }, [showFlash])
+  }, [showFlash, lastScanResult])
 
   const handleScan = async (trackingNumber: string) => {
     if (!trackingNumber.trim()) return
