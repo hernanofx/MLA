@@ -192,7 +192,7 @@ export default function EditLoadPage() {
 
       // ============= ENCABEZADO PRINCIPAL =============
       // Borde superior decorativo
-      doc.setDrawColor(34, 197, 94) // Verde profesional
+      doc.setDrawColor(117, 189, 31) // Color #75bd1f
       doc.setLineWidth(3)
       doc.line(margin, yPosition, pageWidth - margin, yPosition)
       yPosition += 8
@@ -230,11 +230,6 @@ export default function EditLoadPage() {
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(31, 41, 55)
       doc.text('MailAmericas', margin + 45, yPosition + 8)
-      
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(75, 85, 99)
-      doc.text('Servicios de Logística y Transporte', margin + 45, yPosition + 14)
 
       // Cuadro de información del remito (derecha)
       const boxX = pageWidth - margin - 65
@@ -286,7 +281,7 @@ export default function EditLoadPage() {
       // Función para dibujar una sección con estilo
       const drawSection = (title: string, x: number, y: number, width: number, height: number) => {
         // Fondo del título
-        doc.setFillColor(34, 197, 94)
+        doc.setFillColor(117, 189, 31)
         doc.rect(x, y, width, 7, 'F')
         
         // Título
@@ -296,7 +291,7 @@ export default function EditLoadPage() {
         doc.text(title, x + 3, y + 5)
         
         // Borde de la sección
-        doc.setDrawColor(34, 197, 94)
+        doc.setDrawColor(117, 189, 31)
         doc.setLineWidth(0.8)
         doc.rect(x, y, width, height)
         
@@ -332,7 +327,9 @@ export default function EditLoadPage() {
       contentY = drawSection('DATOS DEL TRANSPORTE', col2X, col2Y, colWidth, transportSectionHeight)
       contentY += 5
       
+      doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
+      doc.setTextColor(31, 41, 55)
       doc.text('Vehículo:', col2X + 3, contentY)
       doc.setFont('helvetica', 'normal')
       doc.text(load.truck.licensePlate, col2X + 23, contentY)
@@ -375,7 +372,9 @@ export default function EditLoadPage() {
 
       let hasContent = false
       if (quantity) {
+        doc.setFontSize(9)
         doc.setFont('helvetica', 'bold')
+        doc.setTextColor(31, 41, 55)
         doc.text('Cantidad:', margin + 3, contentY)
         doc.setFont('helvetica', 'normal')
         doc.text(quantity, margin + 25, contentY)
@@ -440,13 +439,13 @@ export default function EditLoadPage() {
       // Título de sección
       doc.setFillColor(249, 250, 251)
       doc.rect(margin, signatureY, pageWidth - 2 * margin, 7, 'F')
-      doc.setDrawColor(34, 197, 94)
+      doc.setDrawColor(117, 189, 31)
       doc.setLineWidth(0.8)
       doc.rect(margin, signatureY, pageWidth - 2 * margin, 45)
       
       doc.setFontSize(10)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(34, 197, 94)
+      doc.setTextColor(117, 189, 31)
       doc.text('FIRMAS Y CONFORMIDAD', margin + 3, signatureY + 5)
       
       yPosition = signatureY + 12
@@ -495,7 +494,7 @@ export default function EditLoadPage() {
       const footerY = pageHeight - 25
       
       // Línea decorativa superior
-      doc.setDrawColor(34, 197, 94)
+      doc.setDrawColor(117, 189, 31)
       doc.setLineWidth(1)
       doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3)
       
