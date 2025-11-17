@@ -36,6 +36,7 @@ interface TransportistData {
   name: string
   lastName: string
   dni: string
+  observations?: string
 }
 
 export default function EditLoadPage() {
@@ -62,6 +63,7 @@ export default function EditLoadPage() {
   const [transportistName, setTransportistName] = useState('')
   const [transportistLastName, setTransportistLastName] = useState('')
   const [transportistDNI, setTransportistDNI] = useState('')
+  const [transportistObservations, setTransportistObservations] = useState('')
   const [generatingPDF, setGeneratingPDF] = useState(false)
   
   const router = useRouter()
@@ -229,11 +231,13 @@ export default function EditLoadPage() {
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(31, 41, 55)
-      doc.text('MailAmericas', margin + 45, yPosition + 8)
+      doc.text('MailAmericas', margin + 45, yPosition + 10)
+
+      yPosition += 28
 
       // Cuadro de información del remito (derecha)
       const boxX = pageWidth - margin - 65
-      const boxY = yPosition
+      const boxY = yPosition - 28
       doc.setDrawColor(200, 200, 200)
       doc.setLineWidth(0.5)
       doc.rect(boxX, boxY, 65, 24)
@@ -263,7 +267,7 @@ export default function EditLoadPage() {
       doc.setFont('helvetica', 'normal')
       doc.text(currentDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), boxX + 13, boxY + 22)
 
-      yPosition += 32
+      yPosition += 4
 
       // Línea separadora
       doc.setDrawColor(220, 220, 220)
@@ -422,13 +426,23 @@ export default function EditLoadPage() {
       // ============= OBSERVACIONES =============
       const obsSectionHeight = 25
       contentY = drawSection('OBSERVACIONES', margin, yPosition, pageWidth - 2 * margin, obsSectionHeight)
+      contentY += 3
       
-      // Líneas para escribir observaciones
-      doc.setDrawColor(220, 220, 220)
-      doc.setLineWidth(0.3)
-      for (let i = 0; i < 4; i++) {
-        const lineY = contentY + 5 + (i * 4.5)
-        doc.line(margin + 2, lineY, pageWidth - margin - 2, lineY)
+      // Si hay observaciones del transportista, mostrarlas
+      if (transportistData.observations && transportistData.observations.trim()) {
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(31, 41, 55)
+        const obsLines = doc.splitTextToSize(transportistData.observations, pageWidth - 2 * margin - 6)
+        doc.text(obsLines, margin + 3, contentY)
+      } else {
+        // Líneas para escribir observaciones manuscritas
+        doc.setDrawColor(220, 220, 220)
+        doc.setLineWidth(0.3)
+        for (let i = 0; i < 4; i++) {
+          const lineY = contentY + 2 + (i * 4.5)
+          doc.line(margin + 2, lineY, pageWidth - margin - 2, lineY)
+        }
       }
 
       yPosition += obsSectionHeight + 8
@@ -589,13 +603,15 @@ export default function EditLoadPage() {
     await generateRemitoPDF({
       name: transportistName.trim(),
       lastName: transportistLastName.trim(),
-      dni: transportistDNI.trim()
+      dni: transportistDNI.trim(),
+      observations: transportistObservations.trim()
     })
 
     // Limpiar campos del modal
     setTransportistName('')
     setTransportistLastName('')
     setTransportistDNI('')
+    setTransportistObservations('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -973,6 +989,20 @@ export default function EditLoadPage() {
                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
                         placeholder="Ingrese el DNI"
                         required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="transportist-observations" className="block text-sm font-medium text-gray-700 mb-2">
+                        Observaciones (opcional)
+                      </label>
+                      <textarea
+                        id="transportist-observations"
+                        value={transportistObservations}
+                        onChange={(e) => setTransportistObservations(e.target.value)}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2 text-gray-900"
+                        placeholder="Ingrese observaciones adicionales"
+                        rows={3}
                       />
                     </div>
                   </div>
