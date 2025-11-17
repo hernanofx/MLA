@@ -169,56 +169,13 @@ export default function EditLoadPage() {
       const doc = new jsPDF()
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
-      const margin = 20
+      const margin = 15
       let yPosition = margin
 
-      // Función auxiliar para agregar texto centrado
-      const addCenteredText = (text: string, fontSize: number = 12, y: number) => {
-        doc.setFontSize(fontSize)
-        const textWidth = doc.getTextWidth(text)
-        const x = (pageWidth - textWidth) / 2
-        doc.text(text, x, y)
-      }
+      const remitoNumber = `REM-${load.id.slice(-8).toUpperCase()}`
+      const currentDate = new Date()
 
-      // Función auxiliar para agregar texto con label en columna específica
-      const addFieldInColumn = (label: string, value: string, y: number, x: number, columnWidth: number, labelWidth: number = 60) => {
-        doc.setFontSize(10)
-        doc.setFont('helvetica', 'bold')
-        doc.text(`${label}:`, x, y)
-        doc.setFont('helvetica', 'normal')
-        const maxWidth = columnWidth - labelWidth - 5
-        const lines = doc.splitTextToSize(value, maxWidth)
-        doc.text(lines, x + labelWidth, y)
-        
-        // Calcular altura real basada en el número de líneas
-        const lineHeight = 6
-        return Array.isArray(lines) ? lines.length * lineHeight : lineHeight
-      }
-
-      // Función para agregar sección con borde en columna específica
-      const addSectionInColumn = (title: string, contentCallback: (startY: number, x: number, width: number) => number, startY: number, x: number, width: number) => {
-        const sectionStartY = startY
-        
-        // Título de sección
-        doc.setFontSize(12)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(59, 130, 246)
-        doc.text(title, x, startY)
-        startY += 10
-        
-        // Calcular altura del contenido
-        const contentHeight = contentCallback(startY, x, width)
-        
-        // Borde de sección
-        doc.setDrawColor(220, 220, 220)
-        doc.setLineWidth(0.5)
-        const sectionHeight = contentHeight + 15
-        doc.rect(x - 2, sectionStartY - 5, width + 4, sectionHeight)
-        
-        return startY + contentHeight + 10
-      }
-
-      // Obtener dirección del proveedor antes de generar el PDF
+      // Obtener dirección del proveedor
       let providerAddress = ''
       try {
         const providerResponse = await fetch(`/api/providers/${load.providerId}`)
@@ -233,33 +190,21 @@ export default function EditLoadPage() {
         console.error('Error fetching provider address:', error)
       }
 
-      // PRIMERA FILA: Título principal centrado
-      doc.setFontSize(20)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(31, 41, 55)
-      addCenteredText('REMITO DE CARGA', 20, yPosition)
-      yPosition += 15
+      // ============= ENCABEZADO PRINCIPAL =============
+      // Borde superior decorativo
+      doc.setDrawColor(34, 197, 94) // Verde profesional
+      doc.setLineWidth(3)
+      doc.line(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 8
 
-      // SEGUNDA FILA: Subtítulo centrado
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(107, 114, 128)
-      addCenteredText('Documento oficial de entrega de mercadería', 12, yPosition)
-      yPosition += 20
-
-      // TERCERA FILA: Encabezado de dos columnas
-      const leftColumnX = margin
-      const rightColumnX = pageWidth / 2 + 10
-      const columnWidth = (pageWidth / 2) - margin - 10
-
-      // Columna izquierda: Logo + MailAmericas
-      let leftColumnHeight = 0
+      // Logo y datos de empresa en header
+      const headerY = yPosition
       try {
         const img = new Image()
         img.crossOrigin = 'anonymous'
         img.src = '/images/logo.png'
         
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve) => {
           img.onload = resolve
           img.onerror = () => resolve(null)
         })
@@ -272,180 +217,305 @@ export default function EditLoadPage() {
           ctx?.drawImage(img, 0, 0)
           const logoData = canvas.toDataURL('image/png')
           
-          const logoWidth = 25
+          const logoWidth = 35
           const logoHeight = (img.naturalHeight / img.naturalWidth) * logoWidth
-          doc.addImage(logoData, 'PNG', leftColumnX, yPosition, logoWidth, logoHeight)
-          
-          // MailAmericas debajo del logo
-          doc.setFontSize(10)
-          doc.setFont('helvetica', 'bold')
-          doc.setTextColor(31, 41, 55)
-          doc.text('MailAmericas', leftColumnX, yPosition + logoHeight + 8)
-          
-          leftColumnHeight = logoHeight + 15
-        } else {
-          // Si no hay logo, solo MailAmericas
-          doc.setFontSize(12)
-          doc.setFont('helvetica', 'bold')
-          doc.setTextColor(31, 41, 55)
-          doc.text('MailAmericas', leftColumnX, yPosition + 10)
-          leftColumnHeight = 20
+          doc.addImage(logoData, 'PNG', margin, yPosition, logoWidth, logoHeight)
         }
       } catch (error) {
         console.error('Error loading logo:', error)
-        doc.setFontSize(12)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(31, 41, 55)
-        doc.text('MailAmericas', leftColumnX, yPosition + 10)
-        leftColumnHeight = 20
       }
 
-      // Columna derecha: Datos del remito
-      const remitoNumber = `REM-${load.id.slice(-8).toUpperCase()}`
-      const currentDate = new Date()
-      
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(0, 0, 0)
-      doc.text(`N° ${remitoNumber}`, rightColumnX, yPosition)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Fecha: ${currentDate.toLocaleDateString('es-AR')}`, rightColumnX, yPosition + 6)
-      doc.text(`Hora: ${currentDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`, rightColumnX, yPosition + 12)
-      
-      const rightColumnHeight = 18
-      yPosition += Math.max(leftColumnHeight, rightColumnHeight) + 15
-
-      // SECCIONES EN DOS COLUMNAS: Datos del Proveedor y Datos del Transporte
-      const sectionY = yPosition
-      
-      // Columna izquierda: Datos del Proveedor
-      let leftSectionHeight = addSectionInColumn('DATOS DEL PROVEEDOR', (startY, x, width) => {
-        let currentY = startY
-        doc.setFontSize(10)
-        doc.setTextColor(0, 0, 0)
-        
-        const nameHeight = addFieldInColumn('Razón Social', load.provider.name, currentY, x, width)
-        currentY += nameHeight + 5
-        
-        if (providerAddress) {
-          const addressHeight = addFieldInColumn('Domicilio', providerAddress, currentY, x, width)
-          currentY += addressHeight + 5
-        }
-        
-        return currentY - startY
-      }, sectionY, leftColumnX, columnWidth)
-
-      // Columna derecha: Datos del Transporte
-      let rightSectionHeight = addSectionInColumn('DATOS DEL TRANSPORTE', (startY, x, width) => {
-        let currentY = startY
-        doc.setFontSize(10)
-        doc.setTextColor(0, 0, 0)
-        
-        const vehicleHeight = addFieldInColumn('Vehículo', load.truck.licensePlate, currentY, x, width)
-        currentY += vehicleHeight + 5
-        
-        const transportistFullName = `${transportistData.name} ${transportistData.lastName}`
-        const transportistHeight = addFieldInColumn('Transportista', transportistFullName, currentY, x, width)
-        currentY += transportistHeight + 5
-        
-        const dniHeight = addFieldInColumn('DNI Transportista', transportistData.dni, currentY, x, width)
-        currentY += dniHeight + 5
-        
-        const dateHeight = addFieldInColumn('Fecha/Hora Salida', currentDate.toLocaleString('es-AR'), currentY, x, width)
-        currentY += dateHeight + 5
-        
-        return currentY - startY
-      }, sectionY, rightColumnX, columnWidth)
-
-      yPosition += Math.max(leftSectionHeight, rightSectionHeight) + 10
-
-      // SECCIÓN COMPLETA: Detalles de la Mercadería
-      yPosition = addSectionInColumn('DETALLES DE LA MERCADERÍA', (startY, x, width) => {
-        let currentY = startY
-        doc.setFontSize(10)
-        doc.setTextColor(0, 0, 0)
-        
-        if (quantity) {
-          const quantityHeight = addFieldInColumn('Cantidad', quantity, currentY, x, width)
-          currentY += quantityHeight + 5
-        }
-        
-        if (container) {
-          const containers = container.split(/\s+/).filter(c => c.trim())
-          if (containers.length > 0) {
-            const containerText = containers.length === 1 ? containers[0] : containers.join(', ')
-            const label = containers.length === 1 ? 'Contenedora' : 'Contenedoras'
-            const containerHeight = addFieldInColumn(label, containerText, currentY, x, width)
-            currentY += containerHeight + 5
-          }
-        }
-        
-        if (precinto) {
-          const precintos = precinto.split(/\s+/).filter(p => p.trim())
-          if (precintos.length > 0) {
-            const precintoText = precintos.length === 1 ? precintos[0] : precintos.join(', ')
-            const label = precintos.length === 1 ? 'Precinto' : 'Precintos'
-            const precintoHeight = addFieldInColumn(label, precintoText, currentY, x, width)
-            currentY += precintoHeight + 5
-          }
-        }
-        
-        return currentY - startY
-      }, yPosition, margin, pageWidth - 2 * margin)
-
-      // Espacio antes de firmas
-      yPosition += 10
-
-      // Sección de firmas
-      doc.setFontSize(12)
+      // Datos de la empresa
+      doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(31, 41, 55)
-      doc.text('FIRMAS Y CONFORMIDAD', margin, yPosition)
-      yPosition += 20
-
-      // Firma del transportista
-      doc.setFontSize(10)
+      doc.text('MailAmericas', margin + 45, yPosition + 8)
+      
+      doc.setFontSize(9)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(0, 0, 0)
-      doc.text('Transportista:', margin, yPosition)
+      doc.setTextColor(75, 85, 99)
+      doc.text('Servicios de Logística y Transporte', margin + 45, yPosition + 14)
+
+      // Cuadro de información del remito (derecha)
+      const boxX = pageWidth - margin - 65
+      const boxY = yPosition
+      doc.setDrawColor(200, 200, 200)
       doc.setLineWidth(0.5)
-      doc.line(margin + 40, yPosition + 2, margin + 120, yPosition + 2)
-      doc.text('Fecha:', margin + 130, yPosition)
-      doc.line(margin + 150, yPosition + 2, margin + 180, yPosition + 2)
-      yPosition += 25
-
-      // Firma del receptor
-      doc.text('Receptor:', margin, yPosition)
-      doc.line(margin + 30, yPosition + 2, margin + 110, yPosition + 2)
-      doc.text('Fecha:', margin + 130, yPosition)
-      doc.line(margin + 150, yPosition + 2, margin + 180, yPosition + 2)
-      yPosition += 25
-
-      // Observaciones
-      doc.setFontSize(10)
+      doc.rect(boxX, boxY, 65, 24)
+      
+      // Fondo gris claro para el encabezado del cuadro
+      doc.setFillColor(249, 250, 251)
+      doc.rect(boxX, boxY, 65, 8, 'F')
+      
+      doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
-      doc.text('Observaciones:', margin, yPosition)
-      yPosition += 10
+      doc.setTextColor(31, 41, 55)
+      doc.text('REMITO DE CARGA', boxX + 32.5, boxY + 5, { align: 'center' })
       
-      // Línea para observaciones
-      doc.setLineWidth(0.3)
-      doc.rect(margin, yPosition, pageWidth - 2 * margin, 25)
-      yPosition += 35
-
-      // Pie de página
-      const footerY = pageHeight - 30
-      doc.setFontSize(8)
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`N°:`, boxX + 3, boxY + 12)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(107, 114, 128)
+      doc.text(remitoNumber, boxX + 10, boxY + 12)
       
-      // Línea separadora del footer
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Fecha:`, boxX + 3, boxY + 17)
+      doc.setFont('helvetica', 'normal')
+      doc.text(currentDate.toLocaleDateString('es-AR'), boxX + 15, boxY + 17)
+      
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Hora:`, boxX + 3, boxY + 22)
+      doc.setFont('helvetica', 'normal')
+      doc.text(currentDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }), boxX + 13, boxY + 22)
+
+      yPosition += 32
+
+      // Línea separadora
+      doc.setDrawColor(220, 220, 220)
+      doc.setLineWidth(0.5)
+      doc.line(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 8
+
+      // ============= SECCIÓN DE DATOS (2 COLUMNAS) =============
+      const col1X = margin
+      const col2X = pageWidth / 2 + 5
+      const colWidth = (pageWidth / 2) - margin - 5
+      let col1Y = yPosition
+      let col2Y = yPosition
+
+      // Función para dibujar una sección con estilo
+      const drawSection = (title: string, x: number, y: number, width: number, height: number) => {
+        // Fondo del título
+        doc.setFillColor(34, 197, 94)
+        doc.rect(x, y, width, 7, 'F')
+        
+        // Título
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(255, 255, 255)
+        doc.text(title, x + 3, y + 5)
+        
+        // Borde de la sección
+        doc.setDrawColor(34, 197, 94)
+        doc.setLineWidth(0.8)
+        doc.rect(x, y, width, height)
+        
+        return y + 7
+      }
+
+      // COLUMNA 1: DATOS DEL PROVEEDOR
+      const providerSectionHeight = 28
+      let contentY = drawSection('DATOS DEL PROVEEDOR', col1X, col1Y, colWidth, providerSectionHeight)
+      contentY += 5
+      
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(31, 41, 55)
+      doc.text('Razón Social:', col1X + 3, contentY)
+      doc.setFont('helvetica', 'normal')
+      const providerNameLines = doc.splitTextToSize(load.provider.name, colWidth - 35)
+      doc.text(providerNameLines, col1X + 30, contentY)
+      contentY += (providerNameLines.length * 4) + 3
+      
+      if (providerAddress) {
+        doc.setFont('helvetica', 'bold')
+        doc.text('Domicilio:', col1X + 3, contentY)
+        doc.setFont('helvetica', 'normal')
+        const addressLines = doc.splitTextToSize(providerAddress, colWidth - 30)
+        doc.text(addressLines, col1X + 25, contentY)
+      }
+
+      col1Y += providerSectionHeight + 5
+
+      // COLUMNA 2: DATOS DEL TRANSPORTE
+      const transportSectionHeight = 38
+      contentY = drawSection('DATOS DEL TRANSPORTE', col2X, col2Y, colWidth, transportSectionHeight)
+      contentY += 5
+      
+      doc.setFont('helvetica', 'bold')
+      doc.text('Vehículo:', col2X + 3, contentY)
+      doc.setFont('helvetica', 'normal')
+      doc.text(load.truck.licensePlate, col2X + 23, contentY)
+      contentY += 5
+      
+      doc.setFont('helvetica', 'bold')
+      doc.text('Transportista:', col2X + 3, contentY)
+      doc.setFont('helvetica', 'normal')
+      const transportistName = `${transportistData.name} ${transportistData.lastName}`
+      const transportistLines = doc.splitTextToSize(transportistName, colWidth - 35)
+      doc.text(transportistLines, col2X + 30, contentY)
+      contentY += (transportistLines.length * 4) + 1
+      
+      doc.setFont('helvetica', 'bold')
+      doc.text('DNI:', col2X + 3, contentY)
+      doc.setFont('helvetica', 'normal')
+      doc.text(transportistData.dni, col2X + 13, contentY)
+      contentY += 5
+      
+      doc.setFont('helvetica', 'bold')
+      doc.text('Salida:', col2X + 3, contentY)
+      doc.setFont('helvetica', 'normal')
+      doc.text(currentDate.toLocaleString('es-AR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }), col2X + 17, contentY)
+
+      col2Y += transportSectionHeight + 5
+
+      // Ajustar yPosition al máximo de ambas columnas
+      yPosition = Math.max(col1Y, col2Y)
+
+      // ============= DETALLES DE LA MERCADERÍA (ANCHO COMPLETO) =============
+      const mercSectionHeight = 30
+      contentY = drawSection('DETALLES DE LA MERCADERÍA', margin, yPosition, pageWidth - 2 * margin, mercSectionHeight)
+      contentY += 5
+
+      let hasContent = false
+      if (quantity) {
+        doc.setFont('helvetica', 'bold')
+        doc.text('Cantidad:', margin + 3, contentY)
+        doc.setFont('helvetica', 'normal')
+        doc.text(quantity, margin + 25, contentY)
+        contentY += 5
+        hasContent = true
+      }
+      
+      if (container) {
+        const containers = container.split(/\s+/).filter(c => c.trim())
+        if (containers.length > 0) {
+          const label = containers.length === 1 ? 'Contenedora:' : 'Contenedoras:'
+          doc.setFont('helvetica', 'bold')
+          doc.text(label, margin + 3, contentY)
+          doc.setFont('helvetica', 'normal')
+          const containerText = containers.join(', ')
+          const containerLines = doc.splitTextToSize(containerText, pageWidth - 2 * margin - 35)
+          doc.text(containerLines, margin + 30, contentY)
+          contentY += (containerLines.length * 4) + 1
+          hasContent = true
+        }
+      }
+      
+      if (precinto) {
+        const precintos = precinto.split(/\s+/).filter(p => p.trim())
+        if (precintos.length > 0) {
+          const label = precintos.length === 1 ? 'Precinto:' : 'Precintos:'
+          doc.setFont('helvetica', 'bold')
+          doc.text(label, margin + 3, contentY)
+          doc.setFont('helvetica', 'normal')
+          const precintoText = precintos.join(', ')
+          const precintoLines = doc.splitTextToSize(precintoText, pageWidth - 2 * margin - 30)
+          doc.text(precintoLines, margin + 27, contentY)
+          hasContent = true
+        }
+      }
+
+      if (!hasContent) {
+        doc.setFont('helvetica', 'italic')
+        doc.setTextColor(107, 114, 128)
+        doc.text('No se especificaron detalles de mercadería', margin + 3, contentY)
+      }
+
+      yPosition += mercSectionHeight + 8
+
+      // ============= OBSERVACIONES =============
+      const obsSectionHeight = 25
+      contentY = drawSection('OBSERVACIONES', margin, yPosition, pageWidth - 2 * margin, obsSectionHeight)
+      
+      // Líneas para escribir observaciones
       doc.setDrawColor(220, 220, 220)
       doc.setLineWidth(0.3)
-      doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5)
+      for (let i = 0; i < 4; i++) {
+        const lineY = contentY + 5 + (i * 4.5)
+        doc.line(margin + 2, lineY, pageWidth - margin - 2, lineY)
+      }
+
+      yPosition += obsSectionHeight + 8
+
+      // ============= FIRMAS Y CONFORMIDAD =============
+      const signatureY = yPosition
       
-      addCenteredText('Sistema de Gestión de Cargas - Mail Americas', 8, footerY)
-      addCenteredText(`Remito generado automáticamente el ${currentDate.toLocaleString('es-AR')}`, 8, footerY + 4)
-      addCenteredText('Documento válido para fines administrativos y legales', 8, footerY + 8)
+      // Título de sección
+      doc.setFillColor(249, 250, 251)
+      doc.rect(margin, signatureY, pageWidth - 2 * margin, 7, 'F')
+      doc.setDrawColor(34, 197, 94)
+      doc.setLineWidth(0.8)
+      doc.rect(margin, signatureY, pageWidth - 2 * margin, 45)
+      
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(34, 197, 94)
+      doc.text('FIRMAS Y CONFORMIDAD', margin + 3, signatureY + 5)
+      
+      yPosition = signatureY + 12
+      
+      // Dos columnas de firmas
+      const sig1X = margin + 10
+      const sig2X = pageWidth / 2 + 10
+      
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(31, 41, 55)
+      
+      // Firma del Transportista
+      doc.text('TRANSPORTISTA', sig1X, yPosition)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.text(`${transportistData.name} ${transportistData.lastName}`, sig1X, yPosition + 4)
+      doc.text(`DNI: ${transportistData.dni}`, sig1X, yPosition + 8)
+      
+      doc.setDrawColor(0, 0, 0)
+      doc.setLineWidth(0.5)
+      doc.line(sig1X, yPosition + 20, sig1X + 65, yPosition + 20)
+      doc.setFontSize(7)
+      doc.setTextColor(107, 114, 128)
+      doc.text('Firma', sig1X + 28, yPosition + 24)
+      
+      // Firma del Receptor
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(31, 41, 55)
+      doc.text('RECEPTOR', sig2X, yPosition)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.text('Nombre y Apellido:', sig2X, yPosition + 4)
+      doc.text('DNI:', sig2X, yPosition + 8)
+      
+      doc.setDrawColor(0, 0, 0)
+      doc.line(sig2X, yPosition + 20, sig2X + 65, yPosition + 20)
+      doc.setFontSize(7)
+      doc.setTextColor(107, 114, 128)
+      doc.text('Firma y Aclaración', sig2X + 20, yPosition + 24)
+
+      yPosition += 38
+
+      // ============= PIE DE PÁGINA =============
+      const footerY = pageHeight - 25
+      
+      // Línea decorativa superior
+      doc.setDrawColor(34, 197, 94)
+      doc.setLineWidth(1)
+      doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3)
+      
+      // Información del footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(75, 85, 99)
+      
+      const centerText = (text: string, y: number) => {
+        const textWidth = doc.getTextWidth(text)
+        const x = (pageWidth - textWidth) / 2
+        doc.text(text, x, y)
+      }
+      
+      centerText('MailAmericas - Sistema de Gestión de Cargas', footerY + 3)
+      
+      doc.setFontSize(7)
+      doc.setTextColor(107, 114, 128)
+      centerText(`Documento generado automáticamente el ${currentDate.toLocaleDateString('es-AR')} a las ${currentDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`, footerY + 7)
+      centerText('Este documento es válido como comprobante de entrega y carga de mercadería', footerY + 11)
 
       // Descargar el PDF
       doc.save(`remito-${remitoNumber}.pdf`)
