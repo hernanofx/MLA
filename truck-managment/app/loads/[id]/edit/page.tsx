@@ -180,45 +180,80 @@ export default function EditLoadPage() {
         doc.text(text, x, y)
       }
 
-      // Función auxiliar para agregar texto con label (mejorada)
-      const addField = (label: string, value: string, y: number, labelWidth: number = 80) => {
+      // Función auxiliar para agregar texto con label en columna específica
+      const addFieldInColumn = (label: string, value: string, y: number, x: number, columnWidth: number, labelWidth: number = 60) => {
         doc.setFontSize(10)
         doc.setFont('helvetica', 'bold')
-        doc.text(`${label}:`, margin, y)
+        doc.text(`${label}:`, x, y)
         doc.setFont('helvetica', 'normal')
-        const maxWidth = pageWidth - margin - labelWidth - margin
+        const maxWidth = columnWidth - labelWidth - 5
         const lines = doc.splitTextToSize(value, maxWidth)
-        doc.text(lines, margin + labelWidth, y)
+        doc.text(lines, x + labelWidth, y)
         
         // Calcular altura real basada en el número de líneas
-        const lineHeight = 6 // Altura por línea más realista
+        const lineHeight = 6
         return Array.isArray(lines) ? lines.length * lineHeight : lineHeight
       }
 
-      // Función para agregar sección con borde
-      const addSection = (title: string, contentCallback: (startY: number) => number, startY: number) => {
+      // Función para agregar sección con borde en columna específica
+      const addSectionInColumn = (title: string, contentCallback: (startY: number, x: number, width: number) => number, startY: number, x: number, width: number) => {
         const sectionStartY = startY
         
         // Título de sección
         doc.setFontSize(12)
         doc.setFont('helvetica', 'bold')
         doc.setTextColor(59, 130, 246)
-        doc.text(title, margin, startY)
-        startY += 10 // Más espacio después del título
+        doc.text(title, x, startY)
+        startY += 10
         
         // Calcular altura del contenido
-        const contentHeight = contentCallback(startY)
+        const contentHeight = contentCallback(startY, x, width)
         
         // Borde de sección
         doc.setDrawColor(220, 220, 220)
         doc.setLineWidth(0.5)
-        const sectionHeight = contentHeight + 15 // Padding extra
-        doc.rect(margin - 2, sectionStartY - 5, pageWidth - 2 * margin + 4, sectionHeight)
+        const sectionHeight = contentHeight + 15
+        doc.rect(x - 2, sectionStartY - 5, width + 4, sectionHeight)
         
         return startY + contentHeight + 10
       }
 
-      // Encabezado con logo (arriba a la izquierda, más pequeño)
+      // Obtener dirección del proveedor antes de generar el PDF
+      let providerAddress = ''
+      try {
+        const providerResponse = await fetch(`/api/providers/${load.providerId}`)
+        if (providerResponse.ok) {
+          const providerData = await providerResponse.json()
+          const addressParts = [providerData.street, providerData.number, providerData.locality].filter(Boolean)
+          if (addressParts.length > 0) {
+            providerAddress = addressParts.join(' ')
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching provider address:', error)
+      }
+
+      // PRIMERA FILA: Título principal centrado
+      doc.setFontSize(20)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(31, 41, 55)
+      addCenteredText('REMITO DE CARGA', 20, yPosition)
+      yPosition += 15
+
+      // SEGUNDA FILA: Subtítulo centrado
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(107, 114, 128)
+      addCenteredText('Documento oficial de entrega de mercadería', 12, yPosition)
+      yPosition += 20
+
+      // TERCERA FILA: Encabezado de dos columnas
+      const leftColumnX = margin
+      const rightColumnX = pageWidth / 2 + 10
+      const columnWidth = (pageWidth / 2) - margin - 10
+
+      // Columna izquierda: Logo + MailAmericas
+      let leftColumnHeight = 0
       try {
         const img = new Image()
         img.crossOrigin = 'anonymous'
@@ -237,125 +272,101 @@ export default function EditLoadPage() {
           ctx?.drawImage(img, 0, 0)
           const logoData = canvas.toDataURL('image/png')
           
-          // Logo más pequeño y posicionado arriba a la izquierda
-          const logoWidth = 30
+          const logoWidth = 25
           const logoHeight = (img.naturalHeight / img.naturalWidth) * logoWidth
-          doc.addImage(logoData, 'PNG', margin, yPosition, logoWidth, logoHeight)
+          doc.addImage(logoData, 'PNG', leftColumnX, yPosition, logoWidth, logoHeight)
           
-          // Título a la derecha del logo
-          doc.setFontSize(18)
+          // MailAmericas debajo del logo
+          doc.setFontSize(10)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(31, 41, 55)
-          doc.text('REMITO DE CARGA', margin + logoWidth + 15, yPosition + 8)
+          doc.text('MailAmericas', leftColumnX, yPosition + logoHeight + 8)
           
-          yPosition += Math.max(logoHeight, 15) + 10
+          leftColumnHeight = logoHeight + 15
         } else {
-          // Si no hay logo, solo el título
-          doc.setFontSize(20)
+          // Si no hay logo, solo MailAmericas
+          doc.setFontSize(12)
           doc.setFont('helvetica', 'bold')
           doc.setTextColor(31, 41, 55)
-          addCenteredText('REMITO DE CARGA', 20, yPosition)
-          yPosition += 20
+          doc.text('MailAmericas', leftColumnX, yPosition + 10)
+          leftColumnHeight = 20
         }
       } catch (error) {
         console.error('Error loading logo:', error)
-        // Si hay error, solo el título
-        doc.setFontSize(20)
+        doc.setFontSize(12)
         doc.setFont('helvetica', 'bold')
         doc.setTextColor(31, 41, 55)
-        addCenteredText('REMITO DE CARGA', 20, yPosition)
-        yPosition += 20
+        doc.text('MailAmericas', leftColumnX, yPosition + 10)
+        leftColumnHeight = 20
       }
 
-      // Subtítulo
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(107, 114, 128)
-      addCenteredText('Documento oficial de entrega de mercadería', 12, yPosition)
-      yPosition += 15
-
-      // Información del remito (arriba a la derecha)
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(0, 0, 0)
-      
+      // Columna derecha: Datos del remito
       const remitoNumber = `REM-${load.id.slice(-8).toUpperCase()}`
       const currentDate = new Date()
       
+      doc.setFontSize(10)
       doc.setFont('helvetica', 'bold')
-      doc.text(`N° ${remitoNumber}`, pageWidth - margin - 60, yPosition)
+      doc.setTextColor(0, 0, 0)
+      doc.text(`N° ${remitoNumber}`, rightColumnX, yPosition)
       doc.setFont('helvetica', 'normal')
-      doc.text(`Fecha: ${currentDate.toLocaleDateString('es-AR')}`, pageWidth - margin - 60, yPosition + 6)
-      doc.text(`Hora: ${currentDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`, pageWidth - margin - 60, yPosition + 12)
-      yPosition += 30
+      doc.text(`Fecha: ${currentDate.toLocaleDateString('es-AR')}`, rightColumnX, yPosition + 6)
+      doc.text(`Hora: ${currentDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`, rightColumnX, yPosition + 12)
+      
+      const rightColumnHeight = 18
+      yPosition += Math.max(leftColumnHeight, rightColumnHeight) + 15
 
-      // Obtener dirección del proveedor antes de generar el PDF
-      let providerAddress = ''
-      try {
-        const providerResponse = await fetch(`/api/providers/${load.providerId}`)
-        if (providerResponse.ok) {
-          const providerData = await providerResponse.json()
-          const addressParts = [providerData.street, providerData.number, providerData.locality].filter(Boolean)
-          if (addressParts.length > 0) {
-            providerAddress = addressParts.join(' ')
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching provider address:', error)
-      }
-
-      // Sección 1: Datos del Proveedor
-      yPosition = addSection('DATOS DEL PROVEEDOR', (startY) => {
+      // SECCIONES EN DOS COLUMNAS: Datos del Proveedor y Datos del Transporte
+      const sectionY = yPosition
+      
+      // Columna izquierda: Datos del Proveedor
+      let leftSectionHeight = addSectionInColumn('DATOS DEL PROVEEDOR', (startY, x, width) => {
         let currentY = startY
         doc.setFontSize(10)
         doc.setTextColor(0, 0, 0)
         
-        // Nombre del proveedor
-        const nameHeight = addField('Razón Social', load.provider.name, currentY)
+        const nameHeight = addFieldInColumn('Razón Social', load.provider.name, currentY, x, width)
         currentY += nameHeight + 5
         
-        // Dirección del proveedor
         if (providerAddress) {
-          const addressHeight = addField('Domicilio', providerAddress, currentY)
+          const addressHeight = addFieldInColumn('Domicilio', providerAddress, currentY, x, width)
           currentY += addressHeight + 5
         }
         
         return currentY - startY
-      }, yPosition)
+      }, sectionY, leftColumnX, columnWidth)
 
-      // Sección 2: Datos del Transporte
-      yPosition = addSection('DATOS DEL TRANSPORTE', (startY) => {
+      // Columna derecha: Datos del Transporte
+      let rightSectionHeight = addSectionInColumn('DATOS DEL TRANSPORTE', (startY, x, width) => {
         let currentY = startY
         doc.setFontSize(10)
         doc.setTextColor(0, 0, 0)
         
-        // Patente del vehículo
-        const vehicleHeight = addField('Vehículo', load.truck.licensePlate, currentY)
+        const vehicleHeight = addFieldInColumn('Vehículo', load.truck.licensePlate, currentY, x, width)
         currentY += vehicleHeight + 5
         
-        // Transportista
         const transportistFullName = `${transportistData.name} ${transportistData.lastName}`
-        const transportistHeight = addField('Transportista', transportistFullName, currentY)
+        const transportistHeight = addFieldInColumn('Transportista', transportistFullName, currentY, x, width)
         currentY += transportistHeight + 5
         
-        const dniHeight = addField('DNI Transportista', transportistData.dni, currentY)
+        const dniHeight = addFieldInColumn('DNI Transportista', transportistData.dni, currentY, x, width)
         currentY += dniHeight + 5
         
-        // Fecha y hora de salida
-        const dateHeight = addField('Fecha/Hora Salida', currentDate.toLocaleString('es-AR'), currentY)
+        const dateHeight = addFieldInColumn('Fecha/Hora Salida', currentDate.toLocaleString('es-AR'), currentY, x, width)
         currentY += dateHeight + 5
         
         return currentY - startY
-      }, yPosition)
+      }, sectionY, rightColumnX, columnWidth)
 
-      // Sección 3: Detalles de la Mercadería
-      yPosition = addSection('DETALLES DE LA MERCADERÍA', (startY) => {
+      yPosition += Math.max(leftSectionHeight, rightSectionHeight) + 10
+
+      // SECCIÓN COMPLETA: Detalles de la Mercadería
+      yPosition = addSectionInColumn('DETALLES DE LA MERCADERÍA', (startY, x, width) => {
         let currentY = startY
         doc.setFontSize(10)
         doc.setTextColor(0, 0, 0)
         
         if (quantity) {
-          const quantityHeight = addField('Cantidad', quantity, currentY)
+          const quantityHeight = addFieldInColumn('Cantidad', quantity, currentY, x, width)
           currentY += quantityHeight + 5
         }
         
@@ -364,7 +375,7 @@ export default function EditLoadPage() {
           if (containers.length > 0) {
             const containerText = containers.length === 1 ? containers[0] : containers.join(', ')
             const label = containers.length === 1 ? 'Contenedora' : 'Contenedoras'
-            const containerHeight = addField(label, containerText, currentY)
+            const containerHeight = addFieldInColumn(label, containerText, currentY, x, width)
             currentY += containerHeight + 5
           }
         }
@@ -374,13 +385,13 @@ export default function EditLoadPage() {
           if (precintos.length > 0) {
             const precintoText = precintos.length === 1 ? precintos[0] : precintos.join(', ')
             const label = precintos.length === 1 ? 'Precinto' : 'Precintos'
-            const precintoHeight = addField(label, precintoText, currentY)
+            const precintoHeight = addFieldInColumn(label, precintoText, currentY, x, width)
             currentY += precintoHeight + 5
           }
         }
         
         return currentY - startY
-      }, yPosition)
+      }, yPosition, margin, pageWidth - 2 * margin)
 
       // Espacio antes de firmas
       yPosition += 10
