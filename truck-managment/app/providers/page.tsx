@@ -17,6 +17,9 @@ interface Provider {
     name: string
     email: string
   } | null
+  street?: string | null
+  number?: string | null
+  locality?: string | null
   _count?: {
     contacts: number
   }
@@ -404,6 +407,9 @@ export default function ProvidersPage() {
                         Nombre
                       </th>
                       <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Dirección
+                      </th>
+                      <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Responsable
                       </th>
                       <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -417,7 +423,7 @@ export default function ProvidersPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {providers.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="py-2 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
+                        <td colSpan={5} className="py-2 pl-4 pr-3 text-center text-sm text-gray-500 sm:pl-6">
                           No hay proveedores registrados
                         </td>
                       </tr>
@@ -426,6 +432,11 @@ export default function ProvidersPage() {
                         <tr key={provider.id} className="h-12">
                           <td className="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-900 sm:pl-6">
                             {provider.name}
+                          </td>
+                          <td className="hidden sm:table-cell whitespace-nowrap px-3 py-2 text-sm text-gray-500">
+                            {provider.street || provider.number || provider.locality ? 
+                              `${provider.street || ''} ${provider.number || ''}, ${provider.locality || ''}`.trim() : 
+                              'Sin dirección'}
                           </td>
                           <td className="hidden sm:table-cell whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                             {editingResponsible === provider.id ? (

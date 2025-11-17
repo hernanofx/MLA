@@ -16,6 +16,9 @@ interface Provider {
     name: string
     email: string
   }
+  street?: string
+  number?: string
+  locality?: string
 }
 
 interface User {
@@ -35,6 +38,9 @@ interface Contact {
 export default function EditProviderPage() {
   const [name, setName] = useState('')
   const [responsibleId, setResponsibleId] = useState('')
+  const [street, setStreet] = useState('')
+  const [number, setNumber] = useState('')
+  const [locality, setLocality] = useState('')
   const [users, setUsers] = useState<User[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(false)
@@ -67,6 +73,9 @@ export default function EditProviderPage() {
         const provider: Provider = await response.json()
         setName(provider.name)
         setResponsibleId(provider.responsibleId || '')
+        setStreet(provider.street || '')
+        setNumber(provider.number || '')
+        setLocality(provider.locality || '')
       } else {
         setError('Proveedor no encontrado')
       }
@@ -120,7 +129,10 @@ export default function EditProviderPage() {
         },
         body: JSON.stringify({ 
           name,
-          responsibleId: responsibleId || null
+          responsibleId: responsibleId || null,
+          street: street || null,
+          number: number || null,
+          locality: locality || null
         })
       })
 
@@ -234,6 +246,45 @@ export default function EditProviderPage() {
                   {usersLoading && (
                     <p className="mt-1 text-sm text-gray-500">Cargando usuarios...</p>
                   )}
+                </div>
+
+                <div>
+                  <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-2">
+                    Calle
+                  </label>
+                  <input
+                    type="text"
+                    id="street"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="number" className="block text-sm font-medium text-gray-700 mb-2">
+                    Número
+                  </label>
+                  <input
+                    type="text"
+                    id="number"
+                    value={number}
+                    onChange={(e) => setNumber(e.target.value)}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="locality" className="block text-sm font-medium text-gray-700 mb-2">
+                    Localidad
+                  </label>
+                  <input
+                    type="text"
+                    id="locality"
+                    value={locality}
+                    onChange={(e) => setLocality(e.target.value)}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+                  />
                 </div>
 
                 {error && (

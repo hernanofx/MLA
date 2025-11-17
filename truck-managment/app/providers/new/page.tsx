@@ -7,6 +7,9 @@ import AppLayout from '@/app/components/AppLayout'
 
 export default function NewProviderPage() {
   const [name, setName] = useState('')
+  const [street, setStreet] = useState('')
+  const [number, setNumber] = useState('')
+  const [locality, setLocality] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -45,7 +48,12 @@ export default function NewProviderPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ 
+          name,
+          street: street || null,
+          number: number || null,
+          locality: locality || null
+        })
       })
 
       if (response.ok) {
@@ -82,6 +90,45 @@ export default function NewProviderPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-2">
+                Calle
+              </label>
+              <input
+                type="text"
+                id="street"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="number" className="block text-sm font-medium text-gray-700 mb-2">
+                Número
+              </label>
+              <input
+                type="text"
+                id="number"
+                value={number}
+                onChange={(e) => setNumber(e.target.value)}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="locality" className="block text-sm font-medium text-gray-700 mb-2">
+                Localidad
+              </label>
+              <input
+                type="text"
+                id="locality"
+                value={locality}
+                onChange={(e) => setLocality(e.target.value)}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
               />
             </div>

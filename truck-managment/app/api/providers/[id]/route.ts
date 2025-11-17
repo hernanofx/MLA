@@ -52,16 +52,19 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { name, responsibleId } = await request.json()
+    const { name, responsibleId, street, number, locality } = await request.json()
 
-    // Allow updating either name or responsibleId or both
-    if (!name && responsibleId === undefined) {
-      return NextResponse.json({ error: 'At least one field (name or responsibleId) is required' }, { status: 400 })
+    // Allow updating any field
+    if (!name && responsibleId === undefined && street === undefined && number === undefined && locality === undefined) {
+      return NextResponse.json({ error: 'At least one field is required' }, { status: 400 })
     }
 
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
     if (responsibleId !== undefined) updateData.responsibleId = responsibleId
+    if (street !== undefined) updateData.street = street
+    if (number !== undefined) updateData.number = number
+    if (locality !== undefined) updateData.locality = locality
 
     const provider = await prisma.provider.update({
       where: { id },

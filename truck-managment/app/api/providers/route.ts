@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { name, responsibleId } = await request.json()
+    const { name, responsibleId, street, number, locality } = await request.json()
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -110,7 +110,10 @@ export async function POST(request: NextRequest) {
     const provider = await prisma.provider.create({
       data: { 
         name,
-        responsibleId: responsibleId || null
+        responsibleId: responsibleId || null,
+        street: street || null,
+        number: number || null,
+        locality: locality || null
       },
       include: {
         responsible: {
