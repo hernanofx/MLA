@@ -32,6 +32,12 @@ interface LoadData {
   truck: { licensePlate: string }
 }
 
+interface TransportistData {
+  name: string
+  lastName: string
+  dni: string
+}
+
 export default function EditLoadPage() {
   const [load, setLoad] = useState<LoadData | null>(null)
   const [providers, setProviders] = useState<Provider[]>([])
@@ -52,6 +58,7 @@ export default function EditLoadPage() {
   
   // Modal para transportista
   const [showTransportistModal, setShowTransportistModal] = useState(false)
+  const [showRemitoConfirmation, setShowRemitoConfirmation] = useState(false)
   const [transportistName, setTransportistName] = useState('')
   const [transportistLastName, setTransportistLastName] = useState('')
   const [transportistDNI, setTransportistDNI] = useState('')
@@ -145,15 +152,15 @@ export default function EditLoadPage() {
 
   const handleDepartureCheck = () => {
     if (!departureChecked) {
-      // Abrir modal para ingresar datos del transportista
-      setShowTransportistModal(true)
+      // Primero mostrar confirmación de generar remito
+      setShowRemitoConfirmation(true)
     } else {
       setDepartureTime(null)
       setDepartureChecked(false)
     }
   }
 
-  const generateRemitoPDF = async (transportistData: { name: string, lastName: string, dni: string }) => {
+  const generateRemitoPDF = async (transportistData: TransportistData) => {
     if (!load) return
 
     setGeneratingPDF(true)
@@ -173,7 +180,7 @@ export default function EditLoadPage() {
         doc.text(text, x, y)
       }
 
-      // Función auxiliar para agregar texto con label
+      // Función auxiliar para agregar texto con label (mejorada)
       const addField = (label: string, value: string, y: number, labelWidth: number = 80) => {
         doc.setFontSize(10)
         doc.setFont('helvetica', 'bold')
@@ -185,151 +192,262 @@ export default function EditLoadPage() {
         return lines.length * 5 // Return height used
       }
 
-      // Espacio para logo (simulado con texto por ahora)
-      yPosition += 20
+      // Función para agregar sección con borde
+      const addSection = (title: string, contentCallback: (startY: number) => number, startY: number) => {
+        const sectionStartY = startY
+        
+        // Título de sección
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(59, 130, 246)
+        doc.text(title, margin, startY)
+        startY += 8
+        
+        // Borde de sección
+        doc.setDrawColor(220, 220, 220)
+        doc.setLineWidth(0.5)
+        const sectionHeight = contentCallback(startY) - sectionStartY + 5
+        doc.rect(margin - 2, sectionStartY - 5, pageWidth - 2 * margin + 4, sectionHeight)
+        
+        return startY + sectionHeight - 8
+      }
 
-      // Encabezado - Logo y título
-      doc.setFontSize(24)
+      // Encabezado con logo
+      try {
+        // Intentar cargar el logo
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.src = '/images/logo.png'
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve
+          img.onerror = () => resolve(null) // Continue without logo
+        })
+        
+        if (img.complete && img.naturalWidth > 0) {
+          // Convertir imagen a base64
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          canvas.width = img.naturalWidth
+          canvas.height = img.naturalHeight
+          ctx?.drawImage(img, 0, 0)
+          const logoData = canvas.toDataURL('image/png')
+          
+          const logoWidth = 50
+          const logoHeight = (img.naturalHeight / img.naturalWidth) * logoWidth
+          const logoX = (pageWidth - logoWidth) / 2
+          doc.addImage(logoData, 'PNG', logoX, yPosition, logoWidth, logoHeight)
+          yPosition += logoHeight + 10
+        }
+      } catch (error) {
+        console.error('Error loading logo:', error)
+      }
+
+      // Título principal
+      doc.setFontSize(20)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(59, 130, 246) // Azul indigo
-      addCenteredText('MAIL AMERICAS', 24, yPosition)
+      doc.setTextColor(31, 41, 55) // Gray-800
+      addCenteredText('REMITO DE CARGA', 20, yPosition)
       yPosition += 15
 
-      doc.setFontSize(18)
-      doc.setTextColor(0, 0, 0)
-      addCenteredText('REMITO DE CARGA', 18, yPosition)
-      yPosition += 20
-
-      // Línea separadora
-      doc.setDrawColor(59, 130, 246)
-      doc.setLineWidth(1)
-      doc.line(margin, yPosition, pageWidth - margin, yPosition)
-      yPosition += 15
-
-      // Fecha y número de remito
-      const departureDate = new Date()
+      // Subtítulo
       doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`Fecha: ${departureDate.toLocaleDateString('es-AR')}`, margin, yPosition)
-      doc.text(`Remito N°: ${load.id.slice(-8).toUpperCase()}`, pageWidth - margin - 80, yPosition)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(107, 114, 128) // Gray-500
+      addCenteredText('Documento oficial de entrega de mercadería', 12, yPosition)
       yPosition += 20
 
-      // Información del Proveedor
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(59, 130, 246)
-      doc.text('DATOS DEL PROVEEDOR', margin, yPosition)
-      yPosition += 10
-
+      // Información del remito
       doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
       doc.setTextColor(0, 0, 0)
-      addField('Nombre', load.provider.name, yPosition)
-      yPosition += 8
+      
+      const remitoNumber = `REM-${load.id.slice(-8).toUpperCase()}`
+      const currentDate = new Date()
+      
+      // Número de remito y fecha en la parte superior derecha
+      doc.setFont('helvetica', 'bold')
+      doc.text(`N° ${remitoNumber}`, pageWidth - margin - 60, yPosition)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Fecha: ${currentDate.toLocaleDateString('es-AR')}`, pageWidth - margin - 60, yPosition + 6)
+      doc.text(`Hora: ${currentDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`, pageWidth - margin - 60, yPosition + 12)
+      yPosition += 25
 
-      // Obtener dirección del proveedor (necesitamos hacer una llamada API)
+      // Obtener dirección del proveedor antes de generar el PDF
+      let providerAddress = ''
       try {
         const providerResponse = await fetch(`/api/providers/${load.providerId}`)
         if (providerResponse.ok) {
           const providerData = await providerResponse.json()
-          const address = [providerData.street, providerData.number, providerData.locality]
-            .filter(Boolean)
-            .join(' ')
-          if (address) {
-            addField('Dirección', address, yPosition)
-            yPosition += 8
+          const addressParts = [providerData.street, providerData.number, providerData.locality].filter(Boolean)
+          if (addressParts.length > 0) {
+            providerAddress = addressParts.join(' ')
           }
         }
       } catch (error) {
         console.error('Error fetching provider address:', error)
       }
 
-      yPosition += 10
+      // Sección 1: Datos del Proveedor
+      yPosition = addSection('DATOS DEL PROVEEDOR', (startY) => {
+        let currentY = startY
+        doc.setFontSize(10)
+        doc.setTextColor(0, 0, 0)
+        
+        // Nombre del proveedor
+        const nameHeight = addField('Razón Social', load.provider.name, currentY)
+        currentY += Math.max(nameHeight, 8)
+        
+        // Dirección del proveedor (ya obtenida arriba)
+        if (providerAddress) {
+          const addressHeight = addField('Domicilio', providerAddress, currentY)
+          currentY += Math.max(addressHeight, 8)
+        }
+        
+        return currentY - startY
+      }, yPosition) + 15
 
-      // Información del Camión
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(59, 130, 246)
-      doc.text('DATOS DEL VEHÍCULO', margin, yPosition)
-      yPosition += 10
+      // Sección 2: Datos del Destinatario (si aplica)
+      // Por ahora omitido, pero estructura preparada
 
-      doc.setFontSize(10)
-      doc.setTextColor(0, 0, 0)
-      addField('Patente', load.truck.licensePlate, yPosition)
-      yPosition += 15
+      // Sección 3: Datos del Transporte
+      yPosition = addSection('DATOS DEL TRANSPORTE', (startY) => {
+        let currentY = startY
+        doc.setFontSize(10)
+        doc.setTextColor(0, 0, 0)
+        
+        // Patente del vehículo
+        addField('Vehículo', load.truck.licensePlate, currentY)
+        currentY += 8
+        
+        // Transportista
+        const transportistFullName = `${transportistData.name} ${transportistData.lastName}`
+        addField('Transportista', transportistFullName, currentY)
+        currentY += 8
+        
+        addField('DNI Transportista', transportistData.dni, currentY)
+        currentY += 8
+        
+        // Fecha y hora de salida
+        addField('Fecha/Hora Salida', currentDate.toLocaleString('es-AR'), currentY)
+        currentY += 8
+        
+        return currentY - startY
+      }, yPosition) + 15
 
-      // Información del Transportista
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(59, 130, 246)
-      doc.text('DATOS DEL TRANSPORTISTA', margin, yPosition)
-      yPosition += 10
+      // Sección 4: Detalles de la Mercadería
+      yPosition = addSection('DETALLES DE LA MERCADERÍA', (startY) => {
+        let currentY = startY
+        doc.setFontSize(10)
+        doc.setTextColor(0, 0, 0)
+        
+        if (quantity) {
+          addField('Cantidad', quantity, currentY)
+          currentY += 8
+        }
+        
+        if (container) {
+          // Procesar contenedoras (pueden ser múltiples)
+          const containers = container.split(/\s+/).filter(c => c.trim())
+          if (containers.length > 0) {
+            if (containers.length === 1) {
+              addField('Contenedora', containers[0], currentY)
+            } else {
+              addField('Contenedoras', containers.join(', '), currentY)
+            }
+            currentY += 8
+          }
+        }
+        
+        if (precinto) {
+          // Procesar precintos (pueden ser múltiples)
+          const precintos = precinto.split(/\s+/).filter(p => p.trim())
+          if (precintos.length > 0) {
+            if (precintos.length === 1) {
+              addField('Precinto', precintos[0], currentY)
+            } else {
+              addField('Precintos', precintos.join(', '), currentY)
+            }
+            currentY += 8
+          }
+        }
+        
+        return currentY - startY
+      }, yPosition) + 20
 
-      doc.setFontSize(10)
-      doc.setTextColor(0, 0, 0)
-      addField('Nombre', transportistData.name, yPosition)
-      yPosition += 8
-      addField('Apellido', transportistData.lastName, yPosition)
-      yPosition += 8
-      addField('DNI', transportistData.dni, yPosition)
-      yPosition += 15
-
-      // Detalles de la Carga
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(59, 130, 246)
-      doc.text('DETALLES DE LA CARGA', margin, yPosition)
-      yPosition += 10
-
-      doc.setFontSize(10)
-      doc.setTextColor(0, 0, 0)
-      if (quantity) {
-        addField('Cantidad', quantity, yPosition)
-        yPosition += 8
-      }
-      if (container) {
-        addField('Contenedora(s)', container.replace(/\s+/g, ', '), yPosition)
-        yPosition += 8
-      }
-      if (precinto) {
-        addField('Precinto(s)', precinto, yPosition)
-        yPosition += 8
-      }
-      addField('Horario de Salida', departureDate.toLocaleString('es-AR'), yPosition)
-      yPosition += 20
-
-      // Firma y observaciones
+      // Sección de firmas
       doc.setFontSize(12)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(59, 130, 246)
-      doc.text('FIRMA DEL TRANSPORTISTA', margin, yPosition)
+      doc.setTextColor(31, 41, 55)
+      doc.text('FIRMAS Y CONFORMIDAD', margin, yPosition)
+      yPosition += 15
+
+      // Firma del transportista
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Transportista:', margin, yPosition)
+      doc.setLineWidth(0.5)
+      doc.line(margin + 35, yPosition + 2, margin + 120, yPosition + 2)
+      doc.text('Fecha:', margin + 130, yPosition)
+      doc.line(margin + 150, yPosition + 2, margin + 180, yPosition + 2)
       yPosition += 20
 
-      // Línea para firma
-      doc.setDrawColor(0, 0, 0)
-      doc.setLineWidth(0.5)
-      doc.line(margin, yPosition, margin + 100, yPosition)
-      yPosition += 10
+      // Firma del receptor (opcional)
+      doc.text('Receptor:', margin, yPosition)
+      doc.line(margin + 25, yPosition + 2, margin + 110, yPosition + 2)
+      doc.text('Fecha:', margin + 130, yPosition)
+      doc.line(margin + 150, yPosition + 2, margin + 180, yPosition + 2)
+      yPosition += 20
 
-      doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(100, 100, 100)
-      doc.text('Firma', margin + 40, yPosition)
+      // Observaciones
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Observaciones:', margin, yPosition)
+      yPosition += 8
+      
+      // Línea para observaciones
+      doc.setLineWidth(0.3)
+      doc.rect(margin, yPosition, pageWidth - 2 * margin, 20)
+      yPosition += 25
 
       // Pie de página
-      const footerY = pageHeight - 30
+      const footerY = pageHeight - 25
       doc.setFontSize(8)
-      doc.setTextColor(100, 100, 100)
-      addCenteredText('Sistema de Gestión de Cargas - Truck Management', 8, footerY)
-      addCenteredText('Documento generado automáticamente', 8, footerY + 5)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(107, 114, 128)
+      
+      // Línea separadora del footer
+      doc.setDrawColor(220, 220, 220)
+      doc.setLineWidth(0.3)
+      doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5)
+      
+      addCenteredText('Sistema de Gestión de Cargas - Mail Americas', 8, footerY)
+      addCenteredText(`Remito generado automáticamente el ${currentDate.toLocaleString('es-AR')}`, 8, footerY + 4)
+      addCenteredText('Documento válido para fines administrativos y legales', 8, footerY + 8)
 
       // Descargar el PDF
-      doc.save(`remito-${load.id.slice(-8).toUpperCase()}.pdf`)
+      doc.save(`remito-${remitoNumber}.pdf`)
 
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert('Error al generar el PDF del remito')
     } finally {
       setGeneratingPDF(false)
+    }
+  }
+
+  const handleRemitoConfirmation = async (generateRemito: boolean) => {
+    setShowRemitoConfirmation(false)
+    
+    if (generateRemito) {
+      // Si quiere generar remito, mostrar modal del transportista
+      setShowTransportistModal(true)
+    } else {
+      // Si no quiere generar remito, solo marcar la salida
+      const now = new Date().toISOString()
+      setDepartureTime(now)
+      setDepartureChecked(true)
     }
   }
 
@@ -632,6 +750,46 @@ export default function EditLoadPage() {
           </form>
         </div>
       </div>
+
+      {/* Modal de Confirmación de Remito */}
+      {showRemitoConfirmation && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="w-full">
+                <div className="mt-3 text-left w-full">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                    Confirmar Salida de Carga
+                  </h3>
+                  
+                  <p className="text-sm text-gray-600 mb-6">
+                    ¿Desea generar un remito en PDF para esta carga? El remito incluirá todos los detalles de la mercadería y será válido para fines administrativos y legales.
+                  </p>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                      onClick={() => handleRemitoConfirmation(false)}
+                    >
+                      Solo Marcar Salida
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                      onClick={() => handleRemitoConfirmation(true)}
+                    >
+                      Generar Remito
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal del Transportista */}
       {showTransportistModal && (
