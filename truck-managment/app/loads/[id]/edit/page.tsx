@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import AppLayout from '@/app/components/AppLayout'
+import jsPDF from 'jspdf'
 
 interface Provider {
   id: string
@@ -48,6 +49,14 @@ export default function EditLoadPage() {
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState('')
+  
+  // Modal para transportista
+  const [showTransportistModal, setShowTransportistModal] = useState(false)
+  const [transportistName, setTransportistName] = useState('')
+  const [transportistLastName, setTransportistLastName] = useState('')
+  const [transportistDNI, setTransportistDNI] = useState('')
+  const [generatingPDF, setGeneratingPDF] = useState(false)
+  
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
@@ -136,12 +145,217 @@ export default function EditLoadPage() {
 
   const handleDepartureCheck = () => {
     if (!departureChecked) {
-      const now = new Date().toISOString()
-      setDepartureTime(now)
+      // Abrir modal para ingresar datos del transportista
+      setShowTransportistModal(true)
     } else {
       setDepartureTime(null)
+      setDepartureChecked(false)
     }
-    setDepartureChecked(!departureChecked)
+  }
+
+  const generateRemitoPDF = async (transportistData: { name: string, lastName: string, dni: string }) => {
+    if (!load) return
+
+    setGeneratingPDF(true)
+    
+    try {
+      const doc = new jsPDF()
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const margin = 20
+      let yPosition = margin
+
+      // Función auxiliar para agregar texto centrado
+      const addCenteredText = (text: string, fontSize: number = 12, y: number) => {
+        doc.setFontSize(fontSize)
+        const textWidth = doc.getTextWidth(text)
+        const x = (pageWidth - textWidth) / 2
+        doc.text(text, x, y)
+      }
+
+      // Función auxiliar para agregar texto con label
+      const addField = (label: string, value: string, y: number, labelWidth: number = 80) => {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${label}:`, margin, y)
+        doc.setFont('helvetica', 'normal')
+        const maxWidth = pageWidth - margin - labelWidth - margin
+        const lines = doc.splitTextToSize(value, maxWidth)
+        doc.text(lines, margin + labelWidth, y)
+        return lines.length * 5 // Return height used
+      }
+
+      // Espacio para logo (simulado con texto por ahora)
+      yPosition += 20
+
+      // Encabezado - Logo y título
+      doc.setFontSize(24)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246) // Azul indigo
+      addCenteredText('MAIL AMERICAS', 24, yPosition)
+      yPosition += 15
+
+      doc.setFontSize(18)
+      doc.setTextColor(0, 0, 0)
+      addCenteredText('REMITO DE CARGA', 18, yPosition)
+      yPosition += 20
+
+      // Línea separadora
+      doc.setDrawColor(59, 130, 246)
+      doc.setLineWidth(1)
+      doc.line(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 15
+
+      // Fecha y número de remito
+      const departureDate = new Date()
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Fecha: ${departureDate.toLocaleDateString('es-AR')}`, margin, yPosition)
+      doc.text(`Remito N°: ${load.id.slice(-8).toUpperCase()}`, pageWidth - margin - 80, yPosition)
+      yPosition += 20
+
+      // Información del Proveedor
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246)
+      doc.text('DATOS DEL PROVEEDOR', margin, yPosition)
+      yPosition += 10
+
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
+      addField('Nombre', load.provider.name, yPosition)
+      yPosition += 8
+
+      // Obtener dirección del proveedor (necesitamos hacer una llamada API)
+      try {
+        const providerResponse = await fetch(`/api/providers/${load.providerId}`)
+        if (providerResponse.ok) {
+          const providerData = await providerResponse.json()
+          const address = [providerData.street, providerData.number, providerData.locality]
+            .filter(Boolean)
+            .join(' ')
+          if (address) {
+            addField('Dirección', address, yPosition)
+            yPosition += 8
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching provider address:', error)
+      }
+
+      yPosition += 10
+
+      // Información del Camión
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246)
+      doc.text('DATOS DEL VEHÍCULO', margin, yPosition)
+      yPosition += 10
+
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
+      addField('Patente', load.truck.licensePlate, yPosition)
+      yPosition += 15
+
+      // Información del Transportista
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246)
+      doc.text('DATOS DEL TRANSPORTISTA', margin, yPosition)
+      yPosition += 10
+
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
+      addField('Nombre', transportistData.name, yPosition)
+      yPosition += 8
+      addField('Apellido', transportistData.lastName, yPosition)
+      yPosition += 8
+      addField('DNI', transportistData.dni, yPosition)
+      yPosition += 15
+
+      // Detalles de la Carga
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246)
+      doc.text('DETALLES DE LA CARGA', margin, yPosition)
+      yPosition += 10
+
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
+      if (quantity) {
+        addField('Cantidad', quantity, yPosition)
+        yPosition += 8
+      }
+      if (container) {
+        addField('Contenedora(s)', container.replace(/\s+/g, ', '), yPosition)
+        yPosition += 8
+      }
+      if (precinto) {
+        addField('Precinto(s)', precinto, yPosition)
+        yPosition += 8
+      }
+      addField('Horario de Salida', departureDate.toLocaleString('es-AR'), yPosition)
+      yPosition += 20
+
+      // Firma y observaciones
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246)
+      doc.text('FIRMA DEL TRANSPORTISTA', margin, yPosition)
+      yPosition += 20
+
+      // Línea para firma
+      doc.setDrawColor(0, 0, 0)
+      doc.setLineWidth(0.5)
+      doc.line(margin, yPosition, margin + 100, yPosition)
+      yPosition += 10
+
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text('Firma', margin + 40, yPosition)
+
+      // Pie de página
+      const footerY = pageHeight - 30
+      doc.setFontSize(8)
+      doc.setTextColor(100, 100, 100)
+      addCenteredText('Sistema de Gestión de Cargas - Truck Management', 8, footerY)
+      addCenteredText('Documento generado automáticamente', 8, footerY + 5)
+
+      // Descargar el PDF
+      doc.save(`remito-${load.id.slice(-8).toUpperCase()}.pdf`)
+
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Error al generar el PDF del remito')
+    } finally {
+      setGeneratingPDF(false)
+    }
+  }
+
+  const handleConfirmDeparture = async () => {
+    if (!transportistName.trim() || !transportistLastName.trim() || !transportistDNI.trim()) {
+      alert('Por favor complete todos los datos del transportista')
+      return
+    }
+
+    // Marcar la salida
+    const now = new Date().toISOString()
+    setDepartureTime(now)
+    setDepartureChecked(true)
+    setShowTransportistModal(false)
+
+    // Generar el PDF
+    await generateRemitoPDF({
+      name: transportistName.trim(),
+      lastName: transportistLastName.trim(),
+      dni: transportistDNI.trim()
+    })
+
+    // Limpiar campos del modal
+    setTransportistName('')
+    setTransportistLastName('')
+    setTransportistDNI('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -418,6 +632,95 @@ export default function EditLoadPage() {
           </form>
         </div>
       </div>
+
+      {/* Modal del Transportista */}
+      {showTransportistModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="w-full">
+                <div className="mt-3 text-left w-full">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                    Datos del Transportista
+                  </h3>
+                  
+                  <p className="text-sm text-gray-600 mb-6">
+                    Complete los datos del transportista que llevará la carga. Se generará automáticamente un remito en PDF.
+                  </p>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="transportist-name" className="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        id="transportist-name"
+                        value={transportistName}
+                        onChange={(e) => setTransportistName(e.target.value)}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+                        placeholder="Ingrese el nombre"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="transportist-lastname" className="block text-sm font-medium text-gray-700 mb-2">
+                        Apellido
+                      </label>
+                      <input
+                        type="text"
+                        id="transportist-lastname"
+                        value={transportistLastName}
+                        onChange={(e) => setTransportistLastName(e.target.value)}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+                        placeholder="Ingrese el apellido"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="transportist-dni" className="block text-sm font-medium text-gray-700 mb-2">
+                        DNI
+                      </label>
+                      <input
+                        type="text"
+                        id="transportist-dni"
+                        value={transportistDNI}
+                        onChange={(e) => setTransportistDNI(e.target.value)}
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm h-10 px-3 text-gray-900"
+                        placeholder="Ingrese el DNI"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                      onClick={() => setShowTransportistModal(false)}
+                      disabled={generatingPDF}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm disabled:opacity-50"
+                      onClick={handleConfirmDeparture}
+                      disabled={generatingPDF || !transportistName.trim() || !transportistLastName.trim() || !transportistDNI.trim()}
+                    >
+                      {generatingPDF ? 'Generando Remito...' : 'Confirmar Salida y Generar Remito'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }
