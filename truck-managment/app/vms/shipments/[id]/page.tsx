@@ -209,8 +209,8 @@ export default function ShipmentDetailPage() {
 
   const getTotalPackages = () => {
     if (!stats) return 0
-    // No contar PREVIO en el total
-    return stats.totalScanned + stats.faltantes + stats.fueraCobertura + stats.sobrante
+    // Total = OK + Faltantes + Sobrantes + Fuera de Cobertura (sin PREVIO)
+    return stats.ok + stats.faltantes + stats.sobrante + stats.fueraCobertura
   }
 
   // Get filtered items based on selected tab

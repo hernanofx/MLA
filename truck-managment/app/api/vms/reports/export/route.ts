@@ -196,7 +196,8 @@ export async function GET(request: NextRequest) {
     const sobrante = scannedPackages.filter(p => p.status === 'SOBRANTE').length
     const fueraCobertura = preAlertas.filter(pa => !preRuteoTracking.has(pa.trackingNumber)).length
     const previo = preRuteos.filter(pr => !preAlertaTracking.has(pr.codigoPedido)).length
-    const totalPaquetes = ok + faltantes + sobrante + fueraCobertura + previo
+    // Total SIN contar PREVIO (solo OK + Faltantes + Sobrantes + Fuera Cobertura)
+    const totalPaquetes = ok + faltantes + sobrante + fueraCobertura
 
     // Agregar hoja de resumen
     const stats = {
@@ -205,16 +206,25 @@ export async function GET(request: NextRequest) {
       'Faltantes': faltantes,
       'Sobrantes': sobrante,
       'Fuera de Cobertura': fueraCobertura,
-      'Previos': previo,
+      'Previos (no cuenta en total)': previo,
     }
 
     const statsData = Object.entries(stats).map(([key, value]) => ({
       'Métrica': key,
       'Cantidad': value,
-      'Porcentaje': totalPaquetes > 0 
-        ? `${((value / totalPaquetes) * 100).toFixed(2)}%` 
-        : '0%'
+      'Porcentaje': key === 'Previos (no cuenta en total)' 
+        ? '(No aplica)' 
+        : totalPaquetes > 0 
+          ? `${((value / totalPaquetes) * 100).toFixed(2)}%` 
+          : '0%'
     }))
+
+    // Agregar fila de total al final
+    statsData.push({
+      'Métrica': 'TOTAL (sin previos)',
+      'Cantidad': totalPaquetes,
+      'Porcentaje': '100%'
+    })
 
     const statsWorksheet = XLSX.utils.json_to_sheet(statsData)
     XLSX.utils.book_append_sheet(workbook, statsWorksheet, 'Resumen')
