@@ -80,6 +80,10 @@ export default function InventoryTab() {
   const [showBarcodeFlash, setShowBarcodeFlash] = useState(false);
   const [lastScannedCode, setLastScannedCode] = useState('');
   const trackingInputRef = useRef<HTMLInputElement>(null);
+  
+  // Modal state for detail view
+  const [selectedInventory, setSelectedInventory] = useState<Inventory | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
     fetchInventories(1);
@@ -214,12 +218,13 @@ export default function InventoryTab() {
     if (!cleanBarcode) return;
 
     // Agregar a la lista de códigos escaneados
-    setScannedCodes(prev => [...prev, cleanBarcode]);
+    const newCodes = [...scannedCodes, cleanBarcode];
+    setScannedCodes(newCodes);
     
-    // Incrementar la cantidad
+    // Actualizar la cantidad igual al número de códigos escaneados
     setFormData(prev => ({
       ...prev,
-      quantity: prev.quantity + 1,
+      quantity: newCodes.length,
       trackingNumbers: prev.trackingNumbers ? `${prev.trackingNumbers}, ${cleanBarcode}` : cleanBarcode
     }));
 
@@ -263,7 +268,7 @@ export default function InventoryTab() {
     setScannedCodes(newCodes);
     setFormData(prev => ({
       ...prev,
-      quantity: newCodes.length + 1,
+      quantity: newCodes.length,
       trackingNumbers: newCodes.join(', ')
     }));
   };
@@ -615,7 +620,14 @@ export default function InventoryTab() {
                 </tr>
               ) : (
                 inventories.map((inv) => (
-                  <tr key={inv.id}>
+                  <tr 
+                    key={inv.id}
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSelectedInventory(inv)
+                      setShowDetailModal(true)
+                    }}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {inv.entry?.provider?.name || inv.provider?.name || 'N/A'}
                     </td>
@@ -628,8 +640,10 @@ export default function InventoryTab() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {inv.quantity}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {inv.trackingNumbers || 'N/A'}
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      <div className="max-w-xs truncate" title={inv.trackingNumbers || 'N/A'}>
+                        {inv.trackingNumbers || 'N/A'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -640,7 +654,10 @@ export default function InventoryTab() {
                         {inv.status === 'stored' ? 'Almacenado' : 'En Tránsito'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td 
+                      className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {session?.user?.role === 'admin' && (
                         <ActionMenu
                           editHref={`/stocks/inventory/${inv.id}/edit`}
@@ -728,6 +745,119 @@ export default function InventoryTab() {
           )}
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedInventory && (
+        <div className="fixed inset-0 z-[9999] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+            {/* Background overlay */}
+            <div 
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+              aria-hidden="true"
+              onClick={() => setShowDetailModal(false)}
+            ></div>
+
+            {/* Center modal */}
+            <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+              <div className="absolute top-0 right-0 pt-4 pr-4 z-10">
+                <button
+                  type="button"
+                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={() => setShowDetailModal(false)}
+                >
+                  <span className="sr-only">Cerrar</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="w-full">
+                <div className="mt-3 text-left w-full">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                    Detalle de Devolución
+                  </h3>
+                  
+                  <div className="mt-4 border-t border-gray-200">
+                    <dl className="divide-y divide-gray-200">
+                      <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt className="text-sm font-medium text-gray-500">Proveedor</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                          {selectedInventory.entry?.provider?.name || selectedInventory.provider?.name || 'N/A'}
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt className="text-sm font-medium text-gray-500">Almacén</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                          {selectedInventory.location?.warehouse?.name || 'N/A'}
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt className="text-sm font-medium text-gray-500">Ubicación</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                          {selectedInventory.location?.name || 'N/A'}
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt className="text-sm font-medium text-gray-500">Cantidad</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                          {selectedInventory.quantity} paquetes
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt className="text-sm font-medium text-gray-500">Estado</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            selectedInventory.status === 'stored'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {selectedInventory.status === 'stored' ? 'Almacenado' : 'En Tránsito'}
+                          </span>
+                        </dd>
+                      </div>
+                      <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt className="text-sm font-medium text-gray-500">Tracking Numbers</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                          {selectedInventory.trackingNumbers ? (
+                            <div className="max-h-60 overflow-y-auto space-y-1">
+                              {selectedInventory.trackingNumbers.split(',').map((tn, idx) => (
+                                <div key={idx} className="bg-gray-50 px-3 py-2 rounded font-mono text-xs">
+                                  {tn.trim()}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            'N/A'
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  {(session?.user?.role === 'admin') && (
+                    <div className="mt-6 flex justify-end space-x-3">
+                      <button
+                        type="button"
+                        className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                        onClick={() => setShowDetailModal(false)}
+                      >
+                        Cerrar
+                      </button>
+                      <a
+                        href={`/stocks/inventory/${selectedInventory.id}/edit`}
+                        className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                      >
+                        Editar
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
