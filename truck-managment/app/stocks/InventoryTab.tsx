@@ -188,10 +188,15 @@ export default function InventoryTab() {
     }
   };
 
-  // Ocultar flash con cualquier tecla o click
+  // Ocultar flash con clic o teclas específicas (no Enter para evitar conflicto con scanner)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showBarcodeFlash) {
+        // Ignorar Enter y saltos de línea para evitar que el scanner cierre el flash
+        if (e.key === 'Enter' || e.key === '\n' || e.key === '\r') {
+          return;
+        }
+        // Cerrar con Escape o cualquier otra tecla
         setShowBarcodeFlash(false);
       }
     };
@@ -205,9 +210,16 @@ export default function InventoryTab() {
     if (showBarcodeFlash) {
       document.addEventListener('keydown', handleKeyDown);
       document.addEventListener('click', handleClick);
+      
+      // Auto-cerrar después de 2 segundos
+      const autoCloseTimer = setTimeout(() => {
+        setShowBarcodeFlash(false);
+      }, 2000);
+      
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
         document.removeEventListener('click', handleClick);
+        clearTimeout(autoCloseTimer);
       };
     }
   }, [showBarcodeFlash]);
@@ -216,6 +228,18 @@ export default function InventoryTab() {
   const handleBarcodeScan = (barcode: string) => {
     const cleanBarcode = barcode.trim();
     if (!cleanBarcode) return;
+
+    // Verificar si el código ya fue escaneado (prevenir duplicados)
+    if (scannedCodes.includes(cleanBarcode)) {
+      alert(`❌ PAQUETE DUPLICADO\n\nEl tracking number "${cleanBarcode}" ya fue escaneado en esta devolución.`);
+      setCurrentBarcode('');
+      setTimeout(() => {
+        if (trackingInputRef.current) {
+          trackingInputRef.current.focus();
+        }
+      }, 100);
+      return;
+    }
 
     // Agregar a la lista de códigos escaneados
     const newCodes = [...scannedCodes, cleanBarcode];
@@ -245,21 +269,28 @@ export default function InventoryTab() {
 
   const handleBarcodeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setCurrentBarcode(value);
     
     // Si detecta un salto de línea (Enter automático del scanner)
     if (value.includes('\n') || value.includes('\r')) {
+      e.preventDefault();
       const cleanValue = value.replace(/[\n\r]/g, '').trim();
       if (cleanValue) {
         handleBarcodeScan(cleanValue);
       }
+      return;
     }
+    
+    setCurrentBarcode(value);
   };
 
   const handleBarcodeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleBarcodeScan(currentBarcode);
+      e.stopPropagation();
+      const cleanValue = currentBarcode.trim();
+      if (cleanValue) {
+        handleBarcodeScan(cleanValue);
+      }
     }
   };
 
@@ -336,7 +367,10 @@ export default function InventoryTab() {
                 Paquete #{scannedCodes.length}
               </p>
               <p className="text-sm sm:text-base md:text-lg text-gray-300 mt-2 sm:mt-4">
-                Presiona cualquier tecla para continuar...
+                Escanea el siguiente o presiona ESC / Click para continuar
+              </p>
+              <p className="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">
+                Se cerrará automáticamente en 2 segundos
               </p>
             </div>
           </div>
