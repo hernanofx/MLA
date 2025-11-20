@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
     const warehouseId = searchParams.get('warehouseId');
     const status = searchParams.get('status');
     const trackingNumber = searchParams.get('trackingNumber');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
     const where: any = {
       ...(locationId && { locationId }),
@@ -28,6 +30,12 @@ export async function GET(request: NextRequest) {
       ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
       ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
       ...(trackingNumber && { trackingNumbers: { contains: trackingNumber, mode: 'insensitive' } }),
+      ...(startDate || endDate) && {
+        createdAt: {
+          ...(startDate && { gte: new Date(startDate) }),
+          ...(endDate && { lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) }),
+        },
+      },
     }
 
     const [inventories, total] = await Promise.all([

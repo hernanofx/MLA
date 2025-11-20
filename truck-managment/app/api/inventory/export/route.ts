@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     const warehouseId = searchParams.get('warehouseId')
     const status = searchParams.get('status')
     const trackingNumber = searchParams.get('trackingNumber')
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
 
     const where: any = {
       ...(locationId && { locationId }),
@@ -26,6 +28,12 @@ export async function GET(request: NextRequest) {
       ...(providerId && { OR: [ { entry: { provider: { id: providerId } } }, { provider: { id: providerId } } ] }),
       ...(warehouseId && { location: { warehouse: { id: warehouseId } } }),
       ...(trackingNumber && { trackingNumbers: { contains: trackingNumber, mode: 'insensitive' } }),
+      ...(startDate || endDate) && {
+        createdAt: {
+          ...(startDate && { gte: new Date(startDate) }),
+          ...(endDate && { lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) }),
+        },
+      },
     }
 
     const inventories = await prisma.inventory.findMany({
@@ -48,13 +56,13 @@ export async function GET(request: NextRequest) {
 
     // Prepare data for Excel
     const excelData = inventories.map(inv => ({
+      'Fecha de Devolución': new Date(inv.createdAt).toLocaleString('es-ES'),
       'Proveedor': inv.entry?.provider?.name || inv.provider?.name || 'N/A',
       'Almacén': inv.location?.warehouse?.name || 'N/A',
       'Ubicación': inv.location?.name || 'N/A',
       'Cantidad': inv.quantity,
       'Tracking Numbers': inv.trackingNumbers || 'N/A',
-      'Estado': inv.status === 'stored' ? 'Almacenado' : 'Enviado',
-      'Fecha de Creación': new Date(inv.createdAt).toLocaleString('es-ES')
+      'Estado': inv.status === 'stored' ? 'Almacenado' : 'Enviado'
     }))
 
     // Create workbook and worksheet
@@ -63,13 +71,13 @@ export async function GET(request: NextRequest) {
 
     // Auto-size columns
     const colWidths = [
+      { wch: 20 }, // Fecha de Devolución
       { wch: 20 }, // Proveedor
       { wch: 15 }, // Almacén
       { wch: 15 }, // Ubicación
       { wch: 10 }, // Cantidad
       { wch: 25 }, // Tracking Numbers
-      { wch: 12 }, // Estado
-      { wch: 20 }  // Fecha de Creación
+      { wch: 12 }  // Estado
     ]
     ws['!cols'] = colWidths
 
