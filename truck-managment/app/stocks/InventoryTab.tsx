@@ -14,6 +14,7 @@ interface Inventory {
   quantity: number;
   status: string;
   trackingNumbers: string | null;
+  createdAt: string;
   entry?: {
     id: string;
     provider: { name: string };
@@ -347,6 +348,17 @@ export default function InventoryTab() {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   if (loading) return <div className="flex items-center justify-center py-12">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
   </div>;
@@ -622,25 +634,28 @@ export default function InventoryTab() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Fecha Devolución
+                </th>
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Proveedor
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Almacén
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ubicación
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Cantidad
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Tracking Numbers
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th scope="col" className="relative px-6 py-3">
+                <th scope="col" className="relative px-4 py-3">
                   <span className="sr-only">Acciones</span>
                 </th>
               </tr>
@@ -648,7 +663,7 @@ export default function InventoryTab() {
             <tbody className="bg-white divide-y divide-gray-200">
               {inventories.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={8} className="px-4 py-4 text-center text-sm text-gray-500">
                     No hay registros de devoluciones
                   </td>
                 </tr>
@@ -662,24 +677,30 @@ export default function InventoryTab() {
                       setShowDetailModal(true)
                     }}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{formatDate(inv.createdAt).split(',')[0]}</span>
+                        <span className="text-xs text-gray-500">{formatDate(inv.createdAt).split(',')[1]}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {inv.entry?.provider?.name || inv.provider?.name || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {inv.location?.warehouse?.name || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {inv.location?.name || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                       {inv.quantity}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-4 py-4 text-sm text-gray-500 hidden md:table-cell">
                       <div className="max-w-xs truncate" title={inv.trackingNumbers || 'N/A'}>
                         {inv.trackingNumbers || 'N/A'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         inv.status === 'stored'
                           ? 'bg-green-100 text-green-800'
@@ -689,7 +710,7 @@ export default function InventoryTab() {
                       </span>
                     </td>
                     <td 
-                      className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {session?.user?.role === 'admin' && (
@@ -814,6 +835,12 @@ export default function InventoryTab() {
                   
                   <div className="mt-4 border-t border-gray-200">
                     <dl className="divide-y divide-gray-200">
+                      <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                        <dt className="text-sm font-medium text-gray-500">Fecha de Devolución</dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 font-medium">
+                          {formatDate(selectedInventory.createdAt)}
+                        </dd>
+                      </div>
                       <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                         <dt className="text-sm font-medium text-gray-500">Proveedor</dt>
                         <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
