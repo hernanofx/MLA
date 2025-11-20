@@ -68,6 +68,8 @@ export default function InventoryTab() {
     locationId: '',
     status: '',
     trackingNumber: '',
+    startDate: '',
+    endDate: '',
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -89,7 +91,7 @@ export default function InventoryTab() {
   useEffect(() => {
     fetchInventories(1);
     setCurrentPage(1);
-  }, [filters.providerId, filters.warehouseId, filters.locationId, filters.status, filters.trackingNumber]);
+  }, [filters.providerId, filters.warehouseId, filters.locationId, filters.status, filters.trackingNumber, filters.startDate, filters.endDate]);
 
   useEffect(() => {
     fetchLocations(filters.warehouseId);
@@ -112,6 +114,8 @@ export default function InventoryTab() {
       if (filters.locationId) params.append('locationId', filters.locationId);
       if (filters.status) params.append('status', filters.status);
       if (filters.trackingNumber) params.append('trackingNumber', filters.trackingNumber);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
       const res = await fetch(`/api/inventory?${params}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -487,6 +491,30 @@ export default function InventoryTab() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
             </div>
+            <div>
+              <label htmlFor="filterStartDate" className="block text-sm font-medium text-gray-700">
+                Fecha Desde
+              </label>
+              <input
+                type="date"
+                id="filterStartDate"
+                value={filters.startDate}
+                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="filterEndDate" className="block text-sm font-medium text-gray-700">
+                Fecha Hasta
+              </label>
+              <input
+                type="date"
+                id="filterEndDate"
+                value={filters.endDate}
+                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -744,6 +772,8 @@ export default function InventoryTab() {
               if (filters.locationId) params.append('locationId', filters.locationId);
               if (filters.status) params.append('status', filters.status);
               if (filters.trackingNumber) params.append('trackingNumber', filters.trackingNumber);
+              if (filters.startDate) params.append('startDate', filters.startDate);
+              if (filters.endDate) params.append('endDate', filters.endDate);
               const url = `/api/inventory/export?${params}`
               window.open(url, '_blank')
             }}
