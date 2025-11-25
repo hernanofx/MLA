@@ -107,7 +107,18 @@ export default function Sidebar() {
     { name: 'VMS', href: '/vms', icon: Truck },
   ] : session?.user?.role === 'operario' ? [
     { name: 'Cargas', href: '/loads', icon: Package },
-    { name: 'Stock', href: '/stocks', icon: Warehouse }
+    {
+      name: 'Stock',
+      href: '#',
+      icon: Warehouse,
+      subItems: [
+        { name: 'Devoluciones', href: '/stocks?tab=inventory' },
+        { name: 'Reexpedición', href: '/stocks?tab=reexpedicion' },
+        { name: 'Paquetes', href: '/stocks?tab=packages' },
+        { name: 'Ubicaciones', href: '/stocks?tab=locations' },
+        { name: 'Etiquetas', href: '/stocks?tab=labels' }
+      ]
+    }
   ] : [
     {
       name: 'Dashboard',
@@ -138,7 +149,19 @@ export default function Sidebar() {
         { name: 'Activacion', href: '/activacion' }
       ]
     },
-    { name: 'Stock', href: '/stocks', icon: Warehouse },
+    {
+      name: 'Stock',
+      href: '#',
+      icon: Warehouse,
+      subItems: [
+        { name: 'Devoluciones', href: '/stocks?tab=inventory' },
+        { name: 'Reexpedición', href: '/stocks?tab=reexpedicion' },
+        { name: 'Paquetes', href: '/stocks?tab=packages' },
+        { name: 'Ubicaciones', href: '/stocks?tab=locations' },
+        { name: 'Almacenes', href: '/stocks?tab=warehouses' },
+        { name: 'Etiquetas', href: '/stocks?tab=labels' }
+      ]
+    },
     { name: 'Mapas', href: '/maps', icon: MapPin },
     { name: 'Procesos', href: '/wiki', icon: BookOpen },
     { name: 'Notificaciones', href: '/notifications', icon: Bell },
