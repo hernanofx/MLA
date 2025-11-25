@@ -196,6 +196,26 @@ export async function POST(request: NextRequest) {
         }
       });
 
+      // Crear notificaciones para usuarios suscritos
+      const subscribedUsers = await prisma.userNotificationPreferences.findMany({
+        where: { newReexpedicion: true },
+        select: { userId: true }
+      });
+
+      if (subscribedUsers.length > 0) {
+        const subtipoLabel = subtipoIngreso === 'RETORNOS' ? 'Retornos' :
+                            subtipoIngreso === 'PENDIENTE_RETIRO' ? 'Pendiente de Retiro' :
+                            subtipoIngreso === 'PICKUP' ? 'Pickup' : 'Insumos WH';
+
+        await prisma.notification.createMany({
+          data: subscribedUsers.map(user => ({
+            type: 'NEW_REEXPEDICION',
+            message: `Nuevo ingreso de reexpedición: ${subtipoLabel} - ${trackingNumbers.length} etiqueta(s) en ${movimiento.location.name}`,
+            userId: user.userId
+          }))
+        });
+      }
+
       return NextResponse.json(movimiento, { status: 201 });
     } else if (tipo === 'EGRESO') {
       if (!subtipoEgreso) {
@@ -326,6 +346,24 @@ export async function POST(request: NextRequest) {
           movimientoOrigen: true
         }
       });
+
+      // Crear notificaciones para usuarios suscritos
+      const subscribedUsers = await prisma.userNotificationPreferences.findMany({
+        where: { newReexpedicion: true },
+        select: { userId: true }
+      });
+
+      if (subscribedUsers.length > 0 && movimientoCompleto) {
+        const subtipoLabel = subtipoEgreso === 'ENTREGA_PARCIAL' ? 'Entrega Parcial' : 'Entrega Total';
+
+        await prisma.notification.createMany({
+          data: subscribedUsers.map(user => ({
+            type: 'NEW_REEXPEDICION',
+            message: `Nuevo egreso de reexpedición: ${subtipoLabel} - ${etiquetasSeleccionadas.length} etiqueta(s) desde ${movimientoCompleto.location.name}`,
+            userId: user.userId
+          }))
+        });
+      }
 
       return NextResponse.json(movimientoCompleto, { status: 201 });
     }
