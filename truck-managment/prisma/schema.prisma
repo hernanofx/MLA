@@ -54,6 +54,7 @@ model User {
   shipments Shipment[]
   scannedPackages ScannedPackage[]
   activaciones Activacion[]
+  reexpediciones ReexpedicionMovimiento[]
 }
 
 model Provider {
@@ -149,6 +150,7 @@ model Warehouse {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   locations   Location[]
+  reexpediciones ReexpedicionMovimiento[]
 }
 
 model Location {
@@ -163,6 +165,7 @@ model Location {
   movementsFrom PackageMovement[] @relation("FromLocation")
   movementsTo   PackageMovement[] @relation("ToLocation")
   currentPackages Package[]
+  reexpediciones ReexpedicionMovimiento[]
 }
 
 model Inventory {
@@ -497,4 +500,84 @@ model Activacion {
   @@index([trackingNumber])
   @@index([providerId])
   @@index([responsableId])
+}
+
+// ===== MODULO DE REEXPEDICION =====
+
+enum TipoMovimientoReexpedicion {
+  INGRESO
+  EGRESO
+}
+
+enum SubtipoIngresoReexpedicion {
+  RETORNOS
+  PENDIENTE_RETIRO
+  PICKUP
+  INSUMOS_WH
+}
+
+enum SubtipoEgresoReexpedicion {
+  ENTREGA_PARCIAL
+  ENTREGA_TOTAL
+  DEVOLUCION
+  TRANSFERENCIA
+}
+
+enum EstadoReexpedicion {
+  ACTIVO
+  EGRESADO_PARCIAL
+  EGRESADO_TOTAL
+}
+
+model ReexpedicionMovimiento {
+  id                String                      @id @default(cuid())
+  tipo              TipoMovimientoReexpedicion
+  subtipoIngreso    SubtipoIngresoReexpedicion?
+  subtipoEgreso     SubtipoEgresoReexpedicion?
+  
+  warehouseId       String
+  warehouse         Warehouse                   @relation(fields: [warehouseId], references: [id])
+  locationId        String
+  location          Location                    @relation(fields: [locationId], references: [id])
+  
+  // Referencia al movimiento original (para egresos)
+  movimientoOrigenId String?
+  movimientoOrigen   ReexpedicionMovimiento?   @relation("MovimientosRelacionados", fields: [movimientoOrigenId], references: [id])
+  movimientosEgreso  ReexpedicionMovimiento[]  @relation("MovimientosRelacionados")
+  
+  cantidad          Int                         @default(1)
+  cantidadEgresada  Int                         @default(0)
+  estado            EstadoReexpedicion          @default(ACTIVO)
+  
+  notas             String?
+  
+  creadoPorId       String
+  creadoPor         User                        @relation(fields: [creadoPorId], references: [id])
+  
+  etiquetas         ReexpedicionEtiqueta[]
+  
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  
+  @@index([tipo])
+  @@index([warehouseId])
+  @@index([locationId])
+  @@index([estado])
+  @@index([createdAt])
+}
+
+model ReexpedicionEtiqueta {
+  id              String                     @id @default(cuid())
+  movimientoId    String
+  movimiento      ReexpedicionMovimiento     @relation(fields: [movimientoId], references: [id], onDelete: Cascade)
+  
+  trackingNumber  String
+  estado          EstadoReexpedicion         @default(ACTIVO)
+  
+  escaneadoAt     DateTime                   @default(now())
+  egresadoAt      DateTime?
+  
+  @@unique([movimientoId, trackingNumber])
+  @@index([trackingNumber])
+  @@index([estado])
 }
