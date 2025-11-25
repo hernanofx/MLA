@@ -56,9 +56,7 @@ const SUBTIPOS_INGRESO = [
 
 const SUBTIPOS_EGRESO = [
   { value: 'ENTREGA_PARCIAL', label: 'Entrega Parcial' },
-  { value: 'ENTREGA_TOTAL', label: 'Entrega Total' },
-  { value: 'DEVOLUCION', label: 'Devolución' },
-  { value: 'TRANSFERENCIA', label: 'Transferencia' }
+  { value: 'ENTREGA_TOTAL', label: 'Entrega Total' }
 ];
 
 export default function ReexpedicionTab() {
@@ -93,6 +91,10 @@ export default function ReexpedicionTab() {
   });
   const [etiquetasSeleccionadas, setEtiquetasSeleccionadas] = useState<string[]>([]);
   const [movimientoSeleccionado, setMovimientoSeleccionado] = useState<Movimiento | null>(null);
+  const [currentBarcodeEgreso, setCurrentBarcodeEgreso] = useState('');
+  const [showBarcodeFlashEgreso, setShowBarcodeFlashEgreso] = useState(false);
+  const [lastScannedCodeEgreso, setLastScannedCodeEgreso] = useState('');
+  const trackingEgresoInputRef = useRef<HTMLInputElement>(null);
 
   // Estados para el historial
   const [filters, setFilters] = useState({
@@ -251,6 +253,14 @@ export default function ReexpedicionTab() {
     }
   }, [showBarcodeFlash]);
 
+  // Auto-cerrar flash de egreso
+  useEffect(() => {
+    if (showBarcodeFlashEgreso) {
+      const timer = setTimeout(() => setShowBarcodeFlashEgreso(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showBarcodeFlashEgreso]);
+
   // Enviar ingreso
   const handleSubmitIngreso = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -290,6 +300,53 @@ export default function ReexpedicionTab() {
     setMovimientoSeleccionado(movimiento || null);
     setFormEgreso({ ...formEgreso, movimientoOrigenId: movimientoId });
     setEtiquetasSeleccionadas([]);
+  };
+
+  // Manejo de escaneo para egreso
+  const handleBarcodeEgresoScan = (barcode: string) => {
+    const cleanBarcode = barcode.trim();
+    if (!cleanBarcode || !movimientoSeleccionado) return;
+
+    // Buscar la etiqueta por tracking number
+    const etiqueta = movimientoSeleccionado.etiquetas.find(
+      e => e.trackingNumber.toLowerCase() === cleanBarcode.toLowerCase()
+    );
+
+    if (etiqueta) {
+      // Si ya está seleccionada, no hacer nada
+      if (etiquetasSeleccionadas.includes(etiqueta.id)) {
+        alert(`⚠️ La etiqueta "${cleanBarcode}" ya está seleccionada`);
+      } else {
+        // Agregar a seleccionadas
+        setEtiquetasSeleccionadas(prev => [...prev, etiqueta.id]);
+        setLastScannedCodeEgreso(cleanBarcode);
+        setShowBarcodeFlashEgreso(true);
+      }
+    } else {
+      alert(`❌ ETIQUETA NO ENCONTRADA\n\nEl código "${cleanBarcode}" no existe en este movimiento.`);
+    }
+
+    setCurrentBarcodeEgreso('');
+    setTimeout(() => trackingEgresoInputRef.current?.focus(), 100);
+  };
+
+  const handleBarcodeEgresoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.includes('\n') || value.includes('\r')) {
+      e.preventDefault();
+      const cleanValue = value.replace(/[\n\r]/g, '').trim();
+      if (cleanValue) handleBarcodeEgresoScan(cleanValue);
+      return;
+    }
+    setCurrentBarcodeEgreso(value);
+  };
+
+  const handleBarcodeEgresoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (currentBarcodeEgreso.trim()) handleBarcodeEgresoScan(currentBarcodeEgreso.trim());
+    }
   };
 
   // Toggle selección de etiqueta para egreso
@@ -383,7 +440,7 @@ export default function ReexpedicionTab() {
 
   return (
     <div>
-      {/* Flash de código escaneado */}
+      {/* Flash de código escaneado - Ingreso */}
       {showBarcodeFlash && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-pulse">
           <div className="text-center px-8">
@@ -391,6 +448,19 @@ export default function ReexpedicionTab() {
             <p className="text-2xl font-medium text-white mb-4">Código Escaneado</p>
             <p className="text-6xl font-mono font-bold text-white mb-8 tracking-wider">{lastScannedCode}</p>
             <p className="text-3xl font-semibold text-white">Etiqueta #{scannedCodes.length}</p>
+            <p className="text-lg text-gray-300 mt-4">Escanea la siguiente o presiona ESC</p>
+          </div>
+        </div>
+      )}
+
+      {/* Flash de código escaneado - Egreso */}
+      {showBarcodeFlashEgreso && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-pulse">
+          <div className="text-center px-8">
+            <CheckCircle className="h-32 w-32 text-purple-400 mx-auto animate-bounce mb-8" />
+            <p className="text-2xl font-medium text-white mb-4">Etiqueta Seleccionada</p>
+            <p className="text-6xl font-mono font-bold text-white mb-8 tracking-wider">{lastScannedCodeEgreso}</p>
+            <p className="text-3xl font-semibold text-white">Total: {etiquetasSeleccionadas.length}</p>
             <p className="text-lg text-gray-300 mt-4">Escanea la siguiente o presiona ESC</p>
           </div>
         </div>
@@ -666,6 +736,25 @@ export default function ReexpedicionTab() {
                         Seleccionar todas
                       </button>
                     </div>
+                    
+                    {/* Campo de escaneo para seleccionar etiquetas */}
+                    <div className="mb-4 bg-white rounded-lg p-4 border-2 border-purple-200">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        🔍 Escanear código para seleccionar
+                      </label>
+                      <input
+                        ref={trackingEgresoInputRef}
+                        type="text"
+                        value={currentBarcodeEgreso}
+                        onChange={handleBarcodeEgresoInputChange}
+                        onKeyDown={handleBarcodeEgresoKeyDown}
+                        placeholder="Escanea un código de barras..."
+                        className="w-full px-4 py-2 text-xl border-2 border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                      />
+                      <p className="text-xs text-gray-600 mt-2">
+                        Al escanear, se seleccionará automáticamente la etiqueta correspondiente
+                      </p>
+                    </div>
                     <div className="max-h-60 overflow-y-auto space-y-2">
                       {movimientoSeleccionado.etiquetas.map(etiqueta => (
                         <div
@@ -766,7 +855,7 @@ export default function ReexpedicionTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Tracking Number</label>
+                  <label className="block text-sm font-medium text-gray-700">Código</label>
                   <input
                     type="text"
                     value={filters.trackingNumber}
