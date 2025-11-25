@@ -88,6 +88,19 @@ export default function InventoryTab() {
   const [selectedInventory, setSelectedInventory] = useState<Inventory | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
+  // Estados para modal de advertencia de ubicación ocupada
+  const [showLocationWarning, setShowLocationWarning] = useState(false);
+  const [locationContents, setLocationContents] = useState<{
+    hasContents: boolean;
+    details: {
+      inventoryCount: number;
+      packagesCount: number;
+      reexpedicionCount: number;
+      totalItems: number;
+    };
+  } | null>(null);
+  const [pendingFormData, setPendingFormData] = useState<typeof formData & { scannedCodes: string[] } | null>(null);
+
   useEffect(() => {
     fetchInventories(1);
     setCurrentPage(1);
@@ -316,17 +329,51 @@ export default function InventoryTab() {
     setShowForm(false);
   };
 
+  // Verificar si la ubicación tiene contenido
+  const checkLocationContents = async (locationId: string) => {
+    try {
+      const res = await fetch(`/api/locations/${locationId}/check-contents`);
+      if (!res.ok) throw new Error('Error al verificar ubicación');
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error('Error checking location:', error);
+      return { hasContents: false, details: null };
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Verificar si la ubicación tiene contenido
+    const contents = await checkLocationContents(formData.locationId);
+    if (contents.hasContents) {
+      // Mostrar modal de advertencia
+      setLocationContents(contents);
+      setPendingFormData({ ...formData, scannedCodes: [...scannedCodes] });
+      setShowLocationWarning(true);
+      return;
+    }
+
+    // Si no hay contenido, proceder directamente
+    await submitInventory();
+  };
+
+  // Función para enviar la devolución
+  const submitInventory = async () => {
     try {
+      const dataToSend = pendingFormData || formData;
       const res = await fetch('/api/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
       if (res.ok) {
         resetForm();
         fetchInventories(currentPage);
+        setShowLocationWarning(false);
+        setPendingFormData(null);
+        setLocationContents(null);
       } else {
         const error = await res.json();
         alert(`Error al crear la devolución: ${error.error || 'Error desconocido'}`);
@@ -966,6 +1013,73 @@ export default function InventoryTab() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de advertencia de ubicación ocupada */}
+      {showLocationWarning && locationContents && (
+        <div className="fixed inset-0 z-[9999] overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75"></div>
+            <div className="relative bg-white rounded-lg max-w-lg w-full p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                  <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="ml-4 text-lg font-medium text-gray-900">Ubicación Ocupada</h3>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-sm text-gray-700 mb-4">
+                  La ubicación seleccionada ya contiene elementos:
+                </p>
+                <div className="bg-gray-50 rounded-md p-4 space-y-2">
+                  {locationContents.details.inventoryCount > 0 && (
+                    <p className="text-sm text-gray-600">
+                      📦 <strong>{locationContents.details.inventoryCount}</strong> registro(s) de devoluciones
+                    </p>
+                  )}
+                  {locationContents.details.packagesCount > 0 && (
+                    <p className="text-sm text-gray-600">
+                      📋 <strong>{locationContents.details.packagesCount}</strong> paquete(s)
+                    </p>
+                  )}
+                  {locationContents.details.reexpedicionCount > 0 && (
+                    <p className="text-sm text-gray-600">
+                      🔄 <strong>{locationContents.details.reexpedicionCount}</strong> movimiento(s) de reexpedición
+                    </p>
+                  )}
+                  <p className="text-sm font-medium text-gray-900 pt-2 border-t border-gray-200">
+                    Total: {locationContents.details.totalItems} elemento(s)
+                  </p>
+                </div>
+                <p className="text-sm text-gray-700 mt-4">
+                  ¿Desea continuar con el ingreso en esta ubicación o cambiar a otra?
+                </p>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowLocationWarning(false);
+                    setPendingFormData(null);
+                    setLocationContents(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cambiar Ubicación
+                </button>
+                <button
+                  onClick={submitInventory}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  Continuar de Todos Modos
+                </button>
               </div>
             </div>
           </div>
