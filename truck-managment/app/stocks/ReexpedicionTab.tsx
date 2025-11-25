@@ -796,20 +796,22 @@ export default function ReexpedicionTab() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subtipo</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Almacén</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ubicación</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Subtipo</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Almacén</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">Ubicación</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cant.</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Códigos</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Notas</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Estado</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center">
+                      <td colSpan={10} className="px-4 py-8 text-center">
                         <div className="flex items-center justify-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                         </div>
@@ -817,7 +819,7 @@ export default function ReexpedicionTab() {
                     </tr>
                   ) : movimientos.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-500">
+                      <td colSpan={10} className="px-4 py-8 text-center text-sm text-gray-500">
                         No hay movimientos registrados
                       </td>
                     </tr>
@@ -825,62 +827,93 @@ export default function ReexpedicionTab() {
                     movimientos.map((mov) => (
                       <tr
                         key={mov.id}
-                        className="hover:bg-gray-50 cursor-pointer"
-                        onClick={() => {
-                          setSelectedMovimiento(mov);
-                          setShowDetailModal(true);
-                        }}
+                        className="hover:bg-gray-50"
                       >
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatDate(mov.createdAt).split(',')[0]}
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{formatDate(mov.createdAt).split(',')[0]}</span>
+                            <span className="text-xs text-gray-500">{formatDate(mov.createdAt).split(',')[1]}</span>
+                          </div>
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        <td className="px-3 py-4 whitespace-nowrap text-sm">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             mov.tipo === 'INGRESO' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
                           }`}>
-                            {mov.tipo === 'INGRESO' ? '↓ Ingreso' : '↑ Egreso'}
+                            {mov.tipo === 'INGRESO' ? '↓' : '↑'}
+                            <span className="ml-1 hidden sm:inline">{mov.tipo === 'INGRESO' ? 'Ing' : 'Egr'}</span>
                           </span>
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
                           {mov.subtipoIngreso
                             ? SUBTIPOS_INGRESO.find(s => s.value === mov.subtipoIngreso)?.label
                             : SUBTIPOS_EGRESO.find(s => s.value === mov.subtipoEgreso)?.label}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                           {mov.warehouse.name}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden xl:table-cell">
                           {mov.location.name}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                           {mov.cantidad}
                           {mov.cantidadEgresada > 0 && (
-                            <span className="text-xs text-gray-500 ml-1">
+                            <span className="text-xs text-gray-500 block">
                               (-{mov.cantidadEgresada})
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
+                        <td className="px-3 py-4 text-sm text-gray-500">
+                          <div className="max-w-xs">
+                            {mov.etiquetas.length > 0 ? (
+                              <div className="space-y-1">
+                                <div className="font-mono text-xs bg-gray-50 px-2 py-1 rounded truncate">
+                                  {mov.etiquetas[0].trackingNumber}
+                                </div>
+                                {mov.etiquetas.length > 1 && (
+                                  <div className="text-xs text-gray-400">
+                                    +{mov.etiquetas.length - 1} más
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-xs">Sin códigos</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 text-sm text-gray-500 max-w-xs hidden sm:table-cell">
+                          {mov.notas ? (
+                            <div className="truncate" title={mov.notas}>
+                              {mov.notas}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-4 whitespace-nowrap hidden lg:table-cell">
                           {getEstadoBadge(mov.estado)}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => {
-                              setSelectedMovimiento(mov);
-                              setShowDetailModal(true);
-                            }}
-                            className="text-indigo-600 hover:text-indigo-900 mr-3"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          {session?.user?.role === 'admin' && (
+                        <td className="px-3 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center space-x-2">
                             <button
-                              onClick={() => handleDelete(mov.id)}
-                              className="text-red-600 hover:text-red-900"
+                              onClick={() => {
+                                setSelectedMovimiento(mov);
+                                setShowDetailModal(true);
+                              }}
+                              className="text-indigo-600 hover:text-indigo-900 p-1"
+                              title="Ver detalle"
                             >
-                              <X className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </button>
-                          )}
+                            {session?.user?.role === 'admin' && (
+                              <button
+                                onClick={() => handleDelete(mov.id)}
+                                className="text-red-600 hover:text-red-900 p-1"
+                                title="Eliminar"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
