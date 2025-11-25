@@ -25,6 +25,7 @@ interface Preferences {
   assignProvider: boolean
   unassignProvider: boolean
   newShipment: boolean
+  newReexpedicion: boolean
 }
 
 export default function NotificationsPage() {
@@ -43,7 +44,8 @@ export default function NotificationsPage() {
     editZone: false,
     assignProvider: false,
     unassignProvider: false,
-    newShipment: false
+    newShipment: false,
+    newReexpedicion: false
   })
   const [activeTab, setActiveTab] = useState<'notifications' | 'preferences'>('notifications')
   const [error, setError] = useState('')
@@ -150,6 +152,8 @@ export default function NotificationsPage() {
         return '➖'
       case 'NEW_SHIPMENT':
         return '📦'
+      case 'NEW_REEXPEDICION':
+        return '🔄'
       default:
         return '🔔'
     }
@@ -425,6 +429,19 @@ export default function NotificationsPage() {
                         />
                         <label htmlFor="unassignProvider" className="ml-3 text-sm font-medium text-gray-700">
                           ➖ Desasignaciones de Proveedores de Zonas
+                        </label>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          id="newReexpedicion"
+                          type="checkbox"
+                          checked={preferences.newReexpedicion}
+                          onChange={(e) => setPreferences({ ...preferences, newReexpedicion: e.target.checked })}
+                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="newReexpedicion" className="ml-3 text-sm font-medium text-gray-700">
+                          🔄 Nuevos Movimientos de Reexpedición
                         </label>
                       </div>
                     </div>
