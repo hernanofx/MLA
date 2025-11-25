@@ -83,21 +83,22 @@ Se ha implementado completamente el módulo de **Reexpedición** como un submód
 - **EGRESADO_PARCIAL**: Algunas etiquetas fueron egresadas
 - **EGRESADO_TOTAL**: Todas las etiquetas fueron egresadas
 
-## 📝 Pendiente: Migración de Base de Datos
+## 📝 Estado de la Base de Datos
 
-⚠️ **IMPORTANTE**: La migración de Prisma no pudo ejecutarse porque la base de datos no estaba disponible. Debes ejecutar:
+⚠️ **IMPORTANTE**: La migración de Prisma (`migrate dev`) no pudo ejecutarse porque la base de datos en Railway no está accesible en este momento (Error P1001).
 
+✅ **Solución Temporal Aplicada**:
+Se ejecutó `npx prisma generate`.
+- Esto actualizó el cliente de Prisma localmente.
+- Los errores de TypeScript han desaparecido.
+- El código compila y se puede seguir desarrollando.
+
+❌ **Pendiente**:
+Cuando la conexión a la base de datos se restablezca, debes ejecutar:
 ```bash
-cd /home/hernan/proyectos/mla/truck-managment
 npx prisma migrate dev --name add_reexpedicion_module
 ```
-
-Esto creará las siguientes tablas:
-- `ReexpedicionMovimiento`
-- `ReexpedicionEtiqueta`
-- Enums: `TipoMovimientoReexpedicion`, `SubtipoIngresoReexpedicion`, `SubtipoEgresoReexpedicion`, `EstadoReexpedicion`
-
-Después de ejecutar la migración, el cliente de Prisma se regenerará automáticamente con los nuevos tipos.
+Esto creará las tablas reales en la base de datos.
 
 ## 🎨 Diseño UI/UX
 
